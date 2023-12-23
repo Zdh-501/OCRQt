@@ -1,0 +1,11 @@
+{
+    "driver": "ODBC Driver 17 for SQL Server",
+    "server": "TUTU",
+    "database": "Test",
+    "uid": "sa",
+    "pwd": "abcd123456"
+}
+
+
+
+
