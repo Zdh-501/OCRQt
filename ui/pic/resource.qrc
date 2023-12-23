@@ -1,0 +1,27 @@
+<RCC>
+  <qresource prefix="pic">
+    <file>background_target_border.png</file>
+    <file>btn_status_disabled.png</file>
+    <file>background_info.png</file>
+    <file>logo.ico</file>
+    <file>background_mask.png</file>
+    <file>background.png</file>
+    <file>background_camera_border.png</file>
+    <file>background_image.png</file>
+    <file>background_picture_border.png</file>
+    <file>background_reco_border.png</file>
+    <file>background_result.png</file>
+    <file>background_video_border.png</file>
+    <file>btn_camera.png</file>
+    <file>btn_camera_hover.png</file>
+    <file>btn_home.png</file>
+    <file>btn_image.png</file>
+    <file>btn_image_hover.png</file>
+    <file>btn_info.png</file>
+    <file>btn_info_hover.png</file>
+    <file>btn_status_off.png</file>
+    <file>btn_status_on.png</file>
+    <file>btn_video.png</file>
+    <file>btn_video_hover.png</file>
+  </qresource>
+</RCC>
