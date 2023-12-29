@@ -12,6 +12,7 @@ from ui.impl.PicturePage import PicturePage
 from ui.impl.PicturePage2 import PicturePage2
 from ui.impl.RecordPage import RecordPage
 from ui.impl.TaskPage import TaskPage
+from ui.impl.OCRConfigDialog import *
 class MainWindow(QWidget, Ui_MainPage):
     def __init__(self):
         super().__init__()
@@ -33,6 +34,8 @@ class MainWindow(QWidget, Ui_MainPage):
         self.task_page.itemDetailsChanged.connect(self.picture2_page.updateTextBrowser)
         # 连接信号和槽切换主界面
         self.task_page.switchToPage.connect(self.switchPage)
+        # 连接信号和槽任务界面模型修改
+        self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
 
         self.pages = [self.task_page,self.picture_page,self.picture2_page,self.record_page]
 
@@ -46,6 +49,12 @@ class MainWindow(QWidget, Ui_MainPage):
         self.pushButton_3.clicked.connect(self.showTestPage)
         self.pushButton_4.clicked.connect(self.showRecordPage)
 
+    def on_select_button_clicked(self):
+        # 弹出配置对话框并更新 PicturePage2 实例
+        dialog = OCRConfigDialog(self)
+        if dialog.exec_():
+            config = dialog.getConfig()
+            self.picture2_page.update_ocr_config(config)
     def switchPage(self, pageIndex):
         self.stackedWidget.setCurrentIndex(pageIndex)
     def showTaskPage(self):

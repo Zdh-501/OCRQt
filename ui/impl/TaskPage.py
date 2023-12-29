@@ -17,6 +17,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
         # 假设您的按钮叫做 pushButton
         self.confirm_Button.clicked.connect(self.onPushButtonClicked)
+        #self.select_Button.clicked.connet()
 
 
         # 设置选中行为为整行选中
@@ -50,6 +51,8 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         for task in tasks:
             self.addTask(task)
 
+    def select_button(self):
+        return self.select_Button
     def onPushButtonClicked(self):
         # 获取表格中选中行的“检测数量”
         selected_indexes = self.tableWidget.selectionModel().selectedRows()

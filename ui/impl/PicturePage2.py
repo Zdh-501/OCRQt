@@ -25,12 +25,15 @@ class PicturePage2(QtWidgets.QWidget, Ui_PicturePage2):
         super(PicturePage2, self).__init__()
         self.setupUi(self)
 
+        # 初始化 PaddleOCR 配置
+        self.det_model_dir = r"D:/Paddle/ResNet50_1220"
+        self.rec_model_dir = "D:/Paddle/rec"
+        self.use_angle_cls = True
+        self.det_db_unclip_ratio = 2.8
+        self.lang = 'en'
+
         # 创建 PaddleOCR 实例
-        self.ocr = PaddleOCR(det_model_dir=r"D:/Paddle/ResNet50_1220",
-                        rec_model_dir="D:/Paddle/rec",
-                        use_angle_cls=True,
-                        det_db_unclip_ratio=2.8,
-                        lang='en')
+        self.initialize_ocr()
 
         self.current_label_index = 0
         self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号
@@ -65,6 +68,24 @@ class PicturePage2(QtWidgets.QWidget, Ui_PicturePage2):
 
         self.camera_worker.start()
 
+    def initialize_ocr(self):
+        # 使用当前配置创建 PaddleOCR 实例
+        self.ocr = PaddleOCR(det_model_dir=self.det_model_dir,
+                             rec_model_dir=self.rec_model_dir,
+                             use_angle_cls=self.use_angle_cls,
+                             det_db_unclip_ratio=self.det_db_unclip_ratio,
+                             lang=self.lang)
+
+    def update_ocr_config(self, config):
+        # 更新配置
+        self.det_model_dir = config.get('det_model_dir', self.det_model_dir)
+        self.rec_model_dir = config.get('rec_model_dir', self.rec_model_dir)
+        self.use_angle_cls = config.get('use_angle_cls', self.use_angle_cls)
+        self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
+        self.lang = config.get('lang', self.lang)
+
+        # 重新初始化 PaddleOCR 实例
+        self.initialize_ocr()
     def updateTextBrowser(self, item_details):
         # 将字典转换为字符串
         details_str = '\n'.join(f"{key}: {value}" for key, value in item_details.items())
