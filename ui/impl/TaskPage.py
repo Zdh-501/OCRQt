@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication
 
-from ui.layout.UI_TaskPage2 import Ui_TaskPage
+from ui.layout.UI_TaskPage import Ui_TaskPage
 from PyQt5 import QtCore, QtWidgets
 
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):

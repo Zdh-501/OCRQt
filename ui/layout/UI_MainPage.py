@@ -59,5 +59,5 @@ class Ui_MainPage(object):
         MainPage.setWindowTitle(_translate("MainPage", "MainPage"))
         self.pushButton_1.setText(_translate("MainPage", "任务列表"))
         self.pushButton_2.setText(_translate("MainPage", "检测"))
-        self.pushButton_3.setText(_translate("MainPage", "测试界面"))
+        self.pushButton_3.setText(_translate("MainPage", "检测界面"))
         self.pushButton_4.setText(_translate("MainPage", "检测记录"))

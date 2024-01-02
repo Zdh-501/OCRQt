@@ -45,8 +45,8 @@ class MainWindow(QWidget, Ui_MainPage):
         #连接按钮
 
         self.pushButton_1.clicked.connect(self.showTaskPage)
-        self.pushButton_2.clicked.connect(self.showPicturePage)
-        self.pushButton_3.clicked.connect(self.showTestPage)
+        self.pushButton_2.clicked.connect(self.showTestPage)
+        self.pushButton_3.clicked.connect(self.showPicturePage)
         self.pushButton_4.clicked.connect(self.showRecordPage)
 
     def on_select_button_clicked(self):
@@ -60,10 +60,10 @@ class MainWindow(QWidget, Ui_MainPage):
     def showTaskPage(self):
         self.stackedWidget.setCurrentWidget(self.task_page)
     def showPicturePage(self):
-        self.stackedWidget.setCurrentWidget(self.picture_page)
+        self.stackedWidget.setCurrentWidget(self.picture2_page)
 
     def showTestPage(self):
-        self.stackedWidget.setCurrentWidget(self.picture2_page)
+        self.stackedWidget.setCurrentWidget(self.picture_page)
 
     def showRecordPage(self):
         self.stackedWidget.setCurrentWidget(self.record_page)
