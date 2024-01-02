@@ -83,7 +83,8 @@ class RecordPage(QtWidgets.QWidget, Ui_RecordPage):
                             f"生产批号: {result[3]}\n"
                             f"生产日期: {result[4]}\n"
                             f"有效期至: {result[5]}\n"
-                            f"检测结果: {result[6]}")
+                            f"检测结果: {result[6]}\n"
+                            f"完成时间: {result[7]}")
                     # 设置字体大小
                     font = QFont()
                     font.setPointSize(12)  # 设置字体大小为 12，您可以根据需要调整这个值
