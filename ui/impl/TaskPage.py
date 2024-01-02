@@ -73,9 +73,15 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             # 发射信号以通知 MainWindow 切换到第三页
             self.switchToPage.emit(2)  # 页面索引从0开始，第三页的索引是2
     def addTask(self, task_data):
+        # 限制显示的行数为10
+        while self.tableWidget.rowCount() >= 10:
+            self.tableWidget.removeRow(0)  # 删除最旧的一行
+
         row_position = self.tableWidget.rowCount()
         self.tableWidget.insertRow(row_position)  # 插入新行
 
+        # 设置行高
+        self.tableWidget.setRowHeight(row_position, 100)  # 示例行高为100
         # 根据字段顺序添加数据到表格中
         col_order = ['产线', '产品名称', '批号', '物料类型', '生产日期', '有效期至', '检测数量', '单/双面检测','是否完成']
         for col, field in enumerate(col_order):

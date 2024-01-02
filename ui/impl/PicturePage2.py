@@ -86,17 +86,39 @@ class PicturePage2(QtWidgets.QWidget, Ui_PicturePage2):
 
         # 重新初始化 PaddleOCR 实例
         self.initialize_ocr()
+
     def updateTextBrowser(self, item_details):
-        # 将字典转换为字符串
-        details_str = '\n'.join(f"{key}: {value}" for key, value in item_details.items())
 
-        # 设置 textBrowser_3 的字体
-        font = self.textBrowser_3.font()  # 获取当前字体
-        font.setPointSize(12)  # 设置字体大小为 12，或者您希望的其他大小
-        self.textBrowser_3.setFont(font)
+        # 清除旧数据
+        self.tableWidget_2.clearContents()
+        self.tableWidget_2.setRowCount(len(item_details))
 
-        # 更新 textBrowser_3 的内容
-        self.textBrowser_3.setText(details_str)
+        # 设置表格列数和表头
+        self.tableWidget_2.setColumnCount(2)
+        self.tableWidget_2.setHorizontalHeaderLabels(["属性", "值"])
+
+        # 填充数据
+        for row, (key, value) in enumerate(item_details.items()):
+            self.tableWidget_2.setItem(row, 0,  QtWidgets.QTableWidgetItem(key))
+            self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(value))
+
+        # 调整列宽以自适应内容
+        self.tableWidget_2.resizeColumnsToContents()
+
+        # 设置行高和字体
+        font = self.tableWidget_2.font()
+        font.setPointSize(12)
+        self.tableWidget_2.setFont(font)
+        # 设置行高
+        new_row_height = 80  # 或者任何您想要的值
+        for row in range(self.tableWidget_2.rowCount()):
+            self.tableWidget_2.setRowHeight(row, new_row_height)
+
+        # 使第一列根据内容自动调整宽度
+        self.tableWidget_2.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        # 使第二列填满剩余宽度
+        self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+
     def setLabelsAndPages(self, count):
         self.progressBar.setSegmentCount(count)
         # 清除当前的所有 pages 和 labels
@@ -242,31 +264,10 @@ class PicturePage2(QtWidgets.QWidget, Ui_PicturePage2):
                 self.camera_worker.stop()
                 self.camera_worker.wait()
 
-    def take_photos1(self):
-        filenames, _ = QFileDialog.getOpenFileNames(self, "Select Images", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
-        if not filenames:
-            return
-
-        for i, filename in enumerate(filenames[:8]):
-            pixmap = QPixmap(filename)
-            self.labels[i].setPixmap(pixmap.scaled(self.labels[i].size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            self.labels[i].setScaledContents(True)
-            # 如果 label 显示了图片，将对应的 pushButton 颜色设置为绿色
-            if not pixmap.isNull():
-                getattr(self, f'pushButton_{i + 1}').setStyleSheet('background-color: green;')
 
     def get_workstation_number(self, username):
-        # 用您的数据库连接信息替换以下内容
-        connection = dbConnect()
-
-        try:
-            with connection.cursor() as cursor:
-                sql = "SELECT number FROM dbo.users WHERE username = ?"
-                cursor.execute(sql, (username,))
-                result = cursor.fetchone()
-                return result['number'] if result else None
-        finally:
-            connection.close()
+       #todo
+        pass
 
 
 #创建应用实例和窗口，然后运行

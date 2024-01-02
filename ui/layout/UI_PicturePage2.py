@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# PicturePage implementation generated from reading ui file 'UI_PicturePage2.ui'
+# PicturePage2 implementation generated from reading ui file 'UI_PicturePage2.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -47,12 +47,12 @@ class ClickableProgressBar(QtWidgets.QProgressBar):
 
         painter.end()
 class Ui_PicturePage2(object):
-    def setupUi(self, PicturePage):
-        PicturePage.setObjectName("PicturePage")
-        PicturePage.resize(989, 641)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(PicturePage)
+    def setupUi(self, PicturePage2):
+        PicturePage2.setObjectName("PicturePage2")
+        PicturePage2.resize(987, 679)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(PicturePage2)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.widget_1 = QtWidgets.QWidget(PicturePage)
+        self.widget_1 = QtWidgets.QWidget(PicturePage2)
         self.widget_1.setObjectName("widget_1")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.widget_1)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -70,7 +70,7 @@ class Ui_PicturePage2(object):
         self.horizontalLayout_2.addWidget(self.pushButton)
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
         self.horizontalLayout.addWidget(self.widget_1)
-        self.widget_2 = QtWidgets.QWidget(PicturePage)
+        self.widget_2 = QtWidgets.QWidget(PicturePage2)
         self.widget_2.setObjectName("widget_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget_2)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -94,17 +94,13 @@ class Ui_PicturePage2(object):
         self.textBrowser_2.setFont(font)
         self.textBrowser_2.setObjectName("textBrowser_2")
         self.verticalLayout_2.addWidget(self.textBrowser_2)
-        self.textBrowser_3 = QtWidgets.QTextBrowser(self.widget_7)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.textBrowser_3.sizePolicy().hasHeightForWidth())
-        self.textBrowser_3.setSizePolicy(sizePolicy)
-        self.textBrowser_3.setMinimumSize(QtCore.QSize(0, 30))
-        self.textBrowser_3.setObjectName("textBrowser_3")
-        self.verticalLayout_2.addWidget(self.textBrowser_3)
+        self.tableWidget_2 = QtWidgets.QTableWidget(self.widget_7)
+        self.tableWidget_2.setObjectName("tableWidget_2")
+        self.tableWidget_2.setColumnCount(0)
+        self.tableWidget_2.setRowCount(0)
+        self.verticalLayout_2.addWidget(self.tableWidget_2)
         self.verticalLayout_2.setStretch(0, 1)
-        self.verticalLayout_2.setStretch(1, 10)
+        self.verticalLayout_2.setStretch(1, 5)
         self.horizontalLayout_4.addWidget(self.widget_7)
         self.horizontalLayout_4.setStretch(0, 2)
         self.verticalLayout.addWidget(self.widget_3)
@@ -160,31 +156,26 @@ class Ui_PicturePage2(object):
         self.textBrowser_4.setObjectName("textBrowser_4")
         self.horizontalLayout_6.addWidget(self.textBrowser_4)
         self.verticalLayout.addWidget(self.widget_5)
-        self.verticalLayout.setStretch(0, 2)
+        self.verticalLayout.setStretch(0, 3)
         self.verticalLayout.setStretch(1, 1)
         self.verticalLayout.setStretch(2, 4)
         self.horizontalLayout.addWidget(self.widget_2)
         self.horizontalLayout.setStretch(0, 5)
         self.horizontalLayout.setStretch(1, 2)
 
-        self.retranslateUi(PicturePage)
+        self.retranslateUi(PicturePage2)
         self.stackedWidget.setCurrentIndex(-1)
-        QtCore.QMetaObject.connectSlotsByName(PicturePage)
+        QtCore.QMetaObject.connectSlotsByName(PicturePage2)
 
-    def retranslateUi(self, PicturePage):
+    def retranslateUi(self, PicturePage2):
         _translate = QtCore.QCoreApplication.translate
-        PicturePage.setWindowTitle(_translate("PicturePage", "PicturePage"))
-        self.pushButton.setText(_translate("PicturePage", "缩略图"))
-        self.textBrowser_2.setHtml(_translate("PicturePage", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        PicturePage2.setWindowTitle(_translate("PicturePage2", "PicturePage2"))
+        self.pushButton.setText(_translate("PicturePage2", "缩略图"))
+        self.textBrowser_2.setHtml(_translate("PicturePage2", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:9pt;\">产品工位：</span></p></body></html>"))
-        self.textBrowser_3.setHtml(_translate("PicturePage", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'SimSun\'; font-size:6pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">当前任务：</span></p></body></html>"))
-        self.takePictureButton.setText(_translate("PicturePage", "启动"))
-        self.skipButton.setText(_translate("PicturePage", "拍照"))
-        self.startDetectButton.setText(_translate("PicturePage", "开始检测"))
+        self.takePictureButton.setText(_translate("PicturePage2", "启动"))
+        self.skipButton.setText(_translate("PicturePage2", "拍照"))
+        self.startDetectButton.setText(_translate("PicturePage2", "开始检测"))
