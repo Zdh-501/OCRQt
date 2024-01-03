@@ -49,7 +49,7 @@ class PicturePage2(QtWidgets.QWidget, Ui_PicturePage2):
         if workstation_number is not None:
             self.textBrowser_2.setText(f"生产工位: {workstation_number}")
         else:
-            self.textBrowser_2.setText("无")
+            self.textBrowser_2.setText("生产工位：")
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
         mphdc.UpdateCameraList(self.camera)
