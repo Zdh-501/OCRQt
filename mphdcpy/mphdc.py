@@ -3,10 +3,10 @@ import enum
 from typing import Any
 import numpy as np
 
-mphdcapi=ct.CDLL('C:\Program Files (x86)\MPHdc SDK V2.23\\06_Demo\Release\cpp\lib\\x64\MPHdc_API.dll')
+mphdcapi=ct.CDLL('C:\Program Files (x86)\MPHdc SDK V2.256\\06_Demo\Release\cpp\lib\\x64\MPHdc_API.dll')
 
 #region CONST
-VISION=2.23
+VISION=2.256
 PotoMericImages=['uv','ir','b','g','r','unimax','mid','minmax','max','min','nx2+ny2','nx+ny','nz','ny','nx','kd']
 GetDeflectometryImages=['b','g','r','phasey','phasex','sratio','specular','diffuse','gray']
 #endregion
