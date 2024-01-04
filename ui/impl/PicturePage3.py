@@ -364,6 +364,13 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
             self.stackedWidget.setCurrentIndex(next_index)
             self.current_label_index += 1
+            if self.current_label_index < self.count:
+                self.camera_worker.start()
+            else:
+                self.current_label_index = 0
+                if self.camera_worker.isRunning():
+                    self.camera_worker.stop()
+                    self.camera_worker.wait()
         else:
             # "单面"检测类型的处理保持不变
             self.current_label_index += 1
