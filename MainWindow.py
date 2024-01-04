@@ -30,7 +30,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.picture2_page=PicturePage3()
         self.record_page=RecordPage()
         # 连接信号和槽
-        #self.task_page.detectionCountChanged.connect(self.picture_page.setLabelsAndPages)
+        self.task_page.detectionCountChanged.connect(self.picture_page.setLabelsAndPages)
         self.task_page.detectionCountAndTypeChanged.connect(self.picture2_page.setLabelsAndPages)
         # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage2 的槽
         self.task_page.itemDetailsChanged.connect(self.picture2_page.updateTextBrowser)

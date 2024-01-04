@@ -9,6 +9,8 @@ from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QModelIndex, QEvent, Q_ARG, QBu
 from pyqt5_plugins.examplebutton import QtWidgets
 import re
 from PIL import Image
+from pyqt5_plugins.examplebuttonplugin import QtGui
+
 from mphdcpy import mphdc
 import cv2 as cv
 import ctypes as ct
@@ -24,7 +26,8 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
     def __init__(self):
         super(PicturePage3, self).__init__()
         self.setupUi(self)
-
+        self.count = 0  # 初始化 count 属性
+        self.detection_type="单面"  #初始化 detection_type 属性
         # 初始化 PaddleOCR 配置
         self.det_model_dir = r"D:/Paddle/ResNet50_1220"
         self.rec_model_dir = "D:/Paddle/rec"
@@ -39,7 +42,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号
         self.isCameraStarted = False  # 相机是否已启动的标志
         self.captured_images = []  # 用于存储捕获的图像
-
+        #todo skipButton要补充正反面逻辑
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
         self.takePictureButton.clicked.connect(self.start_camera_view)
         self.skipButton.clicked.connect(self.take_photo_and_skip)
@@ -120,34 +123,59 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
     def setLabelsAndPages(self, count, detection_type):
-
+        self.count = count  # 更新类属性
         # 根据检测类型显示或隐藏第二个进度条
         if detection_type == "单面":
             self.progressBar_2.hide()
-            print(detection_type)
+
         elif detection_type == "双面":
+            self.detection_type="双面"
             self.progressBar_2.show()
-            print(detection_type)
+
         self.progressBar.setSegmentCount(count)
+        self.progressBar_2.setSegmentCount(count)
         # 清除当前的所有 pages 和 labels
         while self.stackedWidget.count() > 0:
             widget_to_remove = self.stackedWidget.widget(0)
             self.stackedWidget.removeWidget(widget_to_remove)
             widget_to_remove.deleteLater()
-        self.labels = []
-        self.pages = []
+        self.labels_1 = []
+        self.labels_2 = []
+        self.pages_1 = []
+        self.pages_2 = []
         for i in range(count):
             # 创建 label
-            label = QtWidgets.QLabel(f"Label {i + 1}")
+            label = QtWidgets.QLabel(f"产品 {i + 1}正面")
             label.setAlignment(QtCore.Qt.AlignCenter)  # 设置 label 文字居中显示
-            self.labels.append(label)
+            # 创建并设置字体
+            font = QtGui.QFont()
+            font.setPointSize(16)  # 设置字体大小为12点
+            label.setFont(font)
+            self.labels_1.append(label)
             # 创建 page
             page = QtWidgets.QWidget()
             layout = QtWidgets.QVBoxLayout()  # 创建 QVBoxLayout
             layout.addWidget(label)  # 将 label 添加到 QVBoxLayout
             page.setLayout(layout)  # 设置 page 的布局
-            self.pages.append(page)
+            self.pages_1.append(page)
+            # 将 page 添加到 QStackedWidget
+            self.stackedWidget.addWidget(page)
 
+        for i in range(count):
+            # 创建 label
+            label = QtWidgets.QLabel(f"产品{i + 1}反面")
+            label.setAlignment(QtCore.Qt.AlignCenter)  # 设置 label 文字居中显示
+            # 创建并设置字体
+            font = QtGui.QFont()
+            font.setPointSize(16)  # 设置字体大小为12点
+            label.setFont(font)
+            self.labels_2.append(label)
+            # 创建 page
+            page = QtWidgets.QWidget()
+            layout = QtWidgets.QVBoxLayout()  # 创建 QVBoxLayout
+            layout.addWidget(label)  # 将 label 添加到 QVBoxLayout
+            page.setLayout(layout)  # 设置 page 的布局
+            self.pages_2.append(page)
             # 将 page 添加到 QStackedWidget
             self.stackedWidget.addWidget(page)
 
@@ -158,15 +186,47 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.progressBar.setMinimum(0)
         self.progressBar.clickedValue.connect(self.onProgressBarClicked)
 
+        self.progressBar_2.setMaximum(count)
+        self.progressBar_2.setMinimum(0)
+        self.progressBar_2.clickedValue.connect(self.onProgressBarClicked)
+
+    def isPhotoDisplayedOnLabel(self, label):
+        # 检查label是否显示了照片，这需要根据您的应用程序具体实现
+        # 例如，您可能会检查label的pixmap是否非空
+        return label.pixmap() is not None and not label.pixmap().isNull()
     def onProgressBarClicked(self, value):
-        # 计算点击的是第几份
+        sender = self.sender()
         whichPart = value
 
-        # 设置当前索引为点击的部分
-        self.stackedWidget.setCurrentIndex(whichPart)
+        if self.detection_type == "双面":
+            if sender == self.progressBar:
+                # 第一个进度条被点击
+                if whichPart > 0 and not self.isPhotoDisplayedOnLabel(self.labels_2[whichPart - 1]):
+                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的反面拍摄")
+                    return
+                self.stackedWidget.setCurrentIndex(whichPart)
+            elif sender == self.progressBar_2:
+                # 第二个进度条被点击
+                if not self.isPhotoDisplayedOnLabel(self.labels_1[whichPart]):
+                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的正面拍摄")
+                    return
+                self.stackedWidget.setCurrentIndex(self.count + whichPart)
 
-        # 更新进度条的值（可选，如果您希望点击进度条后进度条也反映当前页面）
-        self.progressBar.setValue(whichPart+1)
+        elif self.detection_type == "单面":
+            if sender == self.progressBar:
+                # 第一个进度条被点击
+                if whichPart > 0 and not self.isPhotoDisplayedOnLabel(self.labels_1[whichPart - 1]):
+                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的正面拍摄")
+                    return
+                self.stackedWidget.setCurrentIndex(whichPart)
+
+        # 更新进度条的值（如果您希望点击进度条后进度条也反映当前页面）
+        if sender == self.progressBar:
+            self.progressBar.setValue(whichPart + 1)
+        elif sender == self.progressBar_2:
+            self.progressBar_2.setValue(whichPart + 1)
+
+
 
 
 

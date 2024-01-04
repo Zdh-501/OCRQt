@@ -7,7 +7,7 @@ from ui.layout.UI_TaskPage import Ui_TaskPage
 from PyQt5 import QtCore, QtWidgets
 
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
-    #detectionCountChanged = pyqtSignal(int)  # 定义一个新信号
+    detectionCountChanged = pyqtSignal(int)  # 定义一个新信号
     #定义信号，用于传递检测数量和单双面检测
     detectionCountAndTypeChanged = pyqtSignal(int, str)
     # 定义一个信号，传递所有选中项的信息
@@ -45,7 +45,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             "是否完成": "未完成"
         })
         tasks = [
-            {"任务序号": 4, "批号": "CY32404", "物料类型": "小盒","产品名称": "复方","生产日期": "2023/11/22","有效期至": "2025/11/24","产线": "支装二线","检测数量": 5 ,"单/双面检测": "单面","是否完成": "未完成"},
+            {"任务序号": 4, "批号": "CY32404", "物料类型": "小盒","产品名称": "铝管","生产日期": "2023/11/22","有效期至": "2025/11/24","产线": "支装二线","检测数量": 5 ,"单/双面检测": "双面","是否完成": "未完成"},
             {"任务序号": 5, "批号": "CY32405", "物料类型": "小盒","产品名称": "复方","生产日期": "2023/10/22","有效期至": "2025/10/24","产线": "支装四线","检测数量": 10, "单/双面检测": "单面","是否完成": "未完成"},
             {"任务序号": 2, "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","生产日期": "2023/12/22","有效期至": "2025/12/24","产线": "支装五线","检测数量": 7, "单/双面检测": "单面","是否完成": "未完成"},
             # 更多任务字典
@@ -77,7 +77,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             # 发射带有两个参数的信号
             self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
 
-            #self.detectionCountChanged.emit(detection_count)
+            self.detectionCountChanged.emit(detection_count)
             # 发射信号以通知 MainWindow 切换到第三页
             self.switchToPage.emit(2)  # 页面索引从0开始，第三页的索引是2
     def addTask(self, task_data):
