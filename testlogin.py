@@ -1,7 +1,8 @@
 import sys
 import bcrypt
 import pymysql
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox, QHBoxLayout
+
 
 class LoginWindow(QWidget):
     def __init__(self):
@@ -9,19 +10,19 @@ class LoginWindow(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('Login and Registration')
+        self.setWindowTitle('登陆')
 
         layout = QVBoxLayout(self)
-
+        Hlayout=QHBoxLayout(self)
         # 用户名输入
-        self.usernameLabel = QLabel('Username:', self)
+        self.usernameLabel = QLabel('账号:', self)
         layout.addWidget(self.usernameLabel)
 
         self.usernameInput = QLineEdit(self)
         layout.addWidget(self.usernameInput)
 
         # 密码输入
-        self.passwordLabel = QLabel('Password:', self)
+        self.passwordLabel = QLabel('密码:', self)
         layout.addWidget(self.passwordLabel)
 
         self.passwordInput = QLineEdit(self)
@@ -29,14 +30,15 @@ class LoginWindow(QWidget):
         layout.addWidget(self.passwordInput)
 
         # 登录按钮
-        self.loginButton = QPushButton('Login', self)
+        self.loginButton = QPushButton('确认', self)
         self.loginButton.clicked.connect(self.check_login)
-        layout.addWidget(self.loginButton)
-
-        # 注册按钮
-        self.registerButton = QPushButton('Register', self)
+        Hlayout.addWidget(self.loginButton)
+        # 取消按钮
+        self.registerButton = QPushButton('取消', self)
         self.registerButton.clicked.connect(self.register)
-        layout.addWidget(self.registerButton)
+
+        Hlayout.addWidget(self.registerButton)
+        layout.addLayout(Hlayout)
 
     def check_login(self):
         username = self.usernameInput.text()

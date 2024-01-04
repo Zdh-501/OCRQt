@@ -10,6 +10,7 @@ from PyQt5.QtGui import QIcon
 from ui.layout.UI_MainPage import Ui_MainPage
 from ui.impl.PicturePage import PicturePage
 from ui.impl.PicturePage2 import PicturePage2
+from ui.impl.PicturePage3 import PicturePage3
 from ui.impl.RecordPage import RecordPage
 from ui.impl.TaskPage import TaskPage
 from ui.impl.OCRConfigDialog import *
@@ -25,11 +26,12 @@ class MainWindow(QWidget, Ui_MainPage):
 
         #todo 创建分页面
         self.task_page=TaskPage()
-        self.picture_page=PicturePage()
-        self.picture2_page=PicturePage2()
+        self.picture_page=PicturePage2()
+        self.picture2_page=PicturePage3()
         self.record_page=RecordPage()
         # 连接信号和槽
-        self.task_page.detectionCountChanged.connect(self.picture2_page.setLabelsAndPages)
+        #self.task_page.detectionCountChanged.connect(self.picture_page.setLabelsAndPages)
+        self.task_page.detectionCountAndTypeChanged.connect(self.picture2_page.setLabelsAndPages)
         # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage2 的槽
         self.task_page.itemDetailsChanged.connect(self.picture2_page.updateTextBrowser)
         # 连接信号和槽切换主界面

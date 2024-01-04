@@ -7,7 +7,9 @@ from ui.layout.UI_TaskPage import Ui_TaskPage
 from PyQt5 import QtCore, QtWidgets
 
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
-    detectionCountChanged = pyqtSignal(int)  # 定义一个新信号
+    #detectionCountChanged = pyqtSignal(int)  # 定义一个新信号
+    #定义信号，用于传递检测数量和单双面检测
+    detectionCountAndTypeChanged = pyqtSignal(int, str)
     # 定义一个信号，传递所有选中项的信息
     itemDetailsChanged = pyqtSignal(dict)
     switchToPage = pyqtSignal(int)  # 用于主界面切换页面的信号
@@ -66,10 +68,16 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
             # 发射包含所有信息的信号
             self.itemDetailsChanged.emit(row_data)
-            # 假设“检测数量”是第8列，索引从0开始
+            # todo 此处需要修改 假设“检测数量”是第7列，索引从0开始
             detection_count_index = selected_indexes[0].sibling(selected_indexes[0].row(), 6)
             detection_count = int(self.tableWidget.itemFromIndex(detection_count_index).text())
-            self.detectionCountChanged.emit(detection_count)
+            # 假设“单双面检测”字段是第9列，索引从0开始，即列索引为8
+            detection_type_index = selected_indexes[0].sibling(selected_indexes[0].row(), 7)
+            detection_type = self.tableWidget.itemFromIndex(detection_type_index).text()
+            # 发射带有两个参数的信号
+            self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
+
+            #self.detectionCountChanged.emit(detection_count)
             # 发射信号以通知 MainWindow 切换到第三页
             self.switchToPage.emit(2)  # 页面索引从0开始，第三页的索引是2
     def addTask(self, task_data):
