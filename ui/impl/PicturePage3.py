@@ -262,15 +262,35 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
         # 可以在这里更新UI等
+    # def display_image_on_label(self, image_np):
+    #     print("Displaying image on label")
+    #     #todo 同时将图像存储在列表中,要补充存在本地中
+    #     self.captured_images.append(image_np)
+    #     # 显示图像在当前标签上
+    #     q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
+    #     pixmap = QPixmap.fromImage(q_image)
+    #     self.labels[self.current_label_index].setPixmap(
+    #         pixmap.scaled(self.labels[self.current_label_index].size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
     def display_image_on_label(self, image_np):
         print("Displaying image on label")
-        # 同时将图像存储在列表中
+        # todo 同时将图像存储在列表中,要补充存在本地中
         self.captured_images.append(image_np)
+
         # 显示图像在当前标签上
         q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
-        self.labels[self.current_label_index].setPixmap(
-            pixmap.scaled(self.labels[self.current_label_index].size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        # 根据检测类型选择使用 self.labels_1 或 self.labels_2
+        if self.detection_type == "双面":
+            # 如果是偶数次拍摄，显示在self.labels_1，否则显示在self.labels_2
+            target_label = self.labels_1[self.current_label_index // 2] if self.current_label_index % 2 == 0 else \
+            self.labels_2[self.current_label_index // 2]
+        else:
+            # "单面"情况下只使用self.labels_1
+            target_label = self.labels_1[self.current_label_index]
+
+        target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def closeEvent(self, event):
         # 确保相机线程被正确关闭
@@ -293,7 +313,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             self.camera_worker.start()
 
         # 更新 UI 状态
-        if self.current_label_index < len(self.labels):
+        if self.current_label_index < self.count:
             # 切换到当前标签对应的页面
             self.stackedWidget.setCurrentIndex(self.current_label_index)
 
@@ -311,25 +331,58 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
                     print("未捕获到图像")
             else:
                 print("拍摄失败")
+    # def take_photo_and_skip(self):
+    #
+    #     self.capture_image()
+    #     # 移动到下一个标签
+    #     self.current_label_index += 1
+    #     self.progressBar.setValue(self.current_label_index)
+    #     # 检查是否已到达标签列表的末尾
+    #     if self.current_label_index < self.count:
+    #         # 更新当前显示的标签和页面
+    #         self.stackedWidget.setCurrentIndex(self.current_label_index)
+    #         # 如果不是最后一个标签，重启相机预览线程
+    #         self.camera_worker.start()
+    #     else:
+    #         # 如果是最后一个标签，则重置索引
+    #         self.current_label_index = 0
+    #         # 可以选择在这里关闭相机，或者保持打开状态
+    #         if self.camera_worker.isRunning():
+    #             self.camera_worker.stop()
+    #             self.camera_worker.wait()
     def take_photo_and_skip(self):
-
         self.capture_image()
-        # 移动到下一个标签
-        self.current_label_index += 1
-        self.progressBar.setValue(self.current_label_index)
-        # 检查是否已到达标签列表的末尾
-        if self.current_label_index < self.count:
-            # 更新当前显示的标签和页面
-            self.stackedWidget.setCurrentIndex(self.current_label_index)
-            # 如果不是最后一个标签，重启相机预览线程
-            self.camera_worker.start()
+
+        # 对于“双面”检测类型，调整逻辑
+        if self.detection_type == "双面":
+            if self.current_label_index % 2 == 0:
+                # 如果刚捕获完正面，切换到对应的反面
+                next_index = self.current_label_index // 2 + self.count
+            else:
+                # 如果刚捕获完反面，切换到下一个产品的正面
+                next_index = (self.current_label_index + 1) // 2
+
+            self.stackedWidget.setCurrentIndex(next_index)
+            self.current_label_index += 1
         else:
-            # 如果是最后一个标签，则重置索引
-            self.current_label_index = 0
-            # 可以选择在这里关闭相机，或者保持打开状态
-            if self.camera_worker.isRunning():
-                self.camera_worker.stop()
-                self.camera_worker.wait()
+            # "单面"检测类型的处理保持不变
+            self.current_label_index += 1
+            self.progressBar.setValue(self.current_label_index)
+            if self.current_label_index < self.count:
+                self.stackedWidget.setCurrentIndex(self.current_label_index)
+                self.camera_worker.start()
+            else:
+                self.current_label_index = 0
+                if self.camera_worker.isRunning():
+                    self.camera_worker.stop()
+                    self.camera_worker.wait()
+
+        # 更新进度条的值
+        if self.detection_type == "双面":
+            self.progressBar.setValue(self.current_label_index // 2 + 1)
+            self.progressBar_2.setValue(self.current_label_index // 2 + 1)
+        else:
+            self.progressBar.setValue(self.current_label_index + 1)
 
 
     def get_workstation_number(self, username):
