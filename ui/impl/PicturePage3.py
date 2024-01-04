@@ -312,14 +312,13 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             else:
                 print("拍摄失败")
     def take_photo_and_skip(self):
-        #todo
-        # 捕获当前图像
+
         self.capture_image()
         # 移动到下一个标签
         self.current_label_index += 1
         self.progressBar.setValue(self.current_label_index)
         # 检查是否已到达标签列表的末尾
-        if self.current_label_index < len(self.labels):
+        if self.current_label_index < self.count:
             # 更新当前显示的标签和页面
             self.stackedWidget.setCurrentIndex(self.current_label_index)
             # 如果不是最后一个标签，重启相机预览线程
