@@ -304,7 +304,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             label.clear()  # 清空标签上的图片
 
     def start_camera_view(self):
-
         # 检查相机是否已经初始化
         if not hasattr(self, 'camera'):
             # 初始化相机
@@ -313,9 +312,12 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             self.camera_worker.start()
 
         # 更新 UI 状态
-        if self.current_label_index < self.count:
-            # 切换到当前标签对应的页面
-            self.stackedWidget.setCurrentIndex(self.current_label_index)
+        # if self.current_label_index < self.count:
+        #     # 切换到当前标签对应的页面
+        #     self.stackedWidget.setCurrentIndex(self.current_label_index)
+        # 更新进度条
+        if self.current_label_index<=1:
+            self.progressBar.setValue(1)
 
 
     def capture_image(self):
@@ -386,8 +388,10 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
         # 更新进度条的值
         if self.detection_type == "双面":
-            self.progressBar.setValue(self.current_label_index // 2 + 1)
-            self.progressBar_2.setValue(self.current_label_index // 2 + 1)
+            if self.current_label_index%2==0:
+                self.progressBar.setValue(self.current_label_index // 2 + 1)
+            else:
+                self.progressBar_2.setValue(self.current_label_index // 2 + 1)
         else:
             self.progressBar.setValue(self.current_label_index + 1)
 
