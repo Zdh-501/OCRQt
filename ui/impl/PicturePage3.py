@@ -282,15 +282,15 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         pixmap = QPixmap.fromImage(q_image)
 
         # 根据检测类型选择使用 self.labels_1 或 self.labels_2
-        if self.detection_type == "双面":
-            # 如果是偶数次拍摄，显示在self.labels_1，否则显示在self.labels_2
-            target_label = self.labels_1[self.current_label_index // 2] if self.current_label_index % 2 == 0 else \
-            self.labels_2[self.current_label_index // 2]
-        else:
-            # "单面"情况下只使用self.labels_1
-            target_label = self.labels_1[self.current_label_index]
-
-        target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        if self.current_label_index<self.count*2 :
+            if  self.detection_type == "双面":
+                # 如果是偶数次拍摄，显示在self.labels_1，否则显示在self.labels_2
+                target_label = self.labels_1[self.current_label_index // 2] if self.current_label_index % 2 == 0 else\
+                self.labels_2[self.current_label_index // 2]
+            else:
+                # "单面"情况下只使用self.labels_1
+                target_label = self.labels_1[self.current_label_index]
+            target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def closeEvent(self, event):
         # 确保相机线程被正确关闭
@@ -364,10 +364,10 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
             self.stackedWidget.setCurrentIndex(next_index)
             self.current_label_index += 1
-            if self.current_label_index < self.count:
+            if self.current_label_index < 2*self.count:
                 self.camera_worker.start()
             else:
-                self.current_label_index = 0
+
                 if self.camera_worker.isRunning():
                     self.camera_worker.stop()
                     self.camera_worker.wait()
@@ -379,7 +379,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
                 self.stackedWidget.setCurrentIndex(self.current_label_index)
                 self.camera_worker.start()
             else:
-                self.current_label_index = 0
+
                 if self.camera_worker.isRunning():
                     self.camera_worker.stop()
                     self.camera_worker.wait()
