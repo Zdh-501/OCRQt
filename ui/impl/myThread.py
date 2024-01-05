@@ -39,7 +39,6 @@ class CameraWorker(QThread):
                 if res:
                     imgs, n, _ = mphdc.Nppc_Create(data)
                     if n > 0:
-                        print("Emitting image_captured signal")  # 调试信息
                         self.image_captured.emit(imgs[0])
 
     def stop(self):

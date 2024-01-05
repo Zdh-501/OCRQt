@@ -43,6 +43,8 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号
         self.isCameraStarted = False  # 相机是否已启动的标志
         self.captured_images = []  # 用于存储捕获的图像
+        self.task_completion_status = []  # 初始化任务完成状态列表
+
         #todo skipButton要补充正反面逻辑
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
         self.takePictureButton.clicked.connect(self.start_camera_view)
@@ -124,6 +126,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
     def setLabelsAndPages(self, count, detection_type):
         self.count = count  # 更新类属性
+        self.task_completion_status = [False] * count  # False 表示任务未完成
         # 根据检测类型显示或隐藏第二个进度条
         if detection_type == "单面":
             self.progressBar_2.hide()
@@ -198,12 +201,17 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         sender = self.sender()
         whichPart = value
 
+        # 计算前一个任务的索引
+        prev_task_index = whichPart - 1
+
+        # 检查前一个任务是否已完成
+        if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
+            QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的检测上传任务")
+            return
+
         if self.detection_type == "双面":
             if sender == self.progressBar:
                 # 第一个进度条被点击
-                if whichPart > 0 and self.captured_images:
-                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的检测上传任务")
-                    return
                 self.stackedWidget.setCurrentIndex(whichPart)
             elif sender == self.progressBar_2:
                 # 第二个进度条被点击
@@ -215,9 +223,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         elif self.detection_type == "单面":
             if sender == self.progressBar:
                 # 第一个进度条被点击
-                if whichPart > 0 and not self.isPhotoDisplayedOnLabel(self.labels_1[whichPart - 1]):
-                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的正面拍摄")
-                    return
                 self.stackedWidget.setCurrentIndex(whichPart)
 
         # 更新进度条的值（如果您希望点击进度条后进度条也反映当前页面）
@@ -225,10 +230,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             self.progressBar.setValue(whichPart + 1)
         elif sender == self.progressBar_2:
             self.progressBar_2.setValue(whichPart + 1)
-
-
-
-
 
 
 
@@ -258,22 +259,37 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
     def onOcrFinished(self, results):
         self.captured_images.clear()  # 清空存储的图像列表
+        # 当前任务的索引
+        task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
+        # 标记当前任务为完成
+        if task_index <= len(self.task_completion_status):
+            self.task_completion_status[task_index-1] = True
+
+        # 处理“双面”和“单面”情况下的页面切换
+        if self.detection_type == "双面":
+            if self.current_label_index % 2 != 0:
+                # 如果刚捕获完反面，切换到下一个产品的正面
+                next_index = (self.current_label_index + 1) // 2
+                self.stackedWidget.setCurrentIndex(next_index)
+        else:
+            # 单面情况，直接显示下一个产品
+            self.stackedWidget.setCurrentIndex(self.current_label_index)
+
+        # 更新进度条的值
+        if self.detection_type == "双面":
+            if self.current_label_index % 2 == 0:
+                self.progressBar.setValue(self.current_label_index // 2 + 1)
+            else:
+                self.progressBar_2.setValue(self.current_label_index // 2 + 1)
+        else:
+            self.progressBar.setValue(self.current_label_index + 1)
+
         # 处理OCR结果
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
         # 可以在这里更新UI等
-    # def display_image_on_label(self, image_np):
-    #     print("Displaying image on label")
-    #     #todo 同时将图像存储在列表中,要补充存在本地中
-    #     self.captured_images.append(image_np)
-    #     # 显示图像在当前标签上
-    #     q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
-    #     pixmap = QPixmap.fromImage(q_image)
-    #     self.labels[self.current_label_index].setPixmap(
-    #         pixmap.scaled(self.labels[self.current_label_index].size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def display_image_on_label(self, image_np):
-        print("Displaying image on label")
         # todo 同时将图像存储在列表中,要补充存在本地中
         if self.should_store_captured_image:
             # 只有在标志为True时，才将图像添加到列表中
@@ -314,11 +330,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             self.init_camera()
             # 启动相机工作线程
             self.camera_worker.start()
-
-        # 更新 UI 状态
-        # if self.current_label_index < self.count:
-        #     # 切换到当前标签对应的页面
-        #     self.stackedWidget.setCurrentIndex(self.current_label_index)
         # 更新进度条
         if self.current_label_index<=1:
             self.progressBar.setValue(1)
@@ -337,69 +348,41 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
                     print("未捕获到图像")
             else:
                 print("拍摄失败")
-    # def take_photo_and_skip(self):
-    #
-    #     self.capture_image()
-    #     # 移动到下一个标签
-    #     self.current_label_index += 1
-    #     self.progressBar.setValue(self.current_label_index)
-    #     # 检查是否已到达标签列表的末尾
-    #     if self.current_label_index < self.count:
-    #         # 更新当前显示的标签和页面
-    #         self.stackedWidget.setCurrentIndex(self.current_label_index)
-    #         # 如果不是最后一个标签，重启相机预览线程
-    #         self.camera_worker.start()
-    #     else:
-    #         # 如果是最后一个标签，则重置索引
-    #         self.current_label_index = 0
-    #         # 可以选择在这里关闭相机，或者保持打开状态
-    #         if self.camera_worker.isRunning():
-    #             self.camera_worker.stop()
-    #             self.camera_worker.wait()
     def take_photo_and_skip(self):
-        # 当点击skipButton时，设置标志为True
+        # 当前任务的索引
+        task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
+        # 计算上一个任务的索引
+        prev_task_index = (self.current_label_index // 2 - 1) if self.detection_type == "双面" else (
+                    self.current_label_index - 1)
+        print(prev_task_index)
+        print(task_index)
+        print(self.task_completion_status)
+        # 检查上一个任务是否已完成
+        if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先完成本产品的检测上传再继续拍照")
+            return
+
         self.should_store_captured_image = True
         self.capture_image()
 
-        # 对于“双面”检测类型，调整逻辑
-        if self.detection_type == "双面":
-            if self.current_label_index % 2 == 0:
-                # 如果刚捕获完正面，切换到对应的反面
-                next_index = self.current_label_index // 2 + self.count
-            else:
-                # 如果刚捕获完反面，切换到下一个产品的正面
-                next_index = (self.current_label_index + 1) // 2
-
+        # 只在“双面”模式下且当前为正面图像时切换到反面
+        if self.detection_type == "双面" and self.current_label_index % 2 == 0:
+            next_index = self.current_label_index // 2 + self.count
             self.stackedWidget.setCurrentIndex(next_index)
-            self.current_label_index += 1
-            if self.current_label_index < 2*self.count:
-                self.camera_worker.start()
-            else:
+            self.progressBar_2.setValue(self.current_label_index // 2 + 1)
 
-                if self.camera_worker.isRunning():
-                    self.camera_worker.stop()
-                    self.camera_worker.wait()
+        # 递增 current_label_index，不论检测类型
+        self.current_label_index += 1
+        # 如果需要的话，重新启动相机工作线程
+        if self.current_label_index < 2 * self.count if self.detection_type == "双面" else self.count:
+            self.camera_worker.start()
         else:
-            # "单面"检测类型的处理保持不变
-            self.current_label_index += 1
-            self.progressBar.setValue(self.current_label_index)
-            if self.current_label_index < self.count:
-                self.stackedWidget.setCurrentIndex(self.current_label_index)
-                self.camera_worker.start()
-            else:
 
-                if self.camera_worker.isRunning():
-                    self.camera_worker.stop()
-                    self.camera_worker.wait()
+            if self.camera_worker.isRunning():
+                self.camera_worker.stop()
+                self.camera_worker.wait()
 
-        # 更新进度条的值
-        if self.detection_type == "双面":
-            if self.current_label_index%2==0:
-                self.progressBar.setValue(self.current_label_index // 2 + 1)
-            else:
-                self.progressBar_2.setValue(self.current_label_index // 2 + 1)
-        else:
-            self.progressBar.setValue(self.current_label_index + 1)
+
 
 
     def get_workstation_number(self, username):
