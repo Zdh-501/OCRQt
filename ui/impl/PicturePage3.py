@@ -34,7 +34,8 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.8
         self.lang = 'en'
-
+        #用于区分手动捕获照片还是子线程自动捕获
+        self.should_store_captured_image = False
         # 创建 PaddleOCR 实例
         self.initialize_ocr()
 
@@ -60,7 +61,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
 
-        #self.camera_worker.image_captured.connect(self.display_image_on_label)
 
         # 创建CameraWorker线程
         self.camera_worker = CameraWorker(self.camera)
@@ -201,8 +201,8 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         if self.detection_type == "双面":
             if sender == self.progressBar:
                 # 第一个进度条被点击
-                if whichPart > 0 and not self.isPhotoDisplayedOnLabel(self.labels_2[whichPart - 1]):
-                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的反面拍摄")
+                if whichPart > 0 and self.captured_images:
+                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的检测上传任务")
                     return
                 self.stackedWidget.setCurrentIndex(whichPart)
             elif sender == self.progressBar_2:
@@ -234,7 +234,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
     def onStartDetectClicked(self):
 
-        self.captured_images.clear()  # 清空存储的图像列表
         self.showTaskDialog()
 
 
@@ -258,6 +257,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.thread.start()
 
     def onOcrFinished(self, results):
+        self.captured_images.clear()  # 清空存储的图像列表
         # 处理OCR结果
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
@@ -275,7 +275,11 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
     def display_image_on_label(self, image_np):
         print("Displaying image on label")
         # todo 同时将图像存储在列表中,要补充存在本地中
-        self.captured_images.append(image_np)
+        if self.should_store_captured_image:
+            # 只有在标志为True时，才将图像添加到列表中
+            self.captured_images.append(image_np)
+            # 重置标志，以便下一次点击时再次检查
+            self.should_store_captured_image = False
 
         # 显示图像在当前标签上
         q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
@@ -353,6 +357,8 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
     #             self.camera_worker.stop()
     #             self.camera_worker.wait()
     def take_photo_and_skip(self):
+        # 当点击skipButton时，设置标志为True
+        self.should_store_captured_image = True
         self.capture_image()
 
         # 对于“双面”检测类型，调整逻辑
