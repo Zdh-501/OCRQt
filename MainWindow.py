@@ -8,7 +8,6 @@ from pyqt5_plugins.examplebuttonplugin import QtGui
 from PyQt5.QtGui import QIcon
 
 from ui.layout.UI_MainPage import Ui_MainPage
-from ui.impl.PicturePage import PicturePage
 from ui.impl.PicturePage2 import PicturePage2
 from ui.impl.PicturePage3 import PicturePage3
 from ui.impl.RecordPage import RecordPage
