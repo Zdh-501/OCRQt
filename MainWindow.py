@@ -1,14 +1,11 @@
 import sys
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPalette, QBrush, QIcon, QPixmap
-from PyQt5.QtWidgets import QApplication, QStackedLayout, QWidget, QSplashScreen, QFileDialog, QMainWindow
-from pyqt5_plugins.examplebutton import QtWidgets
-from pyqt5_plugins.examplebuttonplugin import QtGui
+
+from PyQt5.QtWidgets import QApplication, QWidget
+
 from PyQt5.QtGui import QIcon
 
 from ui.layout.UI_MainPage import Ui_MainPage
-from ui.impl.PicturePage import PicturePage
 from ui.impl.PicturePage2 import PicturePage2
 from ui.impl.PicturePage3 import PicturePage3
 from ui.impl.RecordPage import RecordPage

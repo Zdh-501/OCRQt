@@ -1,26 +1,16 @@
-import sys
 
-import pymysql
-import requests
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QLabel, QMessageBox, QMenu, QWidget
-from PyQt5.QtGui import QPixmap, QStandardItemModel, QStandardItem, QImage
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QModelIndex, QEvent, Q_ARG, QBuffer, QIODevice
+
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import Qt
 from pyqt5_plugins.examplebutton import QtWidgets
-import re
-from PIL import Image
 from pyqt5_plugins.examplebuttonplugin import QtGui
 
-from mphdcpy import mphdc
-import cv2 as cv
-import ctypes as ct
-import time
-from paddleocr import PaddleOCR
-from io import BytesIO
-from ui.layout.UI_PicturePage3 import Ui_PicturePage3  # 假设UI类名为Ui_PicturePage
+
+from ui.layout.UI_PicturePage3 import Ui_PicturePage3
 from ui.impl.TaskDialog import TaskDialog
 from ui.impl.myThread import *
-from SQL.dbFunction import *
+
 
 class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
     def __init__(self):

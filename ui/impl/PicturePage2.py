@@ -1,7 +1,6 @@
 import sys
 
-import pymysql
-import requests
+
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QLabel, QMessageBox, QMenu, QWidget
 from PyQt5.QtGui import QPixmap, QStandardItemModel, QStandardItem, QImage
