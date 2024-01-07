@@ -53,14 +53,14 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
         layout.addWidget(btn_delete)
 
         # 创建再次训练按钮
-        btn_retrain = QPushButton('再次训练', self)
+        btn_retrain = QPushButton('重新训练', self)
         btn_retrain.clicked.connect(self.create_retrain_function(row))
         layout.addWidget(btn_retrain)
 
         # 创建保存路径按钮
-        btn_save_path = QPushButton('保存路径')
-        btn_save_path.clicked.connect(self.create_save_path_function(row))
-        layout.addWidget(btn_save_path)
+        btn_check_path = QPushButton('查看路径')
+        btn_check_path.clicked.connect(self.create_check_path_function(row))
+        layout.addWidget(btn_check_path)
 
         # 设置布局
         layout.setContentsMargins(0, 0, 0, 0)
@@ -77,15 +77,15 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
 
     def retrain_model(self, row):
         # 再次训练模型的函数
-        print(f"对第{row}行的模型进行再次训练")
+        print(f"对第{row}行的模型进行重新训练")
         # 在这里实现再次训练模型的逻辑
 
-    def create_save_path_function(self, row):
+    def create_check_path_function(self, row):
         # 工厂函数，为每个按钮创建保存路径函数
-        def save_path():
-            self.save_model_path(row)
+        def check_path():
+            self.check_model_path(row)
 
-        return save_path
+        return check_path
 
     def create_delete_function(self, row):
         def delete():
@@ -99,9 +99,9 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
 
         return retrain
 
-    def save_model_path(self, row):
+    def check_model_path(self, row):
         # 保存路径的函数
-        print(f"保存第{row}行的模型路径")
+        print(f"查看第{row}行的模型路径")
         # 实现保存路径的逻辑
 # if __name__ == '__main__':
 # app = QApplication(sys.argv)
