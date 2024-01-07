@@ -63,31 +63,12 @@
         </size>
        </property>
        <property name="text">
-        <string>检测</string>
+        <string>检测界面</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_3">
-       <property name="minimumSize">
-        <size>
-         <width>50</width>
-         <height>40</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>75</width>
-         <height>40</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>相机设置</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_4">
        <property name="minimumSize">
         <size>
          <width>50</width>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# PicturePage3 implementation generated from reading ui file 'UI_PicturePage.ui'
+# PicturePage implementation generated from reading ui file 'UI_PicturePage.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -10,6 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QPen, QPainter, QColor
 
 
 class ClickableProgressBar(QtWidgets.QProgressBar):
@@ -18,10 +19,16 @@ class ClickableProgressBar(QtWidgets.QProgressBar):
     def __init__(self, parent=None):
         super(ClickableProgressBar, self).__init__(parent)
         self.segmentCount = 0  # 初始段数
+        self.shouldDrawText = True  # 是否绘制文本
 
     def setSegmentCount(self, count):
         self.segmentCount = count
         self.update()  # 强制更新控件，这将调用 paintEvent 方法
+
+    def setShouldDrawText(self, shouldDraw):
+        self.shouldDrawText = shouldDraw
+        self.update()  # 强制更新控件
+
     def mousePressEvent(self, event):
         super(ClickableProgressBar, self).mousePressEvent(event)
         if event.button() == QtCore.Qt.LeftButton:
@@ -31,28 +38,68 @@ class ClickableProgressBar(QtWidgets.QProgressBar):
 
     def paintEvent(self, event):
         super(ClickableProgressBar, self).paintEvent(event)
-        painter = QtGui.QPainter(self)
-        pen = QtGui.QPen(QtGui.QColor(0, 0, 0))  # 黑色笔刷
+        painter = QPainter(self)
+        pen = QPen(QColor(0, 0, 0))
         painter.setPen(pen)
 
-        # 绘制分段标记
         if self.segmentCount > 0:
             segment_width = self.width() / self.segmentCount
-            for i in range(1, self.segmentCount):
+            for i in range(self.segmentCount):
+                x = segment_width * i
+                painter.drawLine(x, 0, x, self.height())
+
+                if self.shouldDrawText:
+                    text = "批号面"
+                    text_width = painter.fontMetrics().width(text)
+                    text_height = painter.fontMetrics().height()
+                    text_x = x + (segment_width - text_width) / 2
+                    text_y = (self.height() + text_height) / 2
+                    painter.drawText(text_x, text_y, text)
+class ClickableProgressBar2(QtWidgets.QProgressBar):
+    clickedValue = pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super(ClickableProgressBar2, self).__init__(parent)
+        self.segmentCount = 0  # 初始段数
+
+    def setSegmentCount(self, count):
+        self.segmentCount = count
+        self.update()  # 强制更新控件，这将调用 paintEvent 方法
+    def mousePressEvent(self, event):
+        super(ClickableProgressBar2, self).mousePressEvent(event)
+        if event.button() == QtCore.Qt.LeftButton:
+            # 计算点击位置对应的进度值
+            clickValue = int((event.x() / self.width()) * self.maximum())
+            self.clickedValue.emit(clickValue)
+
+    def paintEvent(self, event):
+        super(ClickableProgressBar2, self).paintEvent(event)
+        painter = QPainter(self)
+        pen = QPen(QColor(0, 0, 0))  # 黑色笔刷
+        painter.setPen(pen)
+
+        # 绘制分段标记和文本
+        if self.segmentCount > 0:
+            segment_width = self.width() / self.segmentCount
+            for i in range(self.segmentCount):
                 x = segment_width * i
                 # 绘制分段线
                 painter.drawLine(x, 0, x, self.height())
-                # 如果需要，在每个分段处添加文本标签
-                # painter.drawText(x - 10, self.height() / 2, str(i))
-
-        painter.end()
-class Ui_PicturePage3(object):
-    def setupUi(self, PicturePage3):
-        PicturePage3.setObjectName("PicturePage3")
-        PicturePage3.resize(987, 679)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(PicturePage3)
+                # 绘制分段文本
+                text = "日期面"
+                text_width = painter.fontMetrics().width(text)
+                text_height = painter.fontMetrics().height()
+                # 文本绘制的位置
+                text_x = x + (segment_width - text_width) / 2
+                text_y = (self.height() + text_height) / 2
+                painter.drawText(text_x, text_y, text)
+class Ui_PicturePage(object):
+    def setupUi(self, PicturePage):
+        PicturePage.setObjectName("PicturePage")
+        PicturePage.resize(987, 679)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(PicturePage)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.widget_1 = QtWidgets.QWidget(PicturePage3)
+        self.widget_1 = QtWidgets.QWidget(PicturePage)
         self.widget_1.setObjectName("widget_1")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.widget_1)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -62,16 +109,16 @@ class Ui_PicturePage3(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
-        self.progressBar = ClickableProgressBar(self.widget_1)
+        self.progressBar =  ClickableProgressBar(self.widget_1)
         self.progressBar.setProperty("value", 24)
         self.progressBar.setObjectName("progressBar")
         self.verticalLayout_3.addWidget(self.progressBar)
-        self.progressBar_2 = ClickableProgressBar(self.widget_1)
+        self.progressBar_2 =  ClickableProgressBar2(self.widget_1)
         self.progressBar_2.setProperty("value", 24)
         self.progressBar_2.setObjectName("progressBar_2")
         self.verticalLayout_3.addWidget(self.progressBar_2)
         self.horizontalLayout.addWidget(self.widget_1)
-        self.widget_2 = QtWidgets.QWidget(PicturePage3)
+        self.widget_2 = QtWidgets.QWidget(PicturePage)
         self.widget_2.setObjectName("widget_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget_2)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -157,25 +204,25 @@ class Ui_PicturePage3(object):
         self.textBrowser_4.setObjectName("textBrowser_4")
         self.horizontalLayout_6.addWidget(self.textBrowser_4)
         self.verticalLayout.addWidget(self.widget_5)
-        self.verticalLayout.setStretch(0, 3)
+        self.verticalLayout.setStretch(0, 4)
         self.verticalLayout.setStretch(1, 1)
         self.verticalLayout.setStretch(2, 4)
         self.horizontalLayout.addWidget(self.widget_2)
         self.horizontalLayout.setStretch(0, 5)
         self.horizontalLayout.setStretch(1, 2)
 
-        self.retranslateUi(PicturePage3)
+        self.retranslateUi(PicturePage)
         self.stackedWidget.setCurrentIndex(-1)
-        QtCore.QMetaObject.connectSlotsByName(PicturePage3)
+        QtCore.QMetaObject.connectSlotsByName(PicturePage)
 
-    def retranslateUi(self, PicturePage3):
+    def retranslateUi(self, PicturePage):
         _translate = QtCore.QCoreApplication.translate
-        PicturePage3.setWindowTitle(_translate("PicturePage3", "PicturePage3"))
-        self.textBrowser_2.setHtml(_translate("PicturePage3", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        PicturePage.setWindowTitle(_translate("PicturePage", "PicturePage"))
+        self.textBrowser_2.setHtml(_translate("PicturePage", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:9pt;\">产品工位：</span></p></body></html>"))
-        self.takePictureButton.setText(_translate("PicturePage3", "启动"))
-        self.skipButton.setText(_translate("PicturePage3", "拍照"))
-        self.startDetectButton.setText(_translate("PicturePage3", "开始检测"))
+        self.takePictureButton.setText(_translate("PicturePage", "启动"))
+        self.skipButton.setText(_translate("PicturePage", "拍照"))
+        self.startDetectButton.setText(_translate("PicturePage", "开始检测"))

@@ -33,21 +33,20 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
         # 添加数据
         self.addTask({
-            "任务序号": 9,
+            "生产线": 9,
             "批号": "CY32403",
             "物料类型": "小盒",
             "产品名称": "复方酮康唑发用洗剂15+0.25毫克50毫升成品（Rx）",
-            "生产日期": "2023/11/24",
-            "有效期至": "2025/11/23",
-            "产线": "支装三线",
+            "任务标识符": "包盒IPC 抽查[1.1]",
+            "生产线": "支装三线",
             "检测数量": 8,
             "单/双面检测": "单面",
             "是否完成": "未完成"
         })
         tasks = [
-            {"任务序号": 4, "批号": "CY32404", "物料类型": "小盒","产品名称": "铝管","生产日期": "2023/11/22","有效期至": "2025/11/24","产线": "支装二线","检测数量": 5 ,"单/双面检测": "双面","是否完成": "未完成"},
-            {"任务序号": 5, "批号": "CY32405", "物料类型": "小盒","产品名称": "复方","生产日期": "2023/10/22","有效期至": "2025/10/24","产线": "支装四线","检测数量": 10, "单/双面检测": "单面","是否完成": "未完成"},
-            {"任务序号": 2, "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","生产日期": "2023/12/22","有效期至": "2025/12/24","产线": "支装五线","检测数量": 7, "单/双面检测": "单面","是否完成": "未完成"},
+            {"生产线": 4, "批号": "CY32404", "物料类型": "小盒","产品名称": "铝管","任务标识符": "包盒IPC 抽查[1.1]","生产线": "支装二线","检测数量": 5 ,"单/双面检测": "双面","是否完成": "未完成"},
+            {"生产线": 5, "批号": "CY32405", "物料类型": "小盒","产品名称": "复方","任务标识符": "包盒IPC 抽查[1.1]","生产线": "支装四线","检测数量": 10, "单/双面检测": "单面","是否完成": "未完成"},
+            {"生产线": 2, "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "包盒IPC 抽查[1.1]","生产线": "支装五线","检测数量": 7, "单/双面检测": "单面","是否完成": "未完成"},
             # 更多任务字典
         ]
         for task in tasks:
@@ -68,18 +67,18 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
             # 发射包含所有信息的信号
             self.itemDetailsChanged.emit(row_data)
-            # todo 此处需要修改 假设“检测数量”是第7列，索引从0开始
-            detection_count_index = selected_indexes[0].sibling(selected_indexes[0].row(), 6)
+            # 此处需要修改 假设“检测数量”是第6列，索引从0开始
+            detection_count_index = selected_indexes[0].sibling(selected_indexes[0].row(), 5)
             detection_count = int(self.tableWidget.itemFromIndex(detection_count_index).text())
-            # 假设“单双面检测”字段是第9列，索引从0开始，即列索引为8
-            detection_type_index = selected_indexes[0].sibling(selected_indexes[0].row(), 7)
+            # 假设“单双面检测”字段是第7列，索引从0开始，即列索引为6
+            detection_type_index = selected_indexes[0].sibling(selected_indexes[0].row(), 6)
             detection_type = self.tableWidget.itemFromIndex(detection_type_index).text()
             # 发射带有两个参数的信号
             self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
 
             self.detectionCountChanged.emit(detection_count)
-            # 发射信号以通知 MainWindow 切换到第三页
-            self.switchToPage.emit(2)  # 页面索引从0开始，第三页的索引是2
+            # 发射信号以通知 MainWindow 切换到第二页
+            self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
     def addTask(self, task_data):
         # 限制显示的行数为10
         while self.tableWidget.rowCount() >= 10:
@@ -91,7 +90,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 设置行高
         self.tableWidget.setRowHeight(row_position, 100)  # 示例行高为100
         # 根据字段顺序添加数据到表格中
-        col_order = ['产线', '产品名称', '批号', '物料类型', '生产日期', '有效期至', '检测数量', '单/双面检测','是否完成']
+        col_order = ['生产线', '任务标识符', '产品名称', '批号', '物料类型', '检测数量', '单/双面检测','是否完成']
         for col, field in enumerate(col_order):
             if field == '检测数量':
                 # 对于数值字段，使用数值进行设置
@@ -105,8 +104,8 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             self.tableWidget.setItem(row_position, col, item)
 
 
-# if __name__ == '__main__':
-# app = QApplication(sys.argv)
-# mainWindow = TaskPage()
-# mainWindow.show()
-# app.exec_()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    mainWindow = TaskPage()
+    mainWindow.show()
+    app.exec_()

@@ -1,20 +1,22 @@
+import sys
 
 from PyQt5 import QtCore
 
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication
 from pyqt5_plugins.examplebutton import QtWidgets
 from pyqt5_plugins.examplebuttonplugin import QtGui
 
 
-from ui.layout.UI_PicturePage3 import Ui_PicturePage3
+from ui.layout.UI_PicturePage import Ui_PicturePage
 from ui.impl.TaskDialog import TaskDialog
 from ui.impl.myThread import *
 
 
-class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
+class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     def __init__(self):
-        super(PicturePage3, self).__init__()
+        super(PicturePage, self).__init__()
         self.setupUi(self)
         self.count = 0  # 初始化 count 属性
         self.detection_type="单面"  #初始化 detection_type 属性
@@ -35,7 +37,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.captured_images = []  # 用于存储捕获的图像
         self.task_completion_status = []  # 初始化任务完成状态列表
 
-        #todo skipButton要补充正反面逻辑
+        
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
         self.takePictureButton.clicked.connect(self.start_camera_view)
         self.skipButton.clicked.connect(self.take_photo_and_skip)
@@ -100,14 +102,20 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         # 调整列宽以自适应内容
         self.tableWidget_2.resizeColumnsToContents()
 
-        # 设置行高和字体
+        # 获取当前字体
         font = self.tableWidget_2.font()
-        font.setPointSize(12)
-        self.tableWidget_2.setFont(font)
-        # 设置行高
-        new_row_height = 80  # 或者任何您想要的值
+
+        # 使用 QFontMetrics 获取字体相关的尺寸信息
+        font_metrics = QFontMetrics(font)
+        text_height = font_metrics.height()
+
+        # 为了留出一些额外空间，可以在文本高度的基础上增加一些像素
+        padding = 4  # 可以根据需要调整这个值
+        row_height = text_height + padding
+
+        # 设置每行的高度
         for row in range(self.tableWidget_2.rowCount()):
-            self.tableWidget_2.setRowHeight(row, new_row_height)
+            self.tableWidget_2.setRowHeight(row, row_height)
 
         # 使第一列根据内容自动调整宽度
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
@@ -120,9 +128,11 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         # 根据检测类型显示或隐藏第二个进度条
         if detection_type == "单面":
             self.progressBar_2.hide()
+            self.progressBar.setShouldDrawText(False)  # 不绘制文本
 
         elif detection_type == "双面":
             self.detection_type="双面"
+            self.progressBar.setShouldDrawText(True)  # 不绘制文本
             self.progressBar_2.show()
 
         self.progressBar.setSegmentCount(count)
@@ -138,7 +148,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.pages_2 = []
         for i in range(count):
             # 创建 label
-            label = QtWidgets.QLabel(f"产品 {i + 1}正面")
+            label = QtWidgets.QLabel(f"产品 {i + 1}")
             label.setAlignment(QtCore.Qt.AlignCenter)  # 设置 label 文字居中显示
             # 创建并设置字体
             font = QtGui.QFont()
@@ -156,7 +166,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
         for i in range(count):
             # 创建 label
-            label = QtWidgets.QLabel(f"产品{i + 1}反面")
+            label = QtWidgets.QLabel(f"产品{i + 1}")
             label.setAlignment(QtCore.Qt.AlignCenter)  # 设置 label 文字居中显示
             # 创建并设置字体
             font = QtGui.QFont()
@@ -206,7 +216,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
             elif sender == self.progressBar_2:
                 # 第二个进度条被点击
                 if not self.isPhotoDisplayedOnLabel(self.labels_1[whichPart]):
-                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的正面拍摄")
+                    QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的批号面拍摄")
                     return
                 self.stackedWidget.setCurrentIndex(self.count + whichPart)
 
@@ -258,7 +268,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         # 处理“双面”和“单面”情况下的页面切换
         if self.detection_type == "双面":
             if self.current_label_index % 2 != 0:
-                # 如果刚捕获完反面，切换到下一个产品的正面
+                # 如果刚捕获完日期面，切换到下一个产品的批号面
                 next_index = (self.current_label_index + 1) // 2
                 self.stackedWidget.setCurrentIndex(next_index)
         else:
@@ -355,7 +365,7 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
         self.should_store_captured_image = True
         self.capture_image()
 
-        # 只在“双面”模式下且当前为正面图像时切换到反面
+        # 只在“双面”模式下且当前为批号面图像时切换到日期面
         if self.detection_type == "双面" and self.current_label_index % 2 == 0:
             next_index = self.current_label_index // 2 + self.count
             self.stackedWidget.setCurrentIndex(next_index)
@@ -382,6 +392,6 @@ class PicturePage3(QtWidgets.QWidget, Ui_PicturePage3):
 
 #创建应用实例和窗口，然后运行
 # app = QApplication(sys.argv)
-# window = PicturePage3()
+# window = PicturePage()
 # window.showMaximized()
 # sys.exit(app.exec_())

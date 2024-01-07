@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>953</width>
-    <height>577</height>
+    <width>781</width>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,12 @@
      </attribute>
      <column>
       <property name="text">
-       <string>产线</string>
+       <string>生产线</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>任务标识符</string>
       </property>
      </column>
      <column>
@@ -40,16 +45,6 @@
      <column>
       <property name="text">
        <string>物料类型</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>生产日期</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>有效期至</string>
       </property>
      </column>
      <column>
