@@ -38,12 +38,12 @@ mphdc.SetWorkingMode(camera,mphdc.WorkingModeType.Photometric) #设置设备的�
 mphdc.SetTriggerSource(camera,mphdc.TriggerSourceType.soft) #设置设备的触发模式
 mphdc.SetPhotometricExposureIntensityMain(camera,50.0) #设置光度立体模式'计算图'曝光强度
 mphdc.SetPhotometricExposureIntensityTexture(camera,50.0) #设置光度立体模式'纹理图'曝光强度
-mphdc.SetPhotometricOutputChannelEnable(camera,['g','r','nx']) #设置光度立体模式的输出通道，可设置的值见PotoMericImages
+mphdc.SetPhotometricOutputChannelEnable(camera,['nx','ny','nz']) #设置光度立体模式的输出通道，可设置的值见PotoMericImages
 mphdc.SetHoldState(camera,False)  #关闭Hold 相当于UIHoldstate按钮-> #00ff00
 
 #----------------结构体设置
 photometricsettings= mphdc.GetPhotometricSettings(camera) #获取设备光度立体设置
-photometricsettings.LightSourceSelection = mphdc.LightSourceSelectionType.RingLight.value #修改光源类型为蝶形光源
+photometricsettings.LightSourceSelection = mphdc.LightSourceSelectionType.ExternalLight.value #修改光源类型为蝶形光源
 mphdc.SetPhotometricSettings(camera,photometricsettings) #设置到设备
 print(mphdc.LightSourceSelectionType(mphdc.GetPhotometricSettings(camera).LightSourceSelection))  #打印光源类型是否设置结果
 

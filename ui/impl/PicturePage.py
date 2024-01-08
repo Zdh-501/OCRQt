@@ -1,5 +1,5 @@
 import sys
-
+import cv2
 from PyQt5 import QtCore
 
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication
 from pyqt5_plugins.examplebutton import QtWidgets
 from pyqt5_plugins.examplebuttonplugin import QtGui
 
-
+import mphdcpy.mphdc
 from ui.layout.UI_PicturePage import Ui_PicturePage
 from ui.impl.TaskDialog import TaskDialog
 from ui.impl.myThread import *
@@ -21,7 +21,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.count = 0  # 初始化 count 属性
         self.detection_type="单面"  #初始化 detection_type 属性
         # 初始化 PaddleOCR 配置
-        self.det_model_dir = r"D:/Paddle/ResNet50_1220"
+        self.det_model_dir = "D:/Paddle/ResNet50_1220"
         self.rec_model_dir = "D:/Paddle/rec"
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.8
@@ -253,11 +253,14 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             print("任务取消")
 
     def detectTask(self):
-        self.thread = OcrThread(self.captured_images)  # 使用捕获的图像
+        self.thread = OcrThread(self.captured_images, self.det_model_dir, self.rec_model_dir)  # 使用捕获的图像
         self.thread.finished.connect(self.onOcrFinished)
         self.thread.start()
 
+        print("OCR线程已启动...")
+
     def onOcrFinished(self, results):
+        print("OCR检测完成，结果：", results)
         self.captured_images.clear()  # 清空存储的图像列表
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
@@ -290,13 +293,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 可以在这里更新UI等
 
     def display_image_on_label(self, image_np):
-        # todo 同时将图像存储在列表中,要补充存在本地中
+        # todo 同时将图像存储在列表中,要补充存在本地
         if self.should_store_captured_image:
             # 只有在标志为True时，才将图像添加到列表中
             self.captured_images.append(image_np)
             # 重置标志，以便下一次点击时再次检查
             self.should_store_captured_image = False
-
         # 显示图像在当前标签上
         q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
@@ -333,7 +335,25 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 更新进度条
         if self.current_label_index<=1:
             self.progressBar.setValue(1)
+        # 设置相机为光度立体模式，并指定输出通道
+        self.set_camera_photometric_settings()
 
+    def set_camera_photometric_settings(self):
+    # 设置光源为外接光源
+        light_settings = mphdcpy.mphdc.GetLightSettings(self.camera)
+
+        light_settings.LightSourceSelection = mphdc.LightSourceSelectionType.ExternalLight.value
+        mphdc.SetLightSettings(self.camera, light_settings)
+
+        # 设置光度立体算法模式
+        photometric_settings = mphdc.GetPhotometricSettings(self.camera)
+        photometric_settings.AlgorithmMode = mphdc.PhotometricAlgorithmModeType.Fast.value
+        # photometric_settings.OutputChannelEnable = mphdc.set_bit(0, [mphdc.PotoMericImages.index('nx'),
+        #                                                              mphdc.PotoMericImages.index('ny'),
+        #                                                              mphdc.PotoMericImages.index('nz')])
+
+        mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz'])
+        mphdc.SetPhotometricSettings(self.camera, photometric_settings)
 
     def capture_image(self):
         # 从相机捕获图像，并显示在当前标签上
@@ -348,6 +368,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     print("未捕获到图像")
             else:
                 print("拍摄失败")
+
     def take_photo_and_skip(self):
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
@@ -357,13 +378,15 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         print(prev_task_index)
         print(task_index)
         print(self.task_completion_status)
+
         # 检查上一个任务是否已完成
         if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
             QtWidgets.QMessageBox.warning(self, "提示", "请先完成本产品的检测上传再继续拍照")
             return
 
         self.should_store_captured_image = True
-        self.capture_image()
+        # 触发相机拍照
+        self.camera_worker.take_photo()
 
         # 只在“双面”模式下且当前为批号面图像时切换到日期面
         if self.detection_type == "双面" and self.current_label_index % 2 == 0:
@@ -373,14 +396,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 递增 current_label_index，不论检测类型
         self.current_label_index += 1
-        # 如果需要的话，重新启动相机工作线程
-        if self.current_label_index < 2 * self.count if self.detection_type == "双面" else self.count:
-            self.camera_worker.start()
-        else:
 
-            if self.camera_worker.isRunning():
-                self.camera_worker.stop()
-                self.camera_worker.wait()
+        # 如果当前任务未完成，重新启动相机工作线程
+        if not self.task_completion_status[task_index]:
+            if not self.camera_worker.isRunning():
+                self.camera_worker.start()
 
 
 
