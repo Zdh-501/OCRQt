@@ -24,12 +24,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_model_dir = "D:/Paddle/ResNet50_1220"
         self.rec_model_dir = "D:/Paddle/rec"
         self.use_angle_cls = True
-        self.det_db_unclip_ratio = 2.8
-        self.lang = 'en'
+        self.det_db_unclip_ratio = 12
+        self.lang = 'ch'
         #用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
         # 创建 PaddleOCR 实例
-        self.initialize_ocr()
+        # self.initialize_ocr()
 
         self.current_label_index = 0
         self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号
@@ -81,8 +81,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
         self.lang = config.get('lang', self.lang)
 
-        # 重新初始化 PaddleOCR 实例
-        self.initialize_ocr()
+        # # 重新初始化 PaddleOCR 实例
+        # self.initialize_ocr()
 
     def updateTextBrowser(self, item_details):
 
@@ -253,7 +253,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             print("任务取消")
 
     def detectTask(self):
-        self.thread = OcrThread(self.captured_images, self.det_model_dir, self.rec_model_dir)  # 使用捕获的图像
+        self.thread = OcrThread(self.captured_images, self.det_model_dir,self.rec_model_dir,self.det_db_unclip_ratio)  # 使用捕获的图像
         self.thread.finished.connect(self.onOcrFinished)
         self.thread.start()
 

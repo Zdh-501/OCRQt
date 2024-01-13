@@ -46,24 +46,35 @@ class CameraWorker(QThread):
 class OcrThread(QThread):
     finished = pyqtSignal(object)  # 完成信号，传递检测结果
 
-    def __init__(self, images, det_model_dir, rec_model_dir, parent=None):
+    def __init__(self, images, det_model_dir,rec_model_dir,det_db_unclip_ratio, parent=None):
         super().__init__(parent)
         self.images = images  # NumPy图像数组列表
-        self.det_model_dir = det_model_dir  # 检测模型路径
-        self.rec_model_dir = rec_model_dir  # 识别模型路径
+        self.Ocr=PaddleOCR(det_model_dir=det_model_dir,
+                             rec_model_dir=rec_model_dir,
+                             use_angle_cls=True,
+                             det_db_thresh=0.5,
+                             det_db_unclip_ratio=det_db_unclip_ratio,
+                             lang='ch')
+
 
     def run(self):
-        print("检测模型路径：", self.det_model_dir)
-        print("识别模型路径：", self.rec_model_dir)
-        # 在此处创建新的 PaddleOCR 实例
-        self.ocr = PaddleOCR(det_model_dir=self.det_model_dir,
-                             rec_model_dir=self.rec_model_dir,
-                             use_angle_cls=True, lang='ch')
         results = []
         for i, image_np in enumerate(self.images):
-            # 打印图像信息进行检查
-            print(f"Image {i}: shape = {image_np.shape}, dtype = {image_np.dtype}")
+            # 打印原始图像大小
+            print(f"Original image {i} size: {image_np.shape}")
 
-            result = self.ocr.ocr(image_np, cls=True)
+            # 调整图像大小
+            # 假设我们想要将图像的最长边限制为960像素
+            scale_factor = 960 / max(image_np.shape[:2])
+            width = int(image_np.shape[1] * scale_factor)
+            height = int(image_np.shape[0] * scale_factor)
+            dim = (width, height)
+            resized_image = cv2.resize(image_np, dim, interpolation=cv2.INTER_AREA)
+
+            # 打印调整后的图像大小
+            print(f"Resized image {i} size: {resized_image.shape}")
+
+
+            result = self.Ocr.ocr(resized_image, cls=True)
             results.append((i, result))
         self.finished.emit(results)  # 发送完成信号，附带检测结果
