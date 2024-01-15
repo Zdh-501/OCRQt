@@ -50,7 +50,7 @@ class OCRConfigDialog(QDialog):
 
         # 创建语言选择的下拉菜单
         self.langComboBox = QComboBox(self)
-        self.langComboBox.addItems(["en", "ch"])  # 添加支持的语言选项
+        self.langComboBox.addItems(["ch", "en"])  # 添加支持的语言选项
         self.layout.addWidget(QLabel("语言:"))
         self.layout.addWidget(self.langComboBox)
 

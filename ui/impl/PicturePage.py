@@ -1,5 +1,8 @@
 import sys
 import cv2
+import pyodbc
+from datetime import datetime
+
 from PyQt5 import QtCore
 
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
@@ -12,7 +15,7 @@ import mphdcpy.mphdc
 from ui.layout.UI_PicturePage import Ui_PicturePage
 from ui.impl.TaskDialog import TaskDialog
 from ui.impl.myThread import *
-
+from SQL.dbFunction import *
 
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     def __init__(self):
@@ -207,6 +210,33 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 检查前一个任务是否已完成
         if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
             QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart}的检测上传任务")
+            # 获取当前时间
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # 错误信息
+            error_message = "尝试在未完成前一个任务的情况下拍照"
+
+            try:
+                # 连接数据库
+                connection = dbConnect()
+                cursor = connection.cursor()
+
+                # 插入错误信息到 ErrorLog 表
+                insert_query = """
+                   INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
+                   VALUES (?, ?)
+                   """
+                cursor.execute(insert_query, (current_time, error_message))
+                connection.commit()
+
+                print("错误信息已记录到数据库")
+            except pyodbc.Error as e:
+                print("数据库错误: ", e)
+            finally:
+                # 确保无论如何都关闭数据库连接
+                if connection:
+                    connection.close()
+
             return
 
         if self.detection_type == "双面":
@@ -217,6 +247,33 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # 第二个进度条被点击
                 if not self.isPhotoDisplayedOnLabel(self.labels_1[whichPart]):
                     QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的批号面拍摄")
+                    # 获取当前时间
+                    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                    # 错误信息
+                    error_message = "检测需双面拍摄的产品时，未完成批号面拍摄便错误点击日期面"
+
+                    try:
+                        # 连接数据库
+                        connection = dbConnect()
+                        cursor = connection.cursor()
+
+                        # 插入错误信息到 ErrorLog 表
+                        insert_query = """
+                           INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
+                           VALUES (?, ?)
+                           """
+                        cursor.execute(insert_query, (current_time, error_message))
+                        connection.commit()
+
+                        print("错误信息已记录到数据库")
+                    except pyodbc.Error as e:
+                        print("数据库错误: ", e)
+                    finally:
+                        # 确保无论如何都关闭数据库连接
+                        if connection:
+                            connection.close()
+
                     return
                 self.stackedWidget.setCurrentIndex(self.count + whichPart)
 
@@ -287,13 +344,13 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         else:
             self.progressBar.setValue(self.current_label_index + 1)
 
-        # 处理OCR结果
+        #todo 处理OCR结果,要保存在数据库
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
         # 可以在这里更新UI等
 
     def display_image_on_label(self, image_np):
-        # todo 同时将图像存储在列表中,要补充存在本地
+        # todo 同时将图像存储在列表中,要补充存在本地,注意命名方式
         if self.should_store_captured_image:
             # 只有在标志为True时，才将图像添加到列表中
             self.captured_images.append(image_np)
@@ -382,6 +439,33 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 检查上一个任务是否已完成
         if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
             QtWidgets.QMessageBox.warning(self, "提示", "请先完成本产品的检测上传再继续拍照")
+            # 获取当前时间
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # 错误信息
+            error_message = "拍摄完一个产品未及时进行检测，重复点击拍照按钮"
+
+            try:
+                # 连接数据库
+                connection = dbConnect()
+                cursor = connection.cursor()
+
+                # 插入错误信息到 ErrorLog 表
+                insert_query = """
+                   INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
+                   VALUES (?, ?)
+                   """
+                cursor.execute(insert_query, (current_time, error_message))
+                connection.commit()
+
+                print("错误信息已记录到数据库")
+            except pyodbc.Error as e:
+                print("数据库错误: ", e)
+            finally:
+                # 确保无论如何都关闭数据库连接
+                if connection:
+                    connection.close()
+
             return
 
         self.should_store_captured_image = True

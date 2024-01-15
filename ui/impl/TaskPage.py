@@ -79,6 +79,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             # 发射信号以通知 MainWindow 切换到第二页
             self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
     def addTask(self, task_data):
+        #todo 从数据库中读取
         # 限制显示的行数为10
         while self.tableWidget.rowCount() >= 10:
             self.tableWidget.removeRow(0)  # 删除最旧的一行
