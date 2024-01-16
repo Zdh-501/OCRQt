@@ -11,7 +11,7 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
 
     def __init__(self):
         super(ModelManagePage, self).__init__()
-        self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
+        self.setupUi(self)  # 加载UI定义
         # 设置列宽为根据内容自适应
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 

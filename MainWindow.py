@@ -10,6 +10,7 @@ from ui.impl.PicturePage import PicturePage
 from ui.impl.RecordPage import RecordPage
 from ui.impl.TaskPage import TaskPage
 from ui.impl.LogPage import LogPage
+from ui.impl.UsersPage import UsersPage
 from ui.impl.OCRConfigDialog import *
 class MainWindow(QWidget, Ui_MainPage):
     def __init__(self):
@@ -26,6 +27,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.picture_page=PicturePage()
         self.record_page=RecordPage()
         self.log_page=LogPage()
+        self.users_page=UsersPage()
         # 连接信号和槽
         self.task_page.detectionCountAndTypeChanged.connect(self.picture_page.setLabelsAndPages)
         # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage2 的槽
@@ -35,7 +37,7 @@ class MainWindow(QWidget, Ui_MainPage):
         # 连接信号和槽任务界面模型修改
         self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
 
-        self.pages = [self.task_page,self.picture_page,self.record_page,self.log_page]
+        self.pages = [self.task_page,self.picture_page,self.record_page,self.log_page,self.users_page]
 
         for i in self.pages:
             self.stackedWidget.addWidget(i)
@@ -46,6 +48,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.pushButton_2.clicked.connect(self.showPicturePage)
         self.pushButton_3.clicked.connect(self.showRecordPage)
         self.pushButton_4.clicked.connect(self.showLogPage)
+        self.pushButton_5.clicked.connect(self.showUsersPage)
 
     def on_select_button_clicked(self):
         # 弹出配置对话框并更新 PicturePage2 实例
@@ -64,8 +67,8 @@ class MainWindow(QWidget, Ui_MainPage):
     def showLogPage(self):
         self.stackedWidget.setCurrentWidget(self.log_page)
 
-
-
+    def showUsersPage(self):
+        self.stackedWidget.setCurrentWidget(self.users_page)
 
 
 if __name__ == '__main__':
