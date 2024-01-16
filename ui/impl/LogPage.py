@@ -16,7 +16,7 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.loadErrorLogs()  # 调用方法来加载错误日志
         self.clearButton.clicked.connect(self.clearData)
-
+        self.flashButton.clicked.connect(self.flashData)
 
     def loadErrorLogs(self):
         try:
@@ -67,7 +67,8 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
             # 登录成功，清空tableWidget中的数据
             self.tableWidget.clearContents()
             self.tableWidget.setRowCount(0)
-
+    def flashData(self):
+        self.loadErrorLogs()
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainWindow = LogPage()

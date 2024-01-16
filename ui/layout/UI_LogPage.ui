@@ -44,6 +44,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="flashButton">
+       <property name="text">
+        <string>刷新</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="clearButton">
        <property name="text">
         <string>清除</string>
