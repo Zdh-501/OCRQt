@@ -1,9 +1,10 @@
 import sys
 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import QApplication,QTableWidgetItem, QHeaderView
 
 
+from SQL.dbFunction import *
+from ui.impl.Login1Dialog import *
 
 from SQL.dbFunction import *
 from ui.layout.UI_LogPage import Ui_LogPage
@@ -14,7 +15,7 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
         self.setupUi(self)  # 从UI_DataCollectPage.py中加载UI定义
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.loadErrorLogs()  # 调用方法来加载错误日志
-
+        self.clearButton.clicked.connect(self.clearData)
 
 
     def loadErrorLogs(self):
@@ -34,7 +35,7 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
             font.setPointSize(13)  # 设置字体大小为13
 
             # 设置行高
-            row_height = 50  # 将行高设置为40像素
+            row_height = 50  # 将行高设置为50像素
 
             # 遍历并添加数据到tableWidget中
             for row_number, row_data in enumerate(rows):
@@ -43,15 +44,29 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
                 for column_number, data in enumerate(row_data):
                     item = QtWidgets.QTableWidgetItem(str(data))
                     item.setFont(font)  # 设置字体
+                    # 设置单元格不可编辑
+                    item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+                    # 如果是第一列，设置文本居中对齐
+                    if column_number == 0:
+                        item.setTextAlignment(Qt.AlignCenter)
                     self.tableWidget.setItem(row_number, column_number, item)
             # 设置列宽以适应内容
             self.tableWidget.resizeColumnsToContents()
+            self.tableWidget.setColumnWidth(0, 450)  # 设置第一列的宽度为 450 像素
 
         except pyodbc.Error as e:
                 print("数据库错误: ", e)
         finally:
             if connection:
                 connection.close()
+
+    def clearData(self):
+        login_dialog = LoginDialog(self)
+        if login_dialog.exec_() == QDialog.Accepted:
+            # 登录成功，清空tableWidget中的数据
+            self.tableWidget.clearContents()
+            self.tableWidget.setRowCount(0)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
