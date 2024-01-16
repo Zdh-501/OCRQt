@@ -42,7 +42,7 @@ class MainWindow(QWidget, Ui_MainPage):
         for i in self.pages:
             self.stackedWidget.addWidget(i)
 
-        #连接按钮
+        #连接按钮1
 
         self.pushButton_1.clicked.connect(self.showTaskPage)
         self.pushButton_2.clicked.connect(self.showPicturePage)
