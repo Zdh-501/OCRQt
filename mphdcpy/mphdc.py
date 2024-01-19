@@ -704,7 +704,7 @@ def SoftTiggerCamera(camera_ptr:ct.POINTER(ct.c_ubyte)):
     """
     mphdcapi.MPHdc_FireSoftwareTrigger.restype=ct.c_bool
     return mphdcapi.MPHdc_FireSoftwareTrigger(camera_ptr)
-def SanpCamera(camera_ptr:ct.POINTER(ct.c_ubyte),outtime_ms):
+def SnapCamera(camera_ptr:ct.POINTER(ct.c_ubyte),outtime_ms):
     """同步拍摄
 
     Args:
@@ -722,7 +722,7 @@ def SanpCamera(camera_ptr:ct.POINTER(ct.c_ubyte),outtime_ms):
     return res,dataundfined 
 def FreeDataFrameUndfined(dataframeundfined:MPHDC_DataFrameUndefined):
     mphdcapi.MPHdc_Utils_FreeUnmanagedData(dataframeundfined)
-def GetCamearState(camera_ptr):
+def GetCameraState(camera_ptr):
     """获取设备的状态
 
     Args:

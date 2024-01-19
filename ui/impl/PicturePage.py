@@ -57,7 +57,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
-
+        mphdc.SetCamera_Triggersource(self.camera)
 
         # 创建CameraWorker线程
         self.camera_worker = CameraWorker(self.camera)
@@ -126,6 +126,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
     def setLabelsAndPages(self, count, detection_type):
+        self.current_label_index = 0
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
         # 根据检测类型显示或隐藏第二个进度条
@@ -344,6 +345,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         else:
             self.progressBar.setValue(self.current_label_index + 1)
 
+        if not self.camera_worker.isRunning():
+            self.camera_worker.start()
+
         #todo 处理OCR结果,要保存在数据库
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
@@ -359,6 +363,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 显示图像在当前标签上
         q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
+        #todo 待删除测试
+        print('显示：' , self.current_label_index)
 
         # 根据检测类型选择使用 self.labels_1 或 self.labels_2
         if self.current_label_index<self.count*2 :
@@ -387,8 +393,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not hasattr(self, 'camera'):
             # 初始化相机
             self.init_camera()
-            # 启动相机工作线程
-            self.camera_worker.start()
+
         # 更新进度条
         if self.current_label_index<=1:
             self.progressBar.setValue(1)
@@ -405,26 +410,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 设置光度立体算法模式
         photometric_settings = mphdc.GetPhotometricSettings(self.camera)
         photometric_settings.AlgorithmMode = mphdc.PhotometricAlgorithmModeType.Fast.value
-        # photometric_settings.OutputChannelEnable = mphdc.set_bit(0, [mphdc.PotoMericImages.index('nx'),
-        #                                                              mphdc.PotoMericImages.index('ny'),
-        #                                                              mphdc.PotoMericImages.index('nz')])
 
         mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz'])
         mphdc.SetPhotometricSettings(self.camera, photometric_settings)
 
-    def capture_image(self):
-        # 从相机捕获图像，并显示在当前标签上
-        state = mphdc.GetCamearState(self.camera)
-        if state == mphdc.DeviceStateType.StandBy:
-            res, data = mphdc.SanpCamera(self.camera, 2000)
-            if res:
-                imgs, n, _ = mphdc.Nppc_Create(data)
-                if n > 0:
-                    self.display_image_on_label(imgs[0])
-                else:
-                    print("未捕获到图像")
-            else:
-                print("拍摄失败")
 
     def take_photo_and_skip(self):
         # 当前任务的索引

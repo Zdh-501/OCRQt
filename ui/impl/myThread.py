@@ -19,13 +19,16 @@ class CameraWorker(QThread):
         self.camera = camera
         self._is_running = True
         self._take_photo = False  # 添加一个标志来控制拍照
-        print(paddleocr.__version__)
+
 
     def run(self):
         while self._is_running:
-            state = mphdc.GetCamearState(self.camera)
+            if self._take_photo:
+                # 如果标志为 True，则执行拍照操作
+                self._take_photo = False  # 重置标志
+            state = mphdc.GetCameraState(self.camera)
             if state == mphdc.DeviceStateType.StandBy:
-                res, data = mphdc.SanpCamera(self.camera, 2000)
+                res, data = mphdc.SnapCamera(self.camera, 2000)
                 if res:
                     imgs, n, channels = mphdc.Nppc_Create(data)
                     if n > 0:
@@ -35,6 +38,7 @@ class CameraWorker(QThread):
                         nz_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nz),:,:]
                         merged_image = cv2.merge([nx_channel, ny_channel, nz_channel])
                         self.image_captured.emit(merged_image)
+
 
     def take_photo(self):
         self._take_photo = True
@@ -55,7 +59,7 @@ class OcrThread(QThread):
                              det_db_thresh=0.5,
                              det_db_unclip_ratio=det_db_unclip_ratio,
                              lang='ch')
-
+        print('Ocr',paddleocr.__version__)
 
     def run(self):
         results = []
