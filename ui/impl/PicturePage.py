@@ -375,8 +375,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 显示图像在当前标签上
         q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
-        #todo 待删除测试
-        print('显示：' , self.current_label_index)
+
 
         # 根据检测类型选择使用 self.labels_1 或 self.labels_2
         if self.current_label_index<self.count*2 :

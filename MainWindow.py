@@ -79,12 +79,57 @@ class MainWindow(QWidget, Ui_MainPage):
     def showPicturePage(self):
         self.stackedWidget.setCurrentWidget(self.picture_page)
     def showRecordPage(self):
-        self.stackedWidget.setCurrentWidget(self.record_page)
-    def showLogPage(self):
-        self.stackedWidget.setCurrentWidget(self.log_page)
+        # 检查当前任务是否完成
+        if not self.picture_page.isComplete:  # 注意这里是 not self.picture_page.isComplete
+            # 如果任务未完成，询问用户是否继续
+            reply = QMessageBox.question(self, '任务正在进行',
+                                         "当前有任务正在进行，是否继续切换页面？",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
+            if reply == QMessageBox.Yes:
+                # 如果用户选择“是”，则允许切换页面
+                self.stackedWidget.setCurrentWidget(self.record_page)
+            else:
+                # 如果用户选择“否”，则不进行任何操作
+                pass
+        else:
+            # 如果任务已完成，直接切换页面
+            self.stackedWidget.setCurrentWidget(self.record_page)
+
+    def showLogPage(self):
+        # 检查当前任务是否完成
+        if not self.picture_page.isComplete:  # 注意这里是 not self.picture_page.isComplete
+            # 如果任务未完成，询问用户是否继续
+            reply = QMessageBox.question(self, '任务正在进行',
+                                         "当前有任务正在进行，是否继续切换页面？",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+            if reply == QMessageBox.Yes:
+                # 如果用户选择“是”，则允许切换页面
+                self.stackedWidget.setCurrentWidget(self.log_page)
+            else:
+                # 如果用户选择“否”，则不进行任何操作
+                pass
+        else:
+            # 如果任务已完成，直接切换页面
+            self.stackedWidget.setCurrentWidget(self.log_page)
     def showUsersPage(self):
-        self.stackedWidget.setCurrentWidget(self.users_page)
+        # 检查当前任务是否完成
+        if not self.picture_page.isComplete:  # 注意这里是 not self.picture_page.isComplete
+            # 如果任务未完成，询问用户是否继续
+            reply = QMessageBox.question(self, '任务正在进行',
+                                         "当前有任务正在进行，是否继续切换页面？",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+            if reply == QMessageBox.Yes:
+                # 如果用户选择“是”，则允许切换页面
+                self.stackedWidget.setCurrentWidget(self.users_page)
+            else:
+                # 如果用户选择“否”，则不进行任何操作
+                pass
+        else:
+            # 如果任务已完成，直接切换页面
+            self.stackedWidget.setCurrentWidget(self.users_page)
 
 
 if __name__ == '__main__':
