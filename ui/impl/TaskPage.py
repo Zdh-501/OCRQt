@@ -74,7 +74,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             detection_type = self.tableWidget.itemFromIndex(detection_type_index).text()
             # 发射带有两个参数的信号
             self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
-
+            #todo 需要添加产品名称信息，用于设置相机参数
             self.detectionCountChanged.emit(detection_count)
             # 发射信号以通知 MainWindow 切换到第二页
             self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2

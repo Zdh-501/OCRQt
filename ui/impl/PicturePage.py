@@ -27,7 +27,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_model_dir = "D:/Paddle/ResNet50_1220"
         self.rec_model_dir = "D:/Paddle/rec"
         self.use_angle_cls = True
-        self.det_db_unclip_ratio = 12
+        self.det_db_unclip_ratio = 2.5
         self.lang = 'ch'
         #用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
@@ -57,8 +57,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
+        #设置相机触发模式
         mphdc.SetCamera_Triggersource(self.camera)
-
+        # 设置相机为光度立体模式，并指定输出通道
+        self.set_camera_photometric_settings()
         # 创建CameraWorker线程
         self.camera_worker = CameraWorker(self.camera)
 
@@ -126,9 +128,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
     def setLabelsAndPages(self, count, detection_type):
+        self.start_camera_view()
         self.current_label_index = 0
+        self.isComplete=False #用于在未完成任务时切换页面的提示
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
+
         # 根据检测类型显示或隐藏第二个进度条
         if detection_type == "单面":
             self.progressBar_2.hide()
@@ -292,7 +297,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
 
     def onStartDetectClicked(self):
-
+        #todo 这里添加一个如果是双情况只拍了一张或者单面情况没有拍摄的提醒。
         self.showTaskDialog()
 
 
@@ -302,10 +307,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         result = dialog.exec_()
         if result:
             print("开始检测任务")
-            # 可以选择在这里关闭相机，或者保持打开状态
-            if self.camera_worker.isRunning():
-                self.camera_worker.stop()
-                self.camera_worker.wait()
+
             self.detectTask()  # 调用检测任务函数
         else:
             print("任务取消")
@@ -319,18 +321,21 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
     def onOcrFinished(self, results):
         print("OCR检测完成，结果：", results)
+        # todo 要添加传入图像是否顺序正确的逻辑判断
         self.captured_images.clear()  # 清空存储的图像列表
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
         # 标记当前任务为完成
         if task_index <= len(self.task_completion_status):
             self.task_completion_status[task_index-1] = True
-
+        #todo 添加逻辑判断当前整体任务是否完成
+        if self.task_completion_status[self.count-1]==True:
+            self.isComplete=True
         # 处理“双面”和“单面”情况下的页面切换
         if self.detection_type == "双面":
-            if self.current_label_index % 2 != 0:
+            if self.current_label_index % 2 == 0:
                 # 如果刚捕获完日期面，切换到下一个产品的批号面
-                next_index = (self.current_label_index + 1) // 2
+                next_index = (self.current_label_index ) // 2
                 self.stackedWidget.setCurrentIndex(next_index)
         else:
             # 单面情况，直接显示下一个产品
@@ -397,8 +402,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 更新进度条
         if self.current_label_index<=1:
             self.progressBar.setValue(1)
-        # 设置相机为光度立体模式，并指定输出通道
-        self.set_camera_photometric_settings()
+
 
     def set_camera_photometric_settings(self):
     # 设置光源为外接光源
@@ -458,8 +462,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             return
 
         self.should_store_captured_image = True
-        # 触发相机拍照
-        self.camera_worker.take_photo()
+
+
 
         # 只在“双面”模式下且当前为批号面图像时切换到日期面
         if self.detection_type == "双面" and self.current_label_index % 2 == 0:
@@ -470,10 +474,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 递增 current_label_index，不论检测类型
         self.current_label_index += 1
 
-        # 如果当前任务未完成，重新启动相机工作线程
-        if not self.task_completion_status[task_index]:
-            if not self.camera_worker.isRunning():
-                self.camera_worker.start()
+
 
 
 

@@ -1,7 +1,7 @@
 import sys
 
 
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 
 from PyQt5.QtGui import QIcon
 
@@ -25,6 +25,7 @@ class MainWindow(QWidget, Ui_MainPage):
         #todo 创建分页面
         self.task_page=TaskPage()
         self.picture_page=PicturePage()
+        self.picture_page.isComplete=True
         self.record_page=RecordPage()
         self.log_page=LogPage()
         self.users_page=UsersPage()
@@ -59,7 +60,22 @@ class MainWindow(QWidget, Ui_MainPage):
     def switchPage(self, pageIndex):
         self.stackedWidget.setCurrentIndex(pageIndex)
     def showTaskPage(self):
-        self.stackedWidget.setCurrentWidget(self.task_page)
+        # 检查当前任务是否完成
+        if not self.picture_page.isComplete:  # 注意这里是 not self.picture_page.isComplete
+            # 如果任务未完成，询问用户是否继续
+            reply = QMessageBox.question(self, '任务正在进行',
+                                         "当前有任务正在进行，是否继续切换页面？",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+            if reply == QMessageBox.Yes:
+                # 如果用户选择“是”，则允许切换页面
+                self.stackedWidget.setCurrentWidget(self.task_page)
+            else:
+                # 如果用户选择“否”，则不进行任何操作
+                pass
+        else:
+            # 如果任务已完成，直接切换页面
+            self.stackedWidget.setCurrentWidget(self.task_page)
     def showPicturePage(self):
         self.stackedWidget.setCurrentWidget(self.picture_page)
     def showRecordPage(self):

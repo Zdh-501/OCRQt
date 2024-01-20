@@ -18,14 +18,11 @@ class CameraWorker(QThread):
         super().__init__()
         self.camera = camera
         self._is_running = True
-        self._take_photo = False  # 添加一个标志来控制拍照
+
 
 
     def run(self):
         while self._is_running:
-            if self._take_photo:
-                # 如果标志为 True，则执行拍照操作
-                self._take_photo = False  # 重置标志
             state = mphdc.GetCameraState(self.camera)
             if state == mphdc.DeviceStateType.StandBy:
                 res, data = mphdc.SnapCamera(self.camera, 2000)
@@ -40,8 +37,7 @@ class CameraWorker(QThread):
                         self.image_captured.emit(merged_image)
 
 
-    def take_photo(self):
-        self._take_photo = True
+
 
     def stop(self):
         self._is_running = False
@@ -81,4 +77,6 @@ class OcrThread(QThread):
 
             result = self.Ocr.ocr(resized_image, cls=True)
             results.append((i, result))
+
+
         self.finished.emit(results)  # 发送完成信号，附带检测结果
