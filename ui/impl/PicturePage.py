@@ -128,12 +128,16 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
     def setLabelsAndPages(self, count, detection_type):
+
         self.start_camera_view()
         self.current_label_index = 0
         self.isComplete=False #用于在未完成任务时切换页面的提示
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
 
+        # 更新进度条
+        self.progressBar.setValue(1)
+        self.progressBar_2.setValue(0)
         # 根据检测类型显示或隐藏第二个进度条
         if detection_type == "单面":
             self.progressBar_2.hide()
@@ -331,6 +335,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         #todo 添加逻辑判断当前整体任务是否完成
         if self.task_completion_status[self.count-1]==True:
             self.isComplete=True
+
+
         # 处理“双面”和“单面”情况下的页面切换
         if self.detection_type == "双面":
             if self.current_label_index % 2 == 0:
@@ -354,6 +360,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.camera_worker.start()
 
         #todo 处理OCR结果,要保存在数据库
+        print('检测后', self.task_completion_status)
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
         # 可以在这里更新UI等
@@ -377,10 +384,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # 如果是偶数次拍摄，显示在self.labels_1，否则显示在self.labels_2
                 target_label = self.labels_1[self.current_label_index // 2] if self.current_label_index % 2 == 0 else\
                 self.labels_2[self.current_label_index // 2]
+                target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
             else:
                 # "单面"情况下只使用self.labels_1
-                target_label = self.labels_1[self.current_label_index]
-            target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                if self.current_label_index < self.count :
+                    target_label = self.labels_1[self.current_label_index]
+                    target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def closeEvent(self, event):
         # 确保相机线程被正确关闭
@@ -427,7 +436,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.current_label_index - 1)
         print(prev_task_index)
         print(task_index)
-        print(self.task_completion_status)
+        print('检测前',self.task_completion_status)
 
         # 检查上一个任务是否已完成
         if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
