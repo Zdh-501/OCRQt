@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# PicturePage implementation generated from reading ui file 'UI_PicturePage.ui'
+# PicturePage implementation generated from reading ui file 'UI_PicturePage2.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QPen, QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPen
 
 
 class ClickableProgressBar(QtWidgets.QProgressBar):
@@ -109,11 +109,11 @@ class Ui_PicturePage(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
-        self.progressBar =  ClickableProgressBar(self.widget_1)
+        self.progressBar = ClickableProgressBar(self.widget_1)
         self.progressBar.setProperty("value", 24)
         self.progressBar.setObjectName("progressBar")
         self.verticalLayout_3.addWidget(self.progressBar)
-        self.progressBar_2 =  ClickableProgressBar2(self.widget_1)
+        self.progressBar_2 = ClickableProgressBar2(self.widget_1)
         self.progressBar_2.setProperty("value", 24)
         self.progressBar_2.setObjectName("progressBar_2")
         self.verticalLayout_3.addWidget(self.progressBar_2)
@@ -168,18 +168,6 @@ class Ui_PicturePage(object):
         self.takePictureButton.setFont(font)
         self.takePictureButton.setObjectName("takePictureButton")
         self.horizontalLayout_5.addWidget(self.takePictureButton)
-        self.skipButton = QtWidgets.QToolButton(self.widget_4)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.skipButton.sizePolicy().hasHeightForWidth())
-        self.skipButton.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily("Adobe 黑体 Std R")
-        font.setPointSize(16)
-        self.skipButton.setFont(font)
-        self.skipButton.setObjectName("skipButton")
-        self.horizontalLayout_5.addWidget(self.skipButton)
         self.startDetectButton = QtWidgets.QToolButton(self.widget_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -194,7 +182,6 @@ class Ui_PicturePage(object):
         self.horizontalLayout_5.addWidget(self.startDetectButton)
         self.horizontalLayout_5.setStretch(0, 1)
         self.horizontalLayout_5.setStretch(1, 1)
-        self.horizontalLayout_5.setStretch(2, 2)
         self.verticalLayout.addWidget(self.widget_4)
         self.widget_5 = QtWidgets.QWidget(self.widget_2)
         self.widget_5.setObjectName("widget_5")
@@ -223,6 +210,5 @@ class Ui_PicturePage(object):
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:9pt;\">产品工位：</span></p></body></html>"))
-        self.takePictureButton.setText(_translate("PicturePage", "启动"))
-        self.skipButton.setText(_translate("PicturePage", "拍照"))
+        self.takePictureButton.setText(_translate("PicturePage", "拍照"))
         self.startDetectButton.setText(_translate("PicturePage", "开始检测"))

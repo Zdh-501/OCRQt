@@ -2,7 +2,7 @@ import sys
 import cv2
 import pyodbc
 from datetime import datetime
-
+import ctypes as ct
 from PyQt5 import QtCore
 
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
@@ -17,19 +17,20 @@ from ui.impl.TaskDialog import TaskDialog
 from ui.impl.myThread import *
 from SQL.dbFunction import *
 
+
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     def __init__(self):
         super(PicturePage, self).__init__()
         self.setupUi(self)
         self.count = 0  # 初始化 count 属性
-        self.detection_type="单面"  #初始化 detection_type 属性
+        self.detection_type = "单面"  # 初始化 detection_type 属性
         # 初始化 PaddleOCR 配置
         self.det_model_dir = "D:/Paddle/ResNet50_1220"
         self.rec_model_dir = "D:/Paddle/rec"
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.5
         self.lang = 'ch'
-        #用于区分手动捕获照片还是子线程自动捕获
+        # 用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
         # 创建 PaddleOCR 实例
         # self.initialize_ocr()
@@ -40,10 +41,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.captured_images = []  # 用于存储捕获的图像
         self.task_completion_status = []  # 初始化任务完成状态列表
 
-        
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
-        self.takePictureButton.clicked.connect(self.start_camera_view)
-        self.skipButton.clicked.connect(self.take_photo_and_skip)
+        self.takePictureButton.clicked.connect(self.take_photo_and_skip)
+
 
         current_username = 'root'
         workstation_number = self.get_workstation_number(current_username)
@@ -51,13 +51,14 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_2.setText(f"生产工位: {workstation_number}")
         else:
             self.textBrowser_2.setText("生产工位：")
+
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
         mphdc.UpdateCameraList(self.camera)
 
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
-        #设置相机触发模式
+        # 设置相机触发模式
         mphdc.SetCamera_Triggersource(self.camera)
         # 设置相机为光度立体模式，并指定输出通道
         self.set_camera_photometric_settings()
@@ -66,7 +67,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 连接 image_captured 信号到 display_image_on_label 方法
         self.camera_worker.image_captured.connect(self.display_image_on_label)
-
 
         self.camera_worker.start()
 
@@ -101,7 +101,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 填充数据
         for row, (key, value) in enumerate(item_details.items()):
-            self.tableWidget_2.setItem(row, 0,  QtWidgets.QTableWidgetItem(key))
+            self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(key))
             self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(value))
 
         # 调整列宽以自适应内容
@@ -131,7 +131,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         self.start_camera_view()
         self.current_label_index = 0
-        self.isComplete=False #用于在未完成任务时切换页面的提示
+        self.isComplete = False  # 用于在未完成任务时切换页面的提示
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
 
@@ -144,7 +144,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.progressBar.setShouldDrawText(False)  # 不绘制文本
 
         elif detection_type == "双面":
-            self.detection_type="双面"
+            self.detection_type = "双面"
             self.progressBar.setShouldDrawText(True)  # 不绘制文本
             self.progressBar_2.show()
 
@@ -197,7 +197,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 如果需要，可以在此处设置 QStackedWidget 显示第一页
         self.stackedWidget.setCurrentIndex(0)
-        #进度条等分
+        # 进度条等分
         self.progressBar.setMaximum(count)
         self.progressBar.setMinimum(0)
         self.progressBar.clickedValue.connect(self.onProgressBarClicked)
@@ -210,6 +210,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 检查label是否显示了照片，这需要根据您的应用程序具体实现
         # 例如，您可能会检查label的pixmap是否非空
         return label.pixmap() is not None and not label.pixmap().isNull()
+
     def onProgressBarClicked(self, value):
         sender = self.sender()
         whichPart = value
@@ -298,12 +299,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         elif sender == self.progressBar_2:
             self.progressBar_2.setValue(whichPart + 1)
 
-
-
     def onStartDetectClicked(self):
-        #todo 这里添加一个如果是双情况只拍了一张或者单面情况没有拍摄的提醒。
+        # todo 这里添加一个如果是双情况只拍了一张或者单面情况没有拍摄的提醒。
         self.showTaskDialog()
-
 
     def showTaskDialog(self):
         task_name = "是否确定执行任务"
@@ -317,7 +315,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             print("任务取消")
 
     def detectTask(self):
-        self.thread = OcrThread(self.captured_images, self.det_model_dir,self.rec_model_dir,self.det_db_unclip_ratio)  # 使用捕获的图像
+        self.thread = OcrThread(self.captured_images, self.det_model_dir, self.rec_model_dir,
+                                self.det_db_unclip_ratio)  # 使用捕获的图像
         self.thread.finished.connect(self.onOcrFinished)
         self.thread.start()
 
@@ -331,17 +330,16 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
         # 标记当前任务为完成
         if task_index <= len(self.task_completion_status):
-            self.task_completion_status[task_index-1] = True
-        #todo 添加逻辑判断当前整体任务是否完成
-        if self.task_completion_status[self.count-1]==True:
-            self.isComplete=True
-
+            self.task_completion_status[task_index - 1] = True
+        # todo 添加逻辑判断当前整体任务是否完成
+        if self.task_completion_status[self.count - 1] == True:
+            self.isComplete = True
 
         # 处理“双面”和“单面”情况下的页面切换
         if self.detection_type == "双面":
             if self.current_label_index % 2 == 0:
                 # 如果刚捕获完日期面，切换到下一个产品的批号面
-                next_index = (self.current_label_index ) // 2
+                next_index = (self.current_label_index) // 2
                 self.stackedWidget.setCurrentIndex(next_index)
         else:
             # 单面情况，直接显示下一个产品
@@ -359,7 +357,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not self.camera_worker.isRunning():
             self.camera_worker.start()
 
-        #todo 处理OCR结果,要保存在数据库
+        # todo 处理OCR结果,要保存在数据库
         print('检测后', self.task_completion_status)
         for label_index, result in results:
             print(f"在 label_{label_index + 1} 的检测结果：", result)
@@ -376,26 +374,19 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         q_image = QImage(image_np.data, image_np.shape[1], image_np.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
 
-
         # 根据检测类型选择使用 self.labels_1 或 self.labels_2
-        if self.current_label_index<self.count*2 :
-            if  self.detection_type == "双面":
+        if self.current_label_index < self.count * 2:
+            if self.detection_type == "双面":
                 # 如果是偶数次拍摄，显示在self.labels_1，否则显示在self.labels_2
-                target_label = self.labels_1[self.current_label_index // 2] if self.current_label_index % 2 == 0 else\
-                self.labels_2[self.current_label_index // 2]
+                target_label = self.labels_1[self.current_label_index // 2] if self.current_label_index % 2 == 0 else \
+                    self.labels_2[self.current_label_index // 2]
                 target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
             else:
                 # "单面"情况下只使用self.labels_1
-                if self.current_label_index < self.count :
+                if self.current_label_index < self.count:
                     target_label = self.labels_1[self.current_label_index]
-                    target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-
-    def closeEvent(self, event):
-        # 确保相机线程被正确关闭
-        if self.camera_worker.isRunning():
-            self.camera_worker.stop()
-            self.camera_worker.wait()
-        event.accept()
+                    target_label.setPixmap(
+                        pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def clearLabels(self):
         for label in self.labels:
@@ -408,12 +399,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.init_camera()
 
         # 更新进度条
-        if self.current_label_index<=1:
+        if self.current_label_index <= 1:
             self.progressBar.setValue(1)
 
-
     def set_camera_photometric_settings(self):
-    # 设置光源为外接光源
+        # 设置光源为外接光源
         light_settings = mphdcpy.mphdc.GetLightSettings(self.camera)
 
         light_settings.LightSourceSelection = mphdc.LightSourceSelectionType.ExternalLight.value
@@ -426,16 +416,15 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz'])
         mphdc.SetPhotometricSettings(self.camera, photometric_settings)
 
-
     def take_photo_and_skip(self):
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
         # 计算上一个任务的索引
         prev_task_index = (self.current_label_index // 2 - 1) if self.detection_type == "双面" else (
-                    self.current_label_index - 1)
+                self.current_label_index - 1)
         print(prev_task_index)
         print(task_index)
-        print('检测前',self.task_completion_status)
+        print('检测前', self.task_completion_status)
 
         # 检查上一个任务是否已完成
         if prev_task_index >= 0 and not self.task_completion_status[prev_task_index]:
@@ -471,8 +460,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         self.should_store_captured_image = True
 
-
-
         # 只在“双面”模式下且当前为批号面图像时切换到日期面
         if self.detection_type == "双面" and self.current_label_index % 2 == 0:
             next_index = self.current_label_index // 2 + self.count
@@ -482,17 +469,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 递增 current_label_index，不论检测类型
         self.current_label_index += 1
 
-
-
-
-
-
     def get_workstation_number(self, username):
-       #todo
+        # todo
         pass
 
-
-#创建应用实例和窗口，然后运行
+# 创建应用实例和窗口，然后运行
 # app = QApplication(sys.argv)
 # window = PicturePage()
 # window.showMaximized()
