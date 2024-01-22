@@ -4,6 +4,7 @@ import numpy as np
 from mphdcpy import mphdc
 import cv2
 import paddleocr
+from threading import Condition
 from PIL import Image
 from io import BytesIO
 from paddleocr import PaddleOCR
@@ -18,11 +19,17 @@ class CameraWorker(QThread):
         super().__init__()
         self.camera = camera
         self._is_running = True
+        self._is_paused = False
+        self._pause_condition = Condition()
 
 
 
     def run(self):
         while self._is_running:
+            # 检查暂停标志
+            with self._pause_condition:
+                while self._is_paused:
+                    self._pause_condition.wait()
             state = mphdc.GetCameraState(self.camera)
             if state == mphdc.DeviceStateType.StandBy:
                 res, data = mphdc.SnapCamera(self.camera, 2000)
@@ -36,9 +43,17 @@ class CameraWorker(QThread):
                         merged_image = cv2.merge([nx_channel, ny_channel, nz_channel])
                         self.image_captured.emit(merged_image)
 
+    def is_paused(self):
+        return self._is_paused
 
+    def pause(self):
+        with self._pause_condition:
+            self._is_paused = True
 
-
+    def resume(self):
+        with self._pause_condition:
+            self._is_paused = False
+            self._pause_condition.notify()
     def stop(self):
         self._is_running = False
 
