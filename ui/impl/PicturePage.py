@@ -54,10 +54,15 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
+
         mphdc.UpdateCameraList(self.camera)
+
 
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
+        if mphdc.GetCameraState(self.camera):
+            ret=mphdc.SetHoldState(self.camera,False)
+            print('是否成功设置',ret)
         # 设置相机触发模式
         mphdc.SetCamera_Triggersource(self.camera)
         # 设置相机为光度立体模式，并指定输出通道

@@ -139,7 +139,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="startDetectButton">
+          <widget class="QToolButton" name="startButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -171,7 +171,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="skipButton">
+          <widget class="QToolButton" name="takepictureButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -203,7 +203,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="takePictureButton">
+          <widget class="QToolButton" name="labelButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
