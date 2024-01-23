@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainPage(object):
     def setupUi(self, MainPage):
         MainPage.setObjectName("MainPage")
-        MainPage.resize(1248, 868)
+        MainPage.resize(663, 396)
         self.verticalLayout = QtWidgets.QVBoxLayout(MainPage)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -26,13 +26,7 @@ class Ui_MainPage(object):
         self.pushButton_1.setObjectName("pushButton_1")
         self.horizontalLayout.addWidget(self.pushButton_1)
         self.pushButton_2 = QtWidgets.QPushButton(MainPage)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_2.sizePolicy().hasHeightForWidth())
-        self.pushButton_2.setSizePolicy(sizePolicy)
         self.pushButton_2.setMinimumSize(QtCore.QSize(50, 40))
-        self.pushButton_2.setMaximumSize(QtCore.QSize(75, 40))
         self.pushButton_2.setObjectName("pushButton_2")
         self.horizontalLayout.addWidget(self.pushButton_2)
         self.pushButton_3 = QtWidgets.QPushButton(MainPage)

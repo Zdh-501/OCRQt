@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import json  # 导入json模块
 
 from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QApplication
@@ -19,15 +20,14 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
     def __init__(self):
         super(DataCollectPage, self).__init__()
         self.setupUi(self)  # 从UI_DataCollectPage.py中加载UI定义
-
+        #todo 读取配置文件 此处要改成绝对路径
+        with open('E:\\Desktop\\OCRQT\\config.json', 'r') as config_file:
+            self.config = json.load(config_file)
         self.labelButton.clicked.connect(self.startPPOCRLabel)
 
     def startPPOCRLabel(self):
-        # 获取当前文件所在的目录
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        # 设置 PPOCRLabel 的工作目录为 PaddleOCR 文件夹
-        working_dir = os.path.join(current_dir, 'PaddleOCR')
-        # PPOCRLabel 的命令，假设 PPOCRLabel 是一个可执行的文件或者正确配置了环境变量
+        # 直接使用配置文件中的绝对路径
+        working_dir = self.config["PPOCRLabel_working_dir"]
         command = ['PPOCRLabel', '--lang', 'ch']
 
         self.workerThread = WorkerThread(command, working_dir)

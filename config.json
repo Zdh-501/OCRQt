@@ -3,7 +3,8 @@
     "server": "TUTU",
     "database": "Test",
     "uid": "sa",
-    "pwd": "abcd123456"
+    "pwd": "abcd123456",
+    "PPOCRLabel_working_dir": "E:/Desktop/OCRQT/PaddleOCR"
 }
 
 
