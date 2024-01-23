@@ -19,6 +19,8 @@ from SQL.dbFunction import *
 
 
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
+    #定义一个任务完成信号
+    Compl = pyqtSignal()
     def __init__(self):
         super(PicturePage, self).__init__()
         self.setupUi(self)
@@ -305,7 +307,36 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.progressBar_2.setValue(whichPart + 1)
 
     def onStartDetectClicked(self):
-        # todo 这里添加一个如果是双情况只拍了一张或者单面情况没有拍摄的提醒。
+        if (self.detection_type == '双面' and len(self.captured_images) < 2) or (
+                self.detection_type == '单面' and not self.captured_images):
+            QtWidgets.QMessageBox.warning(self, "提示", "请先完成当前产品的全部拍摄，再进行检测")
+            # 获取当前时间
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # 错误信息
+            error_message = "未完成产品的拍摄便错误点击检测按钮"
+
+            try:
+                # 连接数据库
+                connection = dbConnect()
+                cursor = connection.cursor()
+
+                # 插入错误信息到 ErrorLog 表
+                insert_query = """
+                               INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
+                               VALUES (?, ?)
+                               """
+                cursor.execute(insert_query, (current_time, error_message))
+                connection.commit()
+
+                print("错误信息已记录到数据库")
+            except pyodbc.Error as e:
+                print("数据库错误: ", e)
+            finally:
+                # 确保无论如何都关闭数据库连接
+                if connection:
+                    connection.close()
+            return
         self.showTaskDialog()
 
     def showTaskDialog(self):
@@ -336,10 +367,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 标记当前任务为完成
         if task_index <= len(self.task_completion_status):
             self.task_completion_status[task_index - 1] = True
-        # todo 添加逻辑判断当前整体任务是否完成
+        #  添加逻辑判断当前整体任务是否完成
         if self.task_completion_status[self.count - 1] == True:
             self.isComplete = True
-
+            self.camera_worker.pause()  # 调用 pause 方法来暂停线程
+            # 发生任务完成信号，备用
+            self.Compl.emit()
         # 处理“双面”和“单面”情况下的页面切换
         if self.detection_type == "双面":
             if self.current_label_index % 2 == 0:
@@ -402,7 +435,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not hasattr(self, 'camera'):
             # 初始化相机
             self.init_camera()
-
+        if self.camera_worker._is_paused:
+            self.camera_worker.resume()
         # 更新进度条
         if self.current_label_index <= 1:
             self.progressBar.setValue(1)
@@ -460,7 +494,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # 确保无论如何都关闭数据库连接
                 if connection:
                     connection.close()
-
             return
 
         self.should_store_captured_image = True

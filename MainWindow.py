@@ -37,6 +37,8 @@ class MainWindow(QWidget, Ui_MainPage):
         self.task_page.switchToPage.connect(self.switchPage)
         # 连接信号和槽任务界面模型修改
         self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
+        # 检测任务完成发送信号切换页面 备用
+        #self.picture_page.Compl.connect(self.showTaskPage)
 
         self.pages = [self.task_page,self.picture_page,self.record_page,self.log_page,self.users_page]
 

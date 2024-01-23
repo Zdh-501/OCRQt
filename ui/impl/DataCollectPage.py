@@ -21,7 +21,7 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         super(DataCollectPage, self).__init__()
         self.setupUi(self)  # 从UI_DataCollectPage.py中加载UI定义
         #todo 读取配置文件 此处要改成绝对路径
-        with open('E:\\Desktop\\OCRQT\\config.json', 'r') as config_file:
+        with open('D:\\config.json', 'r') as config_file:
             self.config = json.load(config_file)
         self.labelButton.clicked.connect(self.startPPOCRLabel)
 

@@ -7,7 +7,7 @@ from ui.layout.UI_TaskPage import Ui_TaskPage
 from PyQt5 import QtCore, QtWidgets
 
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
-    detectionCountChanged = pyqtSignal(int)  # 定义一个新信号
+
     #定义信号，用于传递检测数量和单双面检测
     detectionCountAndTypeChanged = pyqtSignal(int, str)
     # 定义一个信号，传递所有选中项的信息
@@ -75,7 +75,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             # 发射带有两个参数的信号
             self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
             #todo 需要添加产品名称信息，用于设置相机参数
-            self.detectionCountChanged.emit(detection_count)
+
             # 发射信号以通知 MainWindow 切换到第二页
             self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
     def addTask(self, task_data):

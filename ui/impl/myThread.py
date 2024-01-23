@@ -82,7 +82,8 @@ class OcrThread(QThread):
     def __init__(self, images, det_model_dir,rec_model_dir,det_db_unclip_ratio, parent=None):
         super().__init__(parent)
         self.images = images  # NumPy图像数组列表
-        self.Ocr=PaddleOCR(det_model_dir=det_model_dir,
+        self.Ocr=PaddleOCR(use_gpu=False,
+                           det_model_dir=det_model_dir,
                              rec_model_dir=rec_model_dir,
                              use_angle_cls=True,
                              det_db_thresh=0.5,

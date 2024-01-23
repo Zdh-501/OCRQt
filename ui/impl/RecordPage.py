@@ -223,8 +223,8 @@ class RecordPage(QtWidgets.QWidget, Ui_RecordPage):
         super(RecordPage, self).closeEvent(event)
 
 #创建应用实例和窗口，然后运行
-app = QApplication(sys.argv)
-window = RecordPage()
-window.showMaximized()
-sys.exit(app.exec_())
+# app = QApplication(sys.argv)
+# window = RecordPage()
+# window.showMaximized()
+# sys.exit(app.exec_())
 
