@@ -261,7 +261,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.stackedWidget.setCurrentIndex(whichPart)
             elif sender == self.progressBar_2:
                 # 第二个进度条被点击
-                if not self.isPhotoDisplayedOnLabel(self.labels_1[whichPart]):
+                if not self.captured_images: #捕获列表为空，说明没有保存批号面
                     QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的批号面拍摄")
                     # 获取当前时间
                     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

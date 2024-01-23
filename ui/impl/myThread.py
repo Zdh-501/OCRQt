@@ -41,7 +41,25 @@ class CameraWorker(QThread):
                         ny_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Ny),:,:]
                         nz_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nz),:,:]
                         merged_image = cv2.merge([nx_channel, ny_channel, nz_channel])
-                        self.image_captured.emit(merged_image)
+                        # 首先进行上下颠倒
+                        nx_channel_flipped_vertical = cv2.flip(nx_channel, 0)  # 上下颠倒，左右不变
+                        ny_channel_flipped_vertical = cv2.flip(ny_channel, 0)  # 上下颠倒，左右不变
+                        nz_channel_flipped_vertical = cv2.flip(nz_channel, 0)  # 上下颠倒，左右不变
+
+                        # 然后进行左右镜像反转
+                        nx_channel_flipped_horizontal = cv2.flip(nx_channel_flipped_vertical, 1)  # 左右镜像反转
+                        ny_channel_flipped_horizontal = cv2.flip(ny_channel_flipped_vertical, 1)  # 左右镜像反转
+                        nz_channel_flipped_horizontal = cv2.flip(nz_channel_flipped_vertical, 1)  # 左右镜像反转
+
+                        # 合并翻转后的通道
+                        merged_image_flipped = cv2.merge([
+                            nx_channel_flipped_horizontal,
+                            ny_channel_flipped_horizontal,
+                            nz_channel_flipped_horizontal
+                        ])
+
+
+                        self.image_captured.emit(merged_image_flipped)
 
     def is_paused(self):
         return self._is_paused
