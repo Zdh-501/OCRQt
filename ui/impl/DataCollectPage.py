@@ -6,7 +6,7 @@ import json  # 导入json模块
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QThread
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from pyqt5_plugins.examplebutton import QtWidgets
 
 from mphdcpy import mphdc
@@ -31,15 +31,19 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         with open('D:\\config.json', 'r') as config_file:
             self.config = json.load(config_file)
 
-        self.labelButton.clicked.connect(self.startPPOCRLabel)
-        self.startButton.clicked.connect(self.start_camera_view)
-
-
         self.kdBox.setChecked(False)  # 初始状态未选中
         self.kdBox.stateChanged.connect(self.updateBoxes)
 
         self.normMixBox.setChecked(True)  # 初始状态选中
         self.normMixBox.stateChanged.connect(self.updateBoxes)
+
+        self.exposureSlider.setMinimum(1)
+        self.exposureSlider.setMaximum(100)
+        self.exposureSlider.setValue(50)  # 初始值设为50
+
+        self.labelButton.clicked.connect(self.startPPOCRLabel)
+        self.startButton.clicked.connect(self.start_camera_view)
+        self.exposureSlider.valueChanged.connect(self.changeExposure)
 
 
     def updateBoxes(self):
@@ -121,6 +125,22 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         pixmap = QPixmap.fromImage(q_image)
         pixmap = pixmap.scaled(self.label_5.width(), self.label_5.height(), Qt.KeepAspectRatio)
         self.label_5.setPixmap(pixmap)
+
+    def changeExposure(self, value):
+        # 检查self.camera是否已经初始化
+        if self.is_camera_initialized:  # 假设有一个标志或方法可以检查相机是否初始化
+            exposure_value = value  # 根据滑动条的值设置曝光值
+            # 检查曝光值是否在0-100之间
+            if 0 <= exposure_value <= 100:
+                res = mphdc.SetPhotometricExposureIntensityMain(self.camera, exposure_value)
+                if not res:
+                    QMessageBox.warning(self, "错误", "设置光度立体主计算图曝光强度失败！")
+            else:
+                QMessageBox.warning(self, "曝光值错误", "曝光强度必须在0到100之间。")
+        else:
+            QMessageBox.warning(self, "相机未初始化", "请先启动相机，再调整曝光值")
+
+
     def startPPOCRLabel(self):
         # 直接使用配置文件中的绝对路径
         working_dir = self.config["PPOCRLabel_working_dir"]
@@ -128,6 +148,7 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
 
         self.workerThread = WorkerThread(command, working_dir)
         self.workerThread.start()
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainWindow = DataCollectPage()
