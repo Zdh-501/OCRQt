@@ -31,7 +31,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.users_page=UsersPage()
         # 连接信号和槽
         self.task_page.detectionCountAndTypeChanged.connect(self.picture_page.setLabelsAndPages)
-        # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage2 的槽
+        # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage 的槽
         self.task_page.itemDetailsChanged.connect(self.picture_page.updateTextBrowser)
         # 连接信号和槽切换主界面
         self.task_page.switchToPage.connect(self.switchPage)

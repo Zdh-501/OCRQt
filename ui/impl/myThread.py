@@ -21,7 +21,7 @@ class CameraWorker(QThread):
         self._is_running = True
         self._is_paused = False
         self._pause_condition = Condition()
-
+        self.active_channels = ['nx', 'ny', 'nz']  # 添加这行来存储当前激活的通道
 
 
     def run(self):
@@ -32,33 +32,46 @@ class CameraWorker(QThread):
                     self._pause_condition.wait()
             state = mphdc.GetCameraState(self.camera)
             if state == mphdc.DeviceStateType.StandBy:
-                res, data = mphdc.SnapCamera(self.camera, 2000)
+                res, data = mphdc.SnapCamera(self.camera, 1000)
                 if res:
                     imgs, n, channels = mphdc.Nppc_Create(data)
                     if n > 0:
-                        # 合并 nx, ny, nz 通道
-                        nx_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nx),:,:]
-                        ny_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Ny),:,:]
-                        nz_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nz),:,:]
-                        merged_image = cv2.merge([nx_channel, ny_channel, nz_channel])
-                        # 首先进行上下颠倒
-                        nx_channel_flipped_vertical = cv2.flip(nx_channel, 0)  # 上下颠倒，左右不变
-                        ny_channel_flipped_vertical = cv2.flip(ny_channel, 0)  # 上下颠倒，左右不变
-                        nz_channel_flipped_vertical = cv2.flip(nz_channel, 0)  # 上下颠倒，左右不变
+                        if 'nx' in self.active_channels and 'ny' in self.active_channels and 'nz' in self.active_channels:
+                            # 合并 nx, ny, nz 通道
+                            nx_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nx),:,:]
+                            ny_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Ny),:,:]
+                            nz_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nz),:,:]
+                            merged_image = cv2.merge([nx_channel, ny_channel, nz_channel])
 
-                        # 然后进行左右镜像反转
-                        nx_channel_flipped_horizontal = cv2.flip(nx_channel_flipped_vertical, 1)  # 左右镜像反转
-                        ny_channel_flipped_horizontal = cv2.flip(ny_channel_flipped_vertical, 1)  # 左右镜像反转
-                        nz_channel_flipped_horizontal = cv2.flip(nz_channel_flipped_vertical, 1)  # 左右镜像反转
+                            # 首先进行上下颠倒
+                            nx_channel_flipped_vertical = cv2.flip(nx_channel, 0)  # 上下颠倒，左右不变
+                            ny_channel_flipped_vertical = cv2.flip(ny_channel, 0)  # 上下颠倒，左右不变
+                            nz_channel_flipped_vertical = cv2.flip(nz_channel, 0)  # 上下颠倒，左右不变
 
-                        # 合并翻转后的通道
-                        merged_image_flipped = cv2.merge([
-                            nx_channel_flipped_horizontal,
-                            ny_channel_flipped_horizontal,
-                            nz_channel_flipped_horizontal
-                        ])
+                            # 然后进行左右镜像反转
+                            nx_channel_flipped_horizontal = cv2.flip(nx_channel_flipped_vertical, 1)  # 左右镜像反转
+                            ny_channel_flipped_horizontal = cv2.flip(ny_channel_flipped_vertical, 1)  # 左右镜像反转
+                            nz_channel_flipped_horizontal = cv2.flip(nz_channel_flipped_vertical, 1)  # 左右镜像反转
 
-
+                            # 合并翻转后的通道
+                            merged_image_flipped = cv2.merge([
+                                nx_channel_flipped_horizontal,
+                                ny_channel_flipped_horizontal,
+                                nz_channel_flipped_horizontal
+                            ])
+                        elif 'kd' in self.active_channels:
+                            kd_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Kd), :, :]
+                            merged_image = cv2.merge([kd_channel, kd_channel, kd_channel])
+                            # 首先进行上下颠倒
+                            kd_channel_flipped_vertical = cv2.flip(kd_channel, 0)  # 上下颠倒，左右不变
+                            # 然后进行左右镜像反转
+                            kd_channel_flipped_horizontal = cv2.flip(kd_channel_flipped_vertical, 1)  # 左右镜像反转
+                            # 合并翻转后的通道
+                            merged_image_flipped = cv2.merge([
+                                kd_channel_flipped_horizontal,
+                                kd_channel_flipped_horizontal,
+                                kd_channel_flipped_horizontal
+                            ])
                         self.image_captured.emit(merged_image_flipped)
 
     def is_paused(self):

@@ -67,6 +67,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             print('是否成功设置',ret)
         # 设置相机触发模式
         mphdc.SetCamera_Triggersource(self.camera)
+        # 激活相机通道
+        mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz','kd'])
+
         # 设置相机为光度立体模式，并指定输出通道
         self.set_camera_photometric_settings()
         # 创建CameraWorker线程
@@ -93,10 +96,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
         self.lang = config.get('lang', self.lang)
 
-        # # 重新初始化 PaddleOCR 实例
-        # self.initialize_ocr()
+
 
     def updateTextBrowser(self, item_details):
+        #保存任务信息
+        #self.currentTaskCode=
 
         # 清除旧数据
         self.tableWidget_2.clearContents()
@@ -213,10 +217,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.progressBar_2.setMinimum(0)
         self.progressBar_2.clickedValue.connect(self.onProgressBarClicked)
 
-    def isPhotoDisplayedOnLabel(self, label):
-        # 检查label是否显示了照片，这需要根据您的应用程序具体实现
-        # 例如，您可能会检查label的pixmap是否非空
-        return label.pixmap() is not None and not label.pixmap().isNull()
 
     def onProgressBarClicked(self, value):
         sender = self.sender()
@@ -360,8 +360,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
     def onOcrFinished(self, results):
         print("OCR检测完成，结果：", results)
-        # todo 要添加传入图像是否顺序正确的逻辑判断
         self.captured_images.clear()  # 清空存储的图像列表
+
+        # todo 要添加传入图像是否顺序正确的逻辑判断
+
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
         # 标记当前任务为完成
@@ -423,8 +425,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # "单面"情况下只使用self.labels_1
                 if self.current_label_index < self.count:
                     target_label = self.labels_1[self.current_label_index]
-                    target_label.setPixmap(
-                        pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                    target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def clearLabels(self):
         for label in self.labels:
@@ -451,8 +452,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 设置光度立体算法模式
         photometric_settings = mphdc.GetPhotometricSettings(self.camera)
         photometric_settings.AlgorithmMode = mphdc.PhotometricAlgorithmModeType.Fast.value
-
-        mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz'])
         mphdc.SetPhotometricSettings(self.camera, photometric_settings)
 
     def take_photo_and_skip(self):
