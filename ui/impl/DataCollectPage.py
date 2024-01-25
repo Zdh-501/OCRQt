@@ -25,12 +25,15 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
     def __init__(self):
         super(DataCollectPage, self).__init__()
         self.setupUi(self)  # 从UI_DataCollectPage.py中加载UI定义
+        self.is_camera_initialized = False
+
         #todo 读取配置文件 此处要改成绝对路径
         with open('D:\\config.json', 'r') as config_file:
             self.config = json.load(config_file)
 
         self.labelButton.clicked.connect(self.startPPOCRLabel)
         self.startButton.clicked.connect(self.start_camera_view)
+
 
         self.kdBox.setChecked(False)  # 初始状态未选中
         self.kdBox.stateChanged.connect(self.updateBoxes)
@@ -57,18 +60,22 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
             self.normMixBox.setChecked(True)
 
     def start_camera_view(self):
+
         # 检查相机是否已经初始化
         if not hasattr(self, 'camera'):
             # 初始化相机
             self.init_camera()
-        if not self.camera_worker._is_paused:
-            # 如果相机正在运行，则暂停相机，并将按钮文本设置为"开始"
-            self.camera_worker.pause()  # 假设camera_worker有一个pause方法
-            self.startButton.setText('启动相机')
-        else:
-            # 如果相机已经暂停，则恢复相机，并将按钮文本设置为"暂停"
-            self.camera_worker.resume()  # 假设camera_worker有一个resume方法
-            self.startButton.setText('暂停')
+            self.is_camera_initialized = True
+            self.startButton.setText('暂停')  # 假设相机初始化后即开始捕获
+        elif self.is_camera_initialized:
+            if not self.camera_worker._is_paused:
+                # 如果相机正在运行，则暂停相机，并将按钮文本设置为"开始"
+                self.camera_worker.pause()  # 假设camera_worker有一个pause方法
+                self.startButton.setText('启动相机')
+            else:
+                # 如果相机已经暂停，则恢复相机，并将按钮文本设置为"暂停"
+                self.camera_worker.resume()  # 假设camera_worker有一个resume方法
+                self.startButton.setText('暂停')
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
 
