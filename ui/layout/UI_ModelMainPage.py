@@ -55,7 +55,7 @@ class Ui_ModelMainPage(object):
         font.setPointSize(16)  # 设置字体大小为16点
         _translate = QtCore.QCoreApplication.translate
         ModelMainPage.setWindowTitle(_translate("ModelMainPage", "ModelMainPage"))
-        self.pushButton_1.setText(_translate("ModelMainPage", "数据集管理"))
+        self.pushButton_1.setText(_translate("ModelMainPage", "数据采集"))
         self.pushButton_2.setText(_translate("ModelMainPage", "模型训练"))
         self.pushButton_3.setText(_translate("ModelMainPage", "模型管理"))
         self.pushButton_1.setFont(font)
