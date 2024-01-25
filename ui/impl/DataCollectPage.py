@@ -12,14 +12,6 @@ from pyqt5_plugins.examplebutton import QtWidgets
 from mphdcpy import mphdc
 from ui.layout.UI_DataCollectPage import Ui_DataCollectPage
 from ui.impl.myThread import *
-class WorkerThread(QThread):
-    def __init__(self, command, working_dir):
-        super().__init__()
-        self.command = command
-        self.working_dir = working_dir
-
-    def run(self):
-        subprocess.run(self.command, cwd=self.working_dir)
 
 class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
     def __init__(self):
@@ -43,7 +35,8 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
 
         self.labelButton.clicked.connect(self.startPPOCRLabel)
         self.startButton.clicked.connect(self.start_camera_view)
-        self.exposureSlider.valueChanged.connect(self.changeExposure)
+        # 连接sliderReleased信号到changeExposure槽函数
+        self.exposureSlider.sliderReleased.connect(self.changeExposure)
 
 
     def updateBoxes(self):
@@ -51,20 +44,19 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         sender = self.sender()
         if sender == self.kdBox and self.kdBox.isChecked():
             self.normMixBox.setChecked(False)
-
-            # 通知CameraWorker线程更新active_channels
-            self.camera_worker.active_channels = ['kd']
+            if self.is_camera_initialized:
+                # 通知CameraWorker线程更新active_channels
+                self.camera_worker.active_channels = ['kd']
         elif sender == self.normMixBox and self.normMixBox.isChecked():
             self.kdBox.setChecked(False)
-
-            # 通知CameraWorker线程更新active_channels
-            self.camera_worker.active_channels = ['nx', 'ny', 'nz']
+            if self.is_camera_initialized:
+                # 通知CameraWorker线程更新active_channels
+                self.camera_worker.active_channels = ['nx', 'ny', 'nz']
         elif not self.kdBox.isChecked() and not self.normMixBox.isChecked():
             # 如果两个都没有被选中，则自动选中normMixBox
             self.normMixBox.setChecked(True)
 
     def start_camera_view(self):
-
         # 检查相机是否已经初始化
         if not hasattr(self, 'camera'):
             # 初始化相机
@@ -126,7 +118,8 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         pixmap = pixmap.scaled(self.label_5.width(), self.label_5.height(), Qt.KeepAspectRatio)
         self.label_5.setPixmap(pixmap)
 
-    def changeExposure(self, value):
+    def changeExposure(self):
+        value = self.exposureSlider.value()
         # 检查self.camera是否已经初始化
         if self.is_camera_initialized:  # 假设有一个标志或方法可以检查相机是否初始化
             exposure_value = value  # 根据滑动条的值设置曝光值
@@ -135,19 +128,24 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
                 res = mphdc.SetPhotometricExposureIntensityMain(self.camera, exposure_value)
                 if not res:
                     QMessageBox.warning(self, "错误", "设置光度立体主计算图曝光强度失败！")
+                # 更新曝光值显示标签
+                self.exposureValueLabel.setText(f"{value}")
             else:
                 QMessageBox.warning(self, "曝光值错误", "曝光强度必须在0到100之间。")
         else:
+            self.exposureSlider.setValue(50)  # 初始值设为50
             QMessageBox.warning(self, "相机未初始化", "请先启动相机，再调整曝光值")
 
 
     def startPPOCRLabel(self):
-        # 直接使用配置文件中的绝对路径
-        working_dir = self.config["PPOCRLabel_working_dir"]
+
+        # 设置 PPOCRLabel 的工作目录为 PaddleOCR 文件夹
+        working_dir = "../../PaddleOCR"
+        # PPOCRLabel 的命令，假设 PPOCRLabel 是一个可执行的文件或者正确配置了环境变量
         command = ['PPOCRLabel', '--lang', 'ch']
 
-        self.workerThread = WorkerThread(command, working_dir)
-        self.workerThread.start()
+        self.labelThread = LabelThread(command, working_dir)
+        self.labelThread.start()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

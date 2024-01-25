@@ -40,7 +40,7 @@ class MainApp(QMainWindow):
         # PPOCRLabel 的命令，假设 PPOCRLabel 是一个可执行的文件或者正确配置了环境变量
         command = ['PPOCRLabel', '--lang', 'ch']
 
-        self.workerThread = WorkerThread(command, working_dir)
+        self.workerThread = LabelThread(command, working_dir)
         self.workerThread.start()
 
 if __name__ == '__main__':

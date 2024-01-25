@@ -8,6 +8,7 @@ from threading import Condition
 from PIL import Image
 from io import BytesIO
 from paddleocr import PaddleOCR
+import subprocess
 import ctypes as ct
 import time
 
@@ -129,3 +130,12 @@ class OcrThread(QThread):
 
 
         self.finished.emit(results)  # 发送完成信号，附带检测结果
+
+class LabelThread(QThread):
+    def __init__(self, command, working_dir):
+        super().__init__()
+        self.command = command
+        self.working_dir = working_dir
+
+    def run(self):
+        subprocess.run(self.command, cwd=self.working_dir)

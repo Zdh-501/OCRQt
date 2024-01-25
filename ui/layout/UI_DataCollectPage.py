@@ -9,6 +9,37 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QSlider, QStyle, QStyleOptionSlider
+from PyQt5.QtCore import QRect, QPoint, Qt
+
+#重写QSlider，目的是限定是能点击滑块
+class CustomSlider(QSlider):
+    def __init__(self, orientation, parent=None):
+        super(CustomSlider, self).__init__(orientation, parent)
+
+    def mousePressEvent(self, event):
+        # 获取滑块的位置
+        handle_pos = self.handlePosition()
+
+        # 获取鼠标点击的位置
+        click_pos = event.pos().x() if self.orientation() == Qt.Horizontal else event.pos().y()
+
+        # 计算滑块宽度（或高度）
+        handle_width = self.style().pixelMetric(QStyle.PM_SliderThickness, None, self)
+
+        # 检查鼠标点击是否在滑块上
+        if abs(handle_pos - click_pos) <= handle_width / 2:
+            # 如果在滑块上，则调用父类方法处理点击事件
+            super(CustomSlider, self).mousePressEvent(event)
+        else:
+            # 如果不在滑块上，忽略点击事件
+            event.ignore()
+
+    def handlePosition(self):
+        opt = QStyleOptionSlider()
+        self.initStyleOption(opt)
+        rect = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
+        return rect.center().x() if self.orientation() == Qt.Horizontal else rect.center().y()
 
 
 class Ui_DataCollectPage(object):
@@ -100,10 +131,19 @@ class Ui_DataCollectPage(object):
         self.kdBox.setObjectName("kdBox")
         self.horizontalLayout_6.addWidget(self.kdBox)
         self.verticalLayout_4.addLayout(self.horizontalLayout_6)
+        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.label_7 = QtWidgets.QLabel(self.widget_4)
         self.label_7.setObjectName("label_7")
-        self.verticalLayout_4.addWidget(self.label_7)
-        self.exposureSlider = QtWidgets.QSlider(self.widget_4)
+        self.horizontalLayout_7.addWidget(self.label_7)
+        self.exposureValueLabel = QtWidgets.QLabel(self.widget_4)
+        self.exposureValueLabel.setText("50")
+        self.exposureValueLabel.setObjectName("exposureValueLabel")
+        self.horizontalLayout_7.addWidget(self.exposureValueLabel)
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem2)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_7)
+        self.exposureSlider = CustomSlider(Qt.Horizontal, self.widget_4)
         self.exposureSlider.setOrientation(QtCore.Qt.Horizontal)
         self.exposureSlider.setObjectName("exposureSlider")
         self.verticalLayout_4.addWidget(self.exposureSlider)
@@ -124,8 +164,8 @@ class Ui_DataCollectPage(object):
         self.startButton.setFont(font)
         self.startButton.setObjectName("startButton")
         self.verticalLayout_6.addWidget(self.startButton)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 41, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_6.addItem(spacerItem2)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 41, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_6.addItem(spacerItem3)
         self.takepictureButton = QtWidgets.QToolButton(self.widget_5)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -138,8 +178,8 @@ class Ui_DataCollectPage(object):
         self.takepictureButton.setFont(font)
         self.takepictureButton.setObjectName("takepictureButton")
         self.verticalLayout_6.addWidget(self.takepictureButton)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 41, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_6.addItem(spacerItem3)
+        spacerItem4 = QtWidgets.QSpacerItem(20, 41, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_6.addItem(spacerItem4)
         self.labelButton = QtWidgets.QToolButton(self.widget_5)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
