@@ -37,6 +37,7 @@ class CameraWorker(QThread):
                     imgs, n, channels = mphdc.Nppc_Create(data)
                     if n > 0:
                         if 'nx' in self.active_channels and 'ny' in self.active_channels and 'nz' in self.active_channels:
+
                             # 合并 nx, ny, nz 通道
                             nx_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Nx),:,:]
                             ny_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Ny),:,:]
@@ -60,6 +61,7 @@ class CameraWorker(QThread):
                                 nz_channel_flipped_horizontal
                             ])
                         elif 'kd' in self.active_channels:
+
                             kd_channel = imgs[channels.index(mphdc.ImageContentType.Photometric_Kd), :, :]
                             merged_image = cv2.merge([kd_channel, kd_channel, kd_channel])
                             # 首先进行上下颠倒

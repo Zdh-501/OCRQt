@@ -61,8 +61,14 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         if not hasattr(self, 'camera'):
             # 初始化相机
             self.init_camera()
-        if self.camera_worker._is_paused:
-            self.camera_worker.resume()
+        if not self.camera_worker._is_paused:
+            # 如果相机正在运行，则暂停相机，并将按钮文本设置为"开始"
+            self.camera_worker.pause()  # 假设camera_worker有一个pause方法
+            self.startButton.setText('启动相机')
+        else:
+            # 如果相机已经暂停，则恢复相机，并将按钮文本设置为"暂停"
+            self.camera_worker.resume()  # 假设camera_worker有一个resume方法
+            self.startButton.setText('暂停')
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
 
