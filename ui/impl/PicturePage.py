@@ -34,8 +34,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.lang = 'ch'
         # 用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
-        # 创建 PaddleOCR 实例
-        # self.initialize_ocr()
+
 
         self.current_label_index = 0
         self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号

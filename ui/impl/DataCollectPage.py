@@ -35,6 +35,8 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
 
         self.labelButton.clicked.connect(self.startPPOCRLabel)
         self.startButton.clicked.connect(self.start_camera_view)
+        self.takepictureButton.clicked
+
         # 连接sliderReleased信号到changeExposure槽函数
         self.exposureSlider.sliderReleased.connect(self.changeExposure)
 
