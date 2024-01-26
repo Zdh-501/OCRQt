@@ -1,7 +1,7 @@
 import sys
 
 
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 from PyQt5.QtGui import QIcon
 
 from ui.layout.UI_ModelMainPage import Ui_ModelMainPage
@@ -40,7 +40,20 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
     def showDataCollectPage(self):
         self.stackedWidget.setCurrentWidget(self.datacollect_page)
 
-
+    def closeEvent(self, event):
+        # 检查 DataCollectPage 实例中是否有 labelThread 属性，并且它是否在运行
+        if hasattr(self.datacollect_page, 'labelThread') and self.datacollect_page.labelThread.is_running():
+            # 如果 labelThread 存在并且正在运行，显示提醒框
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle("提醒")
+            msgBox.setText("请先关闭数据标注软件。")
+            msgBox.addButton("确认", QMessageBox.AcceptRole)
+            msgBox.exec_()
+            event.ignore()  # 忽略关闭事件，不关闭主窗口
+        else:
+            # 如果 labelThread 不存在或不在运行，关闭程序
+            event.accept()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

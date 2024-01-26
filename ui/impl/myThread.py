@@ -1,3 +1,5 @@
+import os
+
 import requests
 from PyQt5.QtCore import QThread, pyqtSignal, QBuffer, QIODevice
 import numpy as np
@@ -138,4 +140,8 @@ class LabelThread(QThread):
         self.working_dir = working_dir
 
     def run(self):
-        subprocess.run(self.command, cwd=self.working_dir)
+        self.process = subprocess.Popen(self.command, cwd=self.working_dir)
+
+    def is_running(self):
+        # 检查进程是否在运行
+        return self.process and self.process.poll() is None
