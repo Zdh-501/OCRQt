@@ -1,5 +1,7 @@
 import os
-
+import sys
+from pathlib import Path
+import imageio
 import requests
 from PyQt5.QtCore import QThread, pyqtSignal, QBuffer, QIODevice
 import numpy as np
@@ -145,3 +147,38 @@ class LabelThread(QThread):
     def is_running(self):
         # 检查进程是否在运行
         return self.process and self.process.poll() is None
+
+class ImageSaveThread(QThread):
+    save_finished = pyqtSignal(str)  # 用于在保存完成后发送信号
+
+    def __init__(self, image, file_path, file_format):
+        super().__init__()
+        self.image = image
+        self.file_path = file_path
+        self.file_format = file_format
+        self.file_path = self.file_path.encode('utf-8').decode(sys.getfilesystemencoding())
+    def run(self):
+        # 使用pathlib处理路径
+        save_path = Path(self.file_path)
+
+        # 确保目录存在
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # 定义缩放比例（例如，缩小到原来的50%）
+        scale_percent = 50  # 缩放比例
+        width = int(self.image.shape[1] * scale_percent / 100)
+        height = int(self.image.shape[0] * scale_percent / 100)
+        dim = (width, height)
+
+        # 缩放图像
+        resized_image = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
+
+        # 使用cv2保存图像
+        if self.file_format.lower() == 'png':
+            cv2.imwrite(str(save_path), resized_image, [int(cv2.IMWRITE_PNG_COMPRESSION), 6])
+        elif self.file_format.lower() == 'jpg' or self.file_format.lower() == 'jpeg':
+            cv2.imwrite(str(save_path), resized_image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+        else:
+            self.save_finished.emit("不支持的文件格式")
+            return
+        self.save_finished.emit(f"图像已保存到 {str(save_path)}")

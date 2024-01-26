@@ -8,7 +8,7 @@ from PyQt5.QtCore import QThread
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from pyqt5_plugins.examplebutton import QtWidgets
-
+from PyQt5.QtWidgets import QFileDialog
 from mphdcpy import mphdc
 from ui.layout.UI_DataCollectPage import Ui_DataCollectPage
 from ui.impl.myThread import *
@@ -35,11 +35,73 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
 
         self.labelButton.clicked.connect(self.startPPOCRLabel)
         self.startButton.clicked.connect(self.start_camera_view)
-        self.takepictureButton.clicked
+        self.takepictureButton.clicked.connect(self.save_picture)
+        self.saveButton.clicked.connect(self.choose_save_path)
+        self.zeroButton.clicked.connect(self.reset_count)
 
         # 连接sliderReleased信号到changeExposure槽函数
         self.exposureSlider.sliderReleased.connect(self.changeExposure)
 
+    def reset_count(self):
+        # 弹出确认提示框
+        reply = QMessageBox.question(self, '重置计数', '是否要重新计数？', QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            # 如果用户选择“是”，则将countLabel的数值重置为0
+            self.countLabel.setText("0")
+    def choose_save_path(self):
+        # 弹出文件夹选择对话框
+        directory = QFileDialog.getExistingDirectory(self, "选择保存路径", "")
+
+        # 如果用户选择了路径，则更新saveEdit的内容
+        if directory:
+            self.saveEdit.setText(directory)
+    def save_picture(self):
+        # 确保相机已初始化并且正在运行
+        if not (hasattr(self, 'is_camera_initialized') and self.is_camera_initialized and
+                hasattr(self, 'camera_worker') and not self.camera_worker.is_paused()):
+            QMessageBox.warning(self, "相机未运行", "请先启动并运行相机")
+            return
+        # 获取保存的格式
+        file_format = self.formatBox.currentText()
+        if not file_format:
+            QMessageBox.warning(self, "错误", "请选择图片的格式")
+            return
+
+        # 获取输入的文件名
+        base_filename = self.nameEdit.text().strip()  # .strip() 删除可能的前后空格
+        if not base_filename:
+            QMessageBox.warning(self, "错误", "请输入文件的基础名称")
+            return
+        # 获取计数器内容
+        count = self.countLabel.text()
+        # 生成最终的文件名
+        filename = f"{base_filename}_{count}.{file_format}"
+        filename = filename.encode('utf-8').decode(sys.getfilesystemencoding())
+        # 获取保存路径
+        save_path = self.saveEdit.text()
+        if not save_path:
+            QMessageBox.warning(self, "错误", "请选择或输入保存路径")
+            return
+        full_path = os.path.join(save_path, filename)
+        full_path = full_path.encode('utf-8').decode('utf-8')
+        #todo 中文乱码还未解决
+        # 检查图像是否可用（这里假设您已经有了当前图像的np.ndarray）
+        if hasattr(self, 'current_image') and self.current_image is not None:
+            # 创建并启动图像保存线程
+            self.image_save_thread = ImageSaveThread(self.current_image, full_path, file_format)
+            self.image_save_thread.save_finished.connect(self.on_save_finished)  # 连接信号
+            self.image_save_thread.start()
+        else:
+            QMessageBox.warning(self, "错误", "当前没有可用的图像")
+
+    def on_save_finished(self, message):
+        if "图像已保存" in message:
+            # 获取当前计数值并增加1
+            current_count = int(self.countLabel.text())
+            self.countLabel.setText(str(current_count + 1))
+
+        QMessageBox.information(self, "信息", message)
 
     def updateBoxes(self):
         # 当一个勾选框被选中时，另一个自动取消选中
@@ -119,6 +181,9 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         pixmap = QPixmap.fromImage(q_image)
         pixmap = pixmap.scaled(self.label_5.width(), self.label_5.height(), Qt.KeepAspectRatio)
         self.label_5.setPixmap(pixmap)
+
+        # 更新当前图像 用于拍照保存
+        self.current_image = image_np
 
     def changeExposure(self):
         value = self.exposureSlider.value()
