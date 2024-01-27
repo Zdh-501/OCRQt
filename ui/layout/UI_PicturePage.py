@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# PicturePage implementation generated from reading ui file 'UI_PicturePage2.ui'
+# PicturePage implementation generated from reading ui file 'UI_PicturePage.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #

@@ -92,28 +92,9 @@ p, li { white-space: pre-wrap; }
       </item>
       <item>
        <widget class="QWidget" name="widget_4" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1,2">
+        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1">
          <item>
           <widget class="QToolButton" name="takePictureButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <family>Adobe 黑体 Std R</family>
-             <pointsize>16</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>启动</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="skipButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>

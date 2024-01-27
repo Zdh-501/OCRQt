@@ -4,8 +4,9 @@ import pyodbc
 from datetime import datetime
 import ctypes as ct
 import json
-from PyQt5 import QtCore
+import re
 
+from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
@@ -42,7 +43,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.camera_params = self.load_camera_parameters()
 
         self.current_label_index = 0
-        self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号
+        self.currentTaskNumber = 0  # 添加一个变量来存储当前选中的任务序号
         self.isCameraStarted = False  # 相机是否已启动的标志
         self.captured_images = []  # 用于存储捕获的图像
         self.task_completion_status = []  # 初始化任务完成状态列表
@@ -189,7 +190,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
     def setLabelsAndPages(self, count, detection_type):
-
+        # 清除现有展示内容
+        self.textBrowser_4.clear()
+        self.currentTaskNumber = 0
         self.start_camera_view()
         self.current_label_index = 0
         self.isComplete = False  # 用于在未完成任务时切换页面的提示
@@ -410,9 +413,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         print("OCR线程已启动...")
 
     def onOcrFinished(self, results):
-        print("OCR检测完成，结果：", results)
         self.captured_images.clear()  # 清空存储的图像列表
-
+        self.currentTaskNumber =self.currentTaskNumber + 1
         # todo 要添加传入图像是否顺序正确的逻辑判断
 
         # 当前任务的索引
@@ -425,16 +427,17 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.isComplete = True
             self.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 发生任务完成信号，备用
-            self.Compl.emit()
-        # 处理“双面”和“单面”情况下的页面切换
-        if self.detection_type == "双面":
-            if self.current_label_index % 2 == 0:
-                # 如果刚捕获完日期面，切换到下一个产品的批号面
-                next_index = (self.current_label_index) // 2
-                self.stackedWidget.setCurrentIndex(next_index)
-        else:
-            # 单面情况，直接显示下一个产品
-            self.stackedWidget.setCurrentIndex(self.current_label_index)
+            # self.Compl.emit()
+        if not self.isComplete:
+            # 处理“双面”和“单面”情况下的页面切换
+            if self.detection_type == "双面":
+                if self.current_label_index % 2 == 0:
+                    # 如果刚捕获完日期面，切换到下一个产品的批号面
+                    next_index = (self.current_label_index) // 2
+                    self.stackedWidget.setCurrentIndex(next_index)
+            else:
+                # 单面情况，直接显示下一个产品
+                self.stackedWidget.setCurrentIndex(self.current_label_index)
 
         # 更新进度条的值
         if self.detection_type == "双面":
@@ -449,10 +452,42 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.camera_worker.start()
 
         # todo 处理OCR结果,要保存在数据库
-        print('检测后', self.task_completion_status)
-        for label_index, result in results:
-            print(f"在 label_{label_index + 1} 的检测结果：", result)
+
         # 可以在这里更新UI等
+        extracted_data = self.extract_relevant_data(results)
+        # 提取日期和批号
+        dates = extracted_data['dates']
+        batch_numbers = extracted_data['batch_numbers']
+
+        # 更新 self.textBrowser_4
+        self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
+        # 显示批号
+        for batch_number in batch_numbers:
+            self.textBrowser_4.append(f"批号: {batch_number}")
+        # 根据日期数量显示不同的文本
+        if len(dates) == 1:
+            self.textBrowser_4.append(f"日期: {dates[0]}")
+        elif len(dates) == 2:
+            self.textBrowser_4.append(f"生产日期: {dates[0]}")
+            self.textBrowser_4.append(f"有效期至: {dates[1]}")
+    def extract_relevant_data(self,results):
+        extracted_data = {'dates': [], 'batch_numbers': []}
+
+        # 更新正则表达式以匹配 YYYY/MM/DD, YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+        date_regex = r'(\d{4}[/-]\d{2}[/-]\d{2})|(\d{2}[/-]\d{2}[/-]\d{4})'
+        batch_number_regex = r'CY\w+'
+
+        for label_index, result in results:
+            if result:  # 检查结果是否非空
+                for item in result[0]:  # 假设每个结果是 [[[坐标], (文本, 置信度)]]
+                    text = item[1][0]  # 提取文本
+                    # 检查并提取符合日期和批号格式的文本
+                    if re.match(date_regex, text):
+                        extracted_data['dates'].append(text)
+                    elif re.match(batch_number_regex, text):
+                        extracted_data['batch_numbers'].append(text)
+
+        return extracted_data
 
     def display_image_on_label(self, image_np):
         # todo 同时将图像存储在列表中,要补充存在本地,注意命名方式

@@ -104,7 +104,6 @@ class OcrThread(QThread):
                            det_model_dir=det_model_dir,
                              rec_model_dir=rec_model_dir,
                              use_angle_cls=True,
-                             det_db_thresh=0.5,
                              det_db_unclip_ratio=det_db_unclip_ratio,
                              lang='ch')
         print('Ocr',paddleocr.__version__)
