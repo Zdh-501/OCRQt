@@ -3,6 +3,7 @@ import cv2
 import pyodbc
 from datetime import datetime
 import ctypes as ct
+import json
 from PyQt5 import QtCore
 
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
@@ -35,6 +36,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
 
+        self.currentTask = {}  # 初始化为一个空字典  #用于保存任务信息
+        self.product_name = None
+        self.material_type = None
+        self.camera_params = self.load_camera_parameters()
 
         self.current_label_index = 0
         self.currentTaskNumber = None  # 添加一个变量来存储当前选中的任务序号
@@ -53,6 +58,15 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         else:
             self.textBrowser_2.setText("生产工位：")
 
+    def load_camera_parameters(self):
+        # 假设 JSON 文件位于正确的路径
+        with open('path_to_your_camera_parameters.json', 'r', encoding='utf-8') as file:
+            return json.load(file)
+
+    def get_camera_parameters_for_current_product(self):
+        # 组合产品名称和物料类型作为 JSON 文件中的键
+        key = f"{self.product_name}-{self.material_type}"
+        return self.camera_params.get(key)
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
 
@@ -95,11 +109,25 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
         self.lang = config.get('lang', self.lang)
 
+    def extract_info(task_dict, key1, key2):
+        # 检查两个键是否都存在于字典中
+        if key1 in task_dict and key2 in task_dict:
+            value1 = task_dict[key1]
+            value2 = task_dict[key2]
+            return value1, value2
+        else:
+            # 如果任何一个键不存在，返回一个错误信息或者None
+            return None, None
 
 
     def updateTextBrowser(self, item_details):
         #保存任务信息
-        #self.currentTaskCode=
+        self.currentTask=item_details
+        # 提取产品名称和物料类型信息
+        self.product_name, self.material_type = self.extract_info(self.currentTask, "产品名称", "物料类型")
+        # 根据产品名称和物料类型信息提取相机参数信息
+        self.camera_parameters = self.get_camera_parameters_for_current_product()
+
 
         # 清除旧数据
         self.tableWidget_2.clearContents()
