@@ -46,6 +46,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.isCameraStarted = False  # 相机是否已启动的标志
         self.captured_images = []  # 用于存储捕获的图像
         self.task_completion_status = []  # 初始化任务完成状态列表
+        self.is_camera_initialized = False #初始化相机标志
 
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
         self.takePictureButton.clicked.connect(self.take_photo_and_skip)
@@ -60,19 +61,24 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
     def load_camera_parameters(self):
         # 假设 JSON 文件位于正确的路径
-        with open('path_to_your_camera_parameters.json', 'r', encoding='utf-8') as file:
-            return json.load(file)
+        with open('camera_parameters.json', 'r', encoding='utf-8') as file:
+            camera_params = json.load(file)
+
+        # 清理字典中所有键的空格
+        cleaned_camera_params = {k.strip(): v for k, v in camera_params.items()}
+
+        return cleaned_camera_params
 
     def get_camera_parameters_for_current_product(self):
         # 组合产品名称和物料类型作为 JSON 文件中的键
-        key = f"{self.product_name}-{self.material_type}"
-        return self.camera_params.get(key)
+        key = f"{self.product_name.strip()}-{self.material_type.strip()}"
+        camera_params = self.camera_params.get(key)
+        if camera_params is None:
+            print(f"没有找到键 {key} 对应的相机参数。")
+        return camera_params
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
-
         mphdc.UpdateCameraList(self.camera)
-
-
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
         if mphdc.GetCameraState(self.camera):
@@ -83,7 +89,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 激活相机通道
         mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz','kd'])
 
-        # 设置相机为光度立体模式，并指定输出通道
+        # 设置相机为光度立体模式
         self.set_camera_photometric_settings()
         # 创建CameraWorker线程
         self.camera_worker = CameraWorker(self.camera)
@@ -93,14 +99,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         self.camera_worker.start()
 
-    def initialize_ocr(self):
-        # 使用当前配置创建 PaddleOCR 实例
-        self.ocr = PaddleOCR(det_model_dir=self.det_model_dir,
-                             rec_model_dir=self.rec_model_dir,
-                             use_angle_cls=self.use_angle_cls,
-                             det_db_unclip_ratio=self.det_db_unclip_ratio,
-                             lang=self.lang)
-
     def update_ocr_config(self, config):
         # 更新配置
         self.det_model_dir = config.get('det_model_dir', self.det_model_dir)
@@ -109,7 +107,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
         self.lang = config.get('lang', self.lang)
 
-    def extract_info(task_dict, key1, key2):
+    def extract_info(self,task_dict, key1, key2):
         # 检查两个键是否都存在于字典中
         if key1 in task_dict and key2 in task_dict:
             value1 = task_dict[key1]
@@ -128,6 +126,31 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 根据产品名称和物料类型信息提取相机参数信息
         self.camera_parameters = self.get_camera_parameters_for_current_product()
 
+        if not hasattr(self, 'camera'):
+            # 初始化相机
+            self.init_camera()
+            self.is_camera_initialized = True
+        if self.camera_parameters == None:
+            self.camera_worker.active_channels = ['nx', 'ny', 'nz']
+            exposure_value =  50  # 提供默认值以防万一
+        else :
+            # 根据相机参数设置活动通道
+            if self.camera_parameters.get("通道选择参数") == "kd通道":
+                self.camera_worker.active_channels = ['kd']
+            else:
+                self.camera_worker.active_channels = ['nx', 'ny', 'nz']
+            # 获取拍摄计算图曝光的值
+            exposure_value = self.camera_parameters.get("拍摄计算图曝光", 50)  # 提供默认值以防万一
+        exposure_value = float(exposure_value)  # 将字符串转换为浮点数
+        # 设置相机曝光值
+        mphdc.SetPhotometricExposureIntensityMain(self.camera, exposure_value)
+        print('曝光',exposure_value)
+
+
+        # 获取检测参数unclip_ratio的值
+        unclip_ratio = self.camera_parameters.get("检测参数unclip_ratio", 2.5)  # 提供默认值以防万一
+        # 设置检测参数unclip_ratio值
+        self.det_db_unclip_ratio = unclip_ratio
 
         # 清除旧数据
         self.tableWidget_2.clearContents()
@@ -172,7 +195,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.isComplete = False  # 用于在未完成任务时切换页面的提示
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
-
+        self.captured_images=[]
         # 更新进度条
         self.progressBar.setValue(1)
         self.progressBar_2.setValue(0)
@@ -180,6 +203,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if detection_type == "单面":
             self.progressBar_2.hide()
             self.progressBar.setShouldDrawText(False)  # 不绘制文本
+            self.detection_type="单面"
 
         elif detection_type == "双面":
             self.detection_type = "双面"
@@ -336,7 +360,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     def onStartDetectClicked(self):
         if (self.detection_type == '双面' and len(self.captured_images) < 2) or (
                 self.detection_type == '单面' and not self.captured_images):
-            QtWidgets.QMessageBox.warning(self, "提示", "请先完成当前产品的全部拍摄，再进行检测")
+            QtWidgets.QMessageBox.warning(self, "提示", "请先完成当前产品的拍摄，再进行检测")
             # 获取当前时间
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -463,6 +487,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not hasattr(self, 'camera'):
             # 初始化相机
             self.init_camera()
+            self.is_camera_initialized = True
         if self.camera_worker._is_paused:
             self.camera_worker.resume()
         # 更新进度条

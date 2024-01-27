@@ -27,8 +27,6 @@ class CameraWorker(QThread):
         self._is_paused = False
         self._pause_condition = Condition()
         self.active_channels = ['nx', 'ny', 'nz']  # 添加这行来存储当前激活的通道
-
-
     def run(self):
         while self._is_running:
             # 检查暂停标志
