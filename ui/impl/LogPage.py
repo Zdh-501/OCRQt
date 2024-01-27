@@ -70,7 +70,6 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
             self.tableWidget.clearContents()
             self.tableWidget.setRowCount(0)
     def flashData(self):
-        self.clearData()
         self.loadErrorLogs()
 if __name__ == '__main__':
     app = QApplication(sys.argv)
