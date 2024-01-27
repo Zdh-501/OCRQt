@@ -51,14 +51,70 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
         self.takePictureButton.clicked.connect(self.take_photo_and_skip)
-
-
+        self.progressBar.doubleClickedValue.connect(self.onProgressBarDoubleClicked)
+        self.progressBar_2.doubleClickedValue.connect(self.onProgressBarDoubleClicked)
         current_username = 'root'
         workstation_number = self.get_workstation_number(current_username)
         if workstation_number is not None:
             self.textBrowser_2.setText(f"生产工位: {workstation_number}")
         else:
             self.textBrowser_2.setText("生产工位：")
+
+    def onProgressBarDoubleClicked(self, value):
+        sender = self.sender()
+
+        # 确定当前页面是否对应于双击的进度条段
+        is_current_page_task = False
+        if self.detection_type == "双面":
+            # 判断当前 index 是否指向日期面页面
+            if self.current_label_index % 2 == 1:
+                # 如果指向日期面页面，并且双击的是日期面的进度条段
+                if self.sender() == self.progressBar_2 and (self.current_label_index // 2) == value:
+                    is_current_page_task = True
+            else:
+                # 如果指向批号面页面，并且双击的是批号面的进度条段
+                if sender == self.progressBar and (self.current_label_index // 2) == value:
+                    is_current_page_task = True
+
+        else:
+            is_current_page_task = (self.current_label_index == value)
+
+        if is_current_page_task:
+            # 当前页面是实时显示页面，不允许在此页面上双击
+            QtWidgets.QMessageBox.warning(self, "提示", "不能在当前相机实时显示画面上进行双击操作")
+            return
+
+        # 检查对应的任务是否完成
+        if not self.task_completion_status[value]:
+            reply = QtWidgets.QMessageBox.question(self, "提示", "当前任务未完成，是否要重新对此产品拍照？",
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                # 清空已捕获的图像
+                self.captured_images.clear()
+
+                # 根据是哪个进度条被双击来调整 current_label_index
+                sender = self.sender()
+                if self.detection_type == "双面":
+                    if sender == self.progressBar:
+                        self.current_label_index = value * 2  # 批号面的索引
+                    elif sender == self.progressBar_2:
+                        # 仅当日期面已经拍摄过时，减小索引以回到批号面
+                        if self.current_label_index > value * 2:
+                            self.current_label_index = max(0, value * 2)
+                else:
+                    # 单面情况下的逻辑
+                    self.current_label_index = value
+
+                # 页面切换到当前任务的第一个进度条段对应的页面
+                if self.detection_type == "双面":
+                    self.stackedWidget.setCurrentIndex(value)
+                else:
+                    self.stackedWidget.setCurrentIndex(value)
+
+                # 更新进度条的显示
+                self.progressBar.setValue(value+1)
+                if self.detection_type == "双面":
+                    self.progressBar_2.setValue(value)
 
     def load_camera_parameters(self):
         # 假设 JSON 文件位于正确的路径
@@ -273,6 +329,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
 
     def onProgressBarClicked(self, value):
+
         sender = self.sender()
         whichPart = value
 
@@ -317,7 +374,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.stackedWidget.setCurrentIndex(whichPart)
             elif sender == self.progressBar_2:
                 # 第二个进度条被点击
-                if not self.captured_images: #捕获列表为空，说明没有保存批号面
+                if not self.captured_images and not self.task_completion_status[value]: #捕获列表为空，说明没有保存批号面
                     QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的批号面拍摄")
                     # 获取当前时间
                     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -354,12 +411,17 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # 第一个进度条被点击
                 self.stackedWidget.setCurrentIndex(whichPart)
 
-        # 更新进度条的值（如果您希望点击进度条后进度条也反映当前页面）
+        # 取消其他进度条的加粗效果
         if sender == self.progressBar:
-            self.progressBar.setValue(whichPart + 1)
+            self.progressBar.boldSegmentIndex = whichPart
+            self.progressBar_2.boldSegmentIndex = None
         elif sender == self.progressBar_2:
-            self.progressBar_2.setValue(whichPart + 1)
+            self.progressBar_2.boldSegmentIndex = whichPart
+            self.progressBar.boldSegmentIndex = None
 
+        # 触发重绘以更新加粗效果
+        self.progressBar.update()
+        self.progressBar_2.update()
     def onStartDetectClicked(self):
         if (self.detection_type == '双面' and len(self.captured_images) < 2) or (
                 self.detection_type == '单面' and not self.captured_images):
@@ -592,6 +654,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 递增 current_label_index，不论检测类型
         self.current_label_index += 1
+        self.progressBar.boldSegmentIndex = None
+        self.progressBar_2.boldSegmentIndex = None
+        # 触发重绘以更新加粗效果
+        self.progressBar.update()
+        self.progressBar_2.update()
 
     def get_workstation_number(self, username):
         # todo

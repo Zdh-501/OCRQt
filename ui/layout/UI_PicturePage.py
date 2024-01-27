@@ -11,16 +11,20 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QPen
-
+import time
 
 class ClickableProgressBar(QtWidgets.QProgressBar):
     clickedValue = pyqtSignal(int)
-
+    doubleClickedValue = pyqtSignal(int)  # 双击信号
     def __init__(self, parent=None):
         super(ClickableProgressBar, self).__init__(parent)
         self.segmentCount = 0  # 初始段数
         self.shouldDrawText = True  # 是否绘制文本
-
+        self._click_timer = QtCore.QTimer(self)
+        self._click_timer.setSingleShot(True)
+        self._click_timer.timeout.connect(self._handleSingleClick)
+        self._last_click_time = None
+        self.boldSegmentIndex = None  # 用于存储当前加粗的段索引
     def setSegmentCount(self, count):
         self.segmentCount = count
         self.update()  # 强制更新控件，这将调用 paintEvent 方法
@@ -30,11 +34,20 @@ class ClickableProgressBar(QtWidgets.QProgressBar):
         self.update()  # 强制更新控件
 
     def mousePressEvent(self, event):
-        super(ClickableProgressBar, self).mousePressEvent(event)
         if event.button() == QtCore.Qt.LeftButton:
-            # 计算点击位置对应的进度值
-            clickValue = int((event.x() / self.width()) * self.maximum())
-            self.clickedValue.emit(clickValue)
+            click_time = time.time()
+            if self._last_click_time and (click_time - self._last_click_time) < 0.3:  # 假设双击间隔小于0.3秒
+                self._click_timer.stop()
+                clickValue = int((event.x() / self.width()) * self.maximum())
+                self.doubleClickedValue.emit(clickValue)
+            else:
+                self._last_click_time = click_time
+                self._click_timer.start(300)  # 设置为300毫秒
+                self._click_pos = event.pos()
+
+    def _handleSingleClick(self):
+        clickValue = int((self._click_pos.x() / self.width()) * self.maximum())
+        self.clickedValue.emit(clickValue)
 
     def paintEvent(self, event):
         super(ClickableProgressBar, self).paintEvent(event)
@@ -49,6 +62,14 @@ class ClickableProgressBar(QtWidgets.QProgressBar):
                 painter.drawLine(x, 0, x, self.height())
 
                 if self.shouldDrawText:
+                    if self.boldSegmentIndex == i:
+                        font = painter.font()
+                        font.setBold(True)
+                        painter.setFont(font)
+                    else:
+                        font = painter.font()
+                        font.setBold(False)
+                        painter.setFont(font)
                     text = "批号面"
                     text_width = painter.fontMetrics().width(text)
                     text_height = painter.fontMetrics().height()
@@ -57,20 +78,33 @@ class ClickableProgressBar(QtWidgets.QProgressBar):
                     painter.drawText(text_x, text_y, text)
 class ClickableProgressBar2(QtWidgets.QProgressBar):
     clickedValue = pyqtSignal(int)
-
+    doubleClickedValue = pyqtSignal(int)  # 新信号
     def __init__(self, parent=None):
         super(ClickableProgressBar2, self).__init__(parent)
         self.segmentCount = 0  # 初始段数
-
+        self._click_timer = QtCore.QTimer(self)
+        self._click_timer.setSingleShot(True)
+        self._click_timer.timeout.connect(self._handleSingleClick)
+        self._last_click_time = None
+        self.boldSegmentIndex = None  # 用于存储当前加粗的段索引
     def setSegmentCount(self, count):
         self.segmentCount = count
         self.update()  # 强制更新控件，这将调用 paintEvent 方法
     def mousePressEvent(self, event):
-        super(ClickableProgressBar2, self).mousePressEvent(event)
         if event.button() == QtCore.Qt.LeftButton:
-            # 计算点击位置对应的进度值
-            clickValue = int((event.x() / self.width()) * self.maximum())
-            self.clickedValue.emit(clickValue)
+            click_time = time.time()
+            if self._last_click_time and (click_time - self._last_click_time) < 0.3:  # 假设双击间隔小于0.3秒
+                self._click_timer.stop()
+                clickValue = int((event.x() / self.width()) * self.maximum())
+                self.doubleClickedValue.emit(clickValue)
+            else:
+                self._last_click_time = click_time
+                self._click_timer.start(300)  # 设置为300毫秒
+                self._click_pos = event.pos()
+
+    def _handleSingleClick(self):
+        clickValue = int((self._click_pos.x() / self.width()) * self.maximum())
+        self.clickedValue.emit(clickValue)
 
     def paintEvent(self, event):
         super(ClickableProgressBar2, self).paintEvent(event)
@@ -85,6 +119,14 @@ class ClickableProgressBar2(QtWidgets.QProgressBar):
                 x = segment_width * i
                 # 绘制分段线
                 painter.drawLine(x, 0, x, self.height())
+                if self.boldSegmentIndex == i:
+                    font = painter.font()
+                    font.setBold(True)
+                    painter.setFont(font)
+                else:
+                    font = painter.font()
+                    font.setBold(False)
+                    painter.setFont(font)
                 # 绘制分段文本
                 text = "日期面"
                 text_width = painter.fontMetrics().width(text)
