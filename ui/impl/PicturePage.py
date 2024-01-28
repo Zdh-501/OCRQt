@@ -85,8 +85,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             return
 
         # 检查对应的任务是否完成
-        if not self.task_completion_status[value]:
-            reply = QtWidgets.QMessageBox.question(self, "提示", "当前任务未完成，是否要重新对此产品拍照？",
+        if not self.task_completion_status[value] and all(self.task_completion_status[i] for i in range(value)):
+            reply = QtWidgets.QMessageBox.question(self, "提示", "是否要重新对此产品拍照？",
                                                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
             if reply == QtWidgets.QMessageBox.Yes:
                 # 清空已捕获的图像
