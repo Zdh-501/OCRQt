@@ -9,7 +9,7 @@ import re
 from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from pyqt5_plugins.examplebutton import QtWidgets
 from pyqt5_plugins.examplebuttonplugin import QtGui
 
@@ -477,7 +477,46 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     def onOcrFinished(self, results):
         self.captured_images.clear()  # 清空存储的图像列表
         self.currentTaskNumber =self.currentTaskNumber + 1
+        print(results)
         # todo 要添加传入图像是否顺序正确的逻辑判断
+        # 可以在这里更新UI等
+        extracted_data = self.extract_relevant_data(results)
+        # 提取日期和批号
+        dates = extracted_data['dates']
+        batch_numbers = extracted_data['batch_numbers']
+        print("data",dates)
+        # 当检测类型为 "双面" 时的特定逻辑
+        if self.detection_type == "双面":
+            if len(dates) == 2 and len(batch_numbers) == 0:
+                reply = QMessageBox.question(self, '消息提示',
+                                             '未检测到批号信息，'
+                                             '是否进行当前产品的重新拍摄？'
+                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    # 添加重新拍摄的代码
+                    # 清空已捕获的图像
+                    self.captured_images.clear()
+                    self.current_label_index =self.current_label_index - 2
+                    self.progressBar.setValue(max(0,self.current_label_index // 2 + 1))
+                    self.progressBar_2.setValue(max(0,self.current_label_index // 2 - 1 ))
+                    return
+                #todo 添加上传系统
+            elif len(dates) == 0 and len(batch_numbers) == 2:
+                reply = QMessageBox.question(self, '消息提示',
+                                             '未检测到日期信息，'
+                                             '是否进行当前产品的重新拍摄？'
+                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    # 添加重新拍摄的代码
+                    # 清空已捕获的图像
+                    self.captured_images.clear()
+                    self.current_label_index = self.current_label_index - 2
+                    self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
+                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                    return
+                #todo 添加上传系统
 
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
@@ -515,12 +554,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # todo 处理OCR结果,要保存在数据库
 
-        # 可以在这里更新UI等
-        extracted_data = self.extract_relevant_data(results)
-        # 提取日期和批号
-        dates = extracted_data['dates']
-        batch_numbers = extracted_data['batch_numbers']
-
         # 更新 self.textBrowser_4
         self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
         # 显示批号
@@ -532,6 +565,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         elif len(dates) == 2:
             self.textBrowser_4.append(f"生产日期: {dates[0]}")
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
+
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
