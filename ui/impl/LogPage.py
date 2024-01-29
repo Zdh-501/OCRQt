@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui
 
 
 from SQL.dbFunction import *
-from ui.impl.Login1Dialog import *
+from ui.impl.LoginDialog import *
 
 from SQL.dbFunction import *
 from ui.layout.UI_LogPage import Ui_LogPage

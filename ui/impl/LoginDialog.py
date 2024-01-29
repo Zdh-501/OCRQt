@@ -34,11 +34,16 @@ class LoginDialog(QDialog):
         password = self.password.text()
         connection = dbConnect()  # 假设这是您连接数据库的函数
         cursor = connection.cursor()
-        # 查询用户是否存在且权限为1
-        cursor.execute("SELECT COUNT(*) FROM dbo.Users WHERE CWID = ? AND Password = ? AND Permission = 1", (cwid, password))
+
+        # 查询用户是否存在且账号是否激活
+        cursor.execute("SELECT Username, Permission FROM dbo.Users WHERE CWID = ? AND Password = ? AND IsActive = 1", (cwid, password))
         result = cursor.fetchone()
-        if result[0] == 1:
+
+        if result:
+            self.username = cwid  # 保存 CWID
+            self.user_name = result[0]  # 保存用户名
+            self.permission = result[1]  # 保存权限
             self.accept()  # 登录成功
         else:
-            QMessageBox.warning(self, 'Error', '密码错误或没有权限')
+            QMessageBox.warning(self, 'Error', '用户名或密码错误，或账户失效')
 

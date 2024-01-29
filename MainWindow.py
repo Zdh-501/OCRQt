@@ -12,6 +12,7 @@ from ui.impl.TaskPage import TaskPage
 from ui.impl.LogPage import LogPage
 from ui.impl.UsersPage import UsersPage
 from ui.impl.OCRConfigDialog import *
+from ui.impl.LoginDialog import LoginDialog
 class MainWindow(QWidget, Ui_MainPage):
     def __init__(self):
         super().__init__()
@@ -22,7 +23,7 @@ class MainWindow(QWidget, Ui_MainPage):
         # 设置窗口图标
         self.setWindowIcon(QIcon('ui/pic/logo.ico'))
         #todo 要添加登录界面，并更新当前显示用户
-
+        self.perform_logout()
         #todo 创建分页面
         self.task_page=TaskPage()
         self.picture_page=PicturePage()
@@ -54,9 +55,36 @@ class MainWindow(QWidget, Ui_MainPage):
         self.pushButton_3.clicked.connect(self.showRecordPage)
         self.pushButton_4.clicked.connect(self.showLogPage)
         self.pushButton_5.clicked.connect(self.showUsersPage)
+        # pushButton_6 是退出当前用户的按钮
+        self.pushButton_6.clicked.connect(self.logout_user)
 
+    def logout_user(self):
+        # 弹出提示框询问用户是否退出
+        reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.perform_logout()
+
+    def perform_logout(self):
+        # 展示登录对话框
+        while True:
+            login_dialog = LoginDialog(self)
+            login_dialog.setModal(True)  # 使登录对话框成为模态
+            if login_dialog.exec_() == QDialog.Accepted:
+                # 保存登录用户的信息
+                self.user_cwid = login_dialog.username
+                self.user_name = login_dialog.user_name
+                self.user_permission = login_dialog.permission
+                self.userName.setText(self.user_name)  # 更新界面以反映用户登录
+                break  # 用户成功登录，退出循环
+            else:
+                # 用户取消登录，弹出提示是否重试
+                retry_reply = QMessageBox.question(self, '登录失败', "您必须登录才能继续。是否重新登录？", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+                if retry_reply == QMessageBox.No:
+                    self.close()  # 用户选择不重新登录，关闭程序
+                    break  # 退出循环
     def on_select_button_clicked(self):
-        # 弹出配置对话框并更新 PicturePage2 实例
+        # 弹出配置对话框并更新 PicturePage 实例
         dialog = OCRConfigDialog(self)
         if dialog.exec_():
             config = dialog.getConfig()
