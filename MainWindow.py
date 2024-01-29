@@ -31,6 +31,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.log_page=LogPage()
         self.users_page=UsersPage()
         # 进入登录界面，并更新当前显示用户
+        #todo 需要重新补充 权限检测逻辑 比如log日志待修改
         self.perform_logout()
         # 连接信号和槽
         self.task_page.detectionCountAndTypeChanged.connect(self.picture_page.setLabelsAndPages)
@@ -38,9 +39,6 @@ class MainWindow(QWidget, Ui_MainPage):
         self.task_page.itemDetailsChanged.connect(self.picture_page.updateTextBrowser)
         # 连接信号和槽切换主界面
         self.task_page.switchToPage.connect(self.switchPage)
-        # 连接信号和槽任务界面模型修改
-        #todo 添加检查当前用户权限
-        # 根据用户权限决定是否连接信号
 
         # 检测任务完成发送信号切换页面 备用
         #self.picture_page.Compl.connect(self.showTaskPage)
@@ -88,6 +86,7 @@ class MainWindow(QWidget, Ui_MainPage):
                     pass
                 # 根据用户权限决定是否连接信号
                 if self.user_permission == '1':  # 确认管理员权限
+                    # 连接信号和槽任务界面模型修改
                     self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
                 else:
                     # 如果权限不足，禁用按钮或连接到权限警告
