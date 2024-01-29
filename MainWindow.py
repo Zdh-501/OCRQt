@@ -22,15 +22,16 @@ class MainWindow(QWidget, Ui_MainPage):
 
         # 设置窗口图标
         self.setWindowIcon(QIcon('ui/pic/logo.ico'))
-        #todo 要添加登录界面，并更新当前显示用户
-        self.perform_logout()
-        #todo 创建分页面
+
+        #创建分页面
         self.task_page=TaskPage()
         self.picture_page=PicturePage()
         self.picture_page.isComplete=True
         self.record_page=RecordPage()
         self.log_page=LogPage()
         self.users_page=UsersPage()
+        # 进入登录界面，并更新当前显示用户
+        self.perform_logout()
         # 连接信号和槽
         self.task_page.detectionCountAndTypeChanged.connect(self.picture_page.setLabelsAndPages)
         # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage 的槽
@@ -39,7 +40,8 @@ class MainWindow(QWidget, Ui_MainPage):
         self.task_page.switchToPage.connect(self.switchPage)
         # 连接信号和槽任务界面模型修改
         #todo 添加检查当前用户权限
-        self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
+        # 根据用户权限决定是否连接信号
+
         # 检测任务完成发送信号切换页面 备用
         #self.picture_page.Compl.connect(self.showTaskPage)
 
@@ -58,6 +60,8 @@ class MainWindow(QWidget, Ui_MainPage):
         # pushButton_6 是退出当前用户的按钮
         self.pushButton_6.clicked.connect(self.logout_user)
 
+    def show_permission_warning(self):
+        QMessageBox.warning(self, '权限不足', '您没有执行该操作的权限。')
     def logout_user(self):
         # 弹出提示框询问用户是否退出
         reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
@@ -76,6 +80,19 @@ class MainWindow(QWidget, Ui_MainPage):
                 self.user_name = login_dialog.user_name
                 self.user_permission = login_dialog.permission
                 self.userName.setText(self.user_name)  # 更新界面以反映用户登录
+                # 断开 select_Button 上可能存在的所有连接
+                try:
+                    self.task_page.select_Button.clicked.disconnect()
+                except TypeError:
+                    # 如果之前没有连接，则会抛出 TypeError 异常，可以忽略
+                    pass
+                # 根据用户权限决定是否连接信号
+                if self.user_permission == '1':  # 确认管理员权限
+                    self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
+                else:
+                    # 如果权限不足，禁用按钮或连接到权限警告
+                    self.task_page.select_Button.clicked.connect(self.show_permission_warning)
+
                 break  # 用户成功登录，退出循环
             else:
                 # 用户取消登录，弹出提示是否重试
