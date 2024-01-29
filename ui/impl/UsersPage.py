@@ -15,11 +15,11 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def loadUsersData(self):
         connection = dbConnect()
         cursor = connection.cursor()
-        cursor.execute("SELECT CWID, Permission, IsActive FROM Users")
+        cursor.execute("SELECT CWID, UserInfo ,Permission, IsActive FROM Users")
 
         self.tableWidget.setRowCount(0)
-        self.tableWidget.setColumnCount(4)  # 有四个字段：用户名, 权限, 状态, 操作
-        self.tableWidget.setHorizontalHeaderLabels(['用户名', '权限', '状态', '操作'])
+        self.tableWidget.setColumnCount(5)  # 有四个字段：用户名, 用户信息 , 权限, 状态, 操作
+        self.tableWidget.setHorizontalHeaderLabels(['用户名', '用户信息' ,'权限', '状态', '操作'])
         # 设置行为整行选中
         self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         # 设置表格为只读
@@ -31,10 +31,10 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
             row_height = 60  # 将行高设置为60像素
             self.tableWidget.setRowHeight(row_number, row_height)  # 设置行高
             for column_number, data in enumerate(row_data):
-                if column_number == 1:  # 权限字段
+                if column_number == 2:  # 权限字段
                     # 根据字符串内容转换权限描述
                     data = "管理员" if data == '1' else "操作员" if data == '2' else "未知权限"
-                elif column_number == 2:  # 状态字段
+                elif column_number == 3:  # 状态字段
                     data = "激活" if data else "未激活"  # 假设IsActive是布尔类型
                 # 创建单元格项并设置居中对齐
                 cell_item = QTableWidgetItem(str(data))
@@ -45,7 +45,7 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
 
         # 设置列宽等宽并占满表格
         header = self.tableWidget.horizontalHeader()
-        for i in range(4):
+        for i in range(5):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
         connection.close()
 
@@ -69,7 +69,7 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         container.setLayout(layout)
 
         # 将容器小部件放置到表格中的“操作”列
-        self.tableWidget.setCellWidget(row_number, 3, container)
+        self.tableWidget.setCellWidget(row_number, 4, container)
 
     def manageUser(self, cwid):
         # 处理“管理”按钮点击事件

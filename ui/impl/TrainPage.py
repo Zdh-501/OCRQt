@@ -13,7 +13,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
 
 # if __name__ == '__main__':
-app = QApplication(sys.argv)
-mainWindow = TrainPage()
-mainWindow.show()
-app.exec_()
+# app = QApplication(sys.argv)
+# mainWindow = TrainPage()
+# mainWindow.show()
+# app.exec_()
