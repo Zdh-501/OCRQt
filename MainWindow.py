@@ -21,6 +21,7 @@ class MainWindow(QWidget, Ui_MainPage):
 
         # 设置窗口图标
         self.setWindowIcon(QIcon('ui/pic/logo.ico'))
+        #todo 要添加登录界面，并更新当前显示用户
 
         #todo 创建分页面
         self.task_page=TaskPage()
@@ -33,10 +34,10 @@ class MainWindow(QWidget, Ui_MainPage):
         self.task_page.detectionCountAndTypeChanged.connect(self.picture_page.setLabelsAndPages)
         # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage 的槽
         self.task_page.itemDetailsChanged.connect(self.picture_page.updateTextBrowser)
-
         # 连接信号和槽切换主界面
         self.task_page.switchToPage.connect(self.switchPage)
         # 连接信号和槽任务界面模型修改
+        #todo 添加检查当前用户权限
         self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
         # 检测任务完成发送信号切换页面 备用
         #self.picture_page.Compl.connect(self.showTaskPage)

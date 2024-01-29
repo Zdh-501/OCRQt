@@ -1,5 +1,5 @@
 import sys
-
+from datetime import datetime
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QApplication
 
@@ -15,39 +15,52 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def loadUsersData(self):
         connection = dbConnect()
         cursor = connection.cursor()
-        cursor.execute("SELECT CWID, UserInfo ,Permission, IsActive FROM Users")
+        cursor.execute("SELECT CWID, UserName, Permission, IsActive, LastLoginTime, ExpiryTime FROM Users")
 
+        # 首先收集需要更新的记录
+        records_to_update = []
+        for row_data in cursor:
+            is_active = row_data[3]
+            expiry_time = row_data[5]
+            if is_active and expiry_time and datetime.now() > expiry_time:
+                records_to_update.append(row_data[0])  # 收集需要更新的CWID
+
+        # 更新数据库中的用户状态
+        for cwid in records_to_update:
+            with connection.cursor() as update_cursor:
+                update_cursor.execute("UPDATE Users SET IsActive = ? WHERE CWID = ?", (False, cwid))
+            connection.commit()
+
+        # 重新查询数据以更新界面显示
+        cursor.execute("SELECT CWID, UserName, Permission, IsActive, LastLoginTime, ExpiryTime FROM Users")
+        self.setupTableWidget(cursor)  # 将表格设置和数据填充放到一个单独的函数
+        connection.close()
+
+    def setupTableWidget(self, cursor):
         self.tableWidget.setRowCount(0)
-        self.tableWidget.setColumnCount(5)  # 有四个字段：用户名, 用户信息 , 权限, 状态, 操作
-        self.tableWidget.setHorizontalHeaderLabels(['用户名', '用户信息' ,'权限', '状态', '操作'])
-        # 设置行为整行选中
+        self.tableWidget.setColumnCount(7)
+        self.tableWidget.setHorizontalHeaderLabels(
+            ['CWID', '用户名称', '权限', '状态', '最近登录时间', '失效时间', '操作'])
         self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        # 设置表格为只读
         self.tableWidget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         for row_number, row_data in enumerate(cursor):
             self.tableWidget.insertRow(row_number)
-            # 设置行高
-            row_height = 60  # 将行高设置为60像素
-            self.tableWidget.setRowHeight(row_number, row_height)  # 设置行高
+            row_height = 60
+            self.tableWidget.setRowHeight(row_number, row_height)
             for column_number, data in enumerate(row_data):
-                if column_number == 2:  # 权限字段
-                    # 根据字符串内容转换权限描述
+                if column_number == 2:
                     data = "管理员" if data == '1' else "操作员" if data == '2' else "未知权限"
-                elif column_number == 3:  # 状态字段
-                    data = "激活" if data else "未激活"  # 假设IsActive是布尔类型
-                # 创建单元格项并设置居中对齐
+                elif column_number == 3:
+                    data = "激活" if data else "失效"
                 cell_item = QTableWidgetItem(str(data))
-                cell_item.setTextAlignment(QtCore.Qt.AlignCenter)  # 设置文本居中
+                cell_item.setTextAlignment(QtCore.Qt.AlignCenter)
                 self.tableWidget.setItem(row_number, column_number, cell_item)
-
             self.addOperationButtons(row_number, row_data[0])
 
-        # 设置列宽等宽并占满表格
         header = self.tableWidget.horizontalHeader()
-        for i in range(5):
+        for i in range(7):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
-        connection.close()
 
     def addOperationButtons(self, row_number, cwid):
         # 创建“管理”和“修改密码”按钮
@@ -69,14 +82,15 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         container.setLayout(layout)
 
         # 将容器小部件放置到表格中的“操作”列
-        self.tableWidget.setCellWidget(row_number, 4, container)
+        self.tableWidget.setCellWidget(row_number, 6, container)
 
     def manageUser(self, cwid):
-        # 处理“管理”按钮点击事件
+        #todo 处理“管理”按钮点击事件
+        #todo 能够设置自动失效时间
         print(f"Managing user with CWID: {cwid}")
 
     def changeUserPassword(self, cwid):
-        # 处理“修改密码”按钮点击事件
+        #todo 处理“修改密码”按钮点击事件
         print(f"Changing password for user with CWID: {cwid}")
 
 if __name__ == '__main__':

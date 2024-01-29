@@ -24,31 +24,6 @@
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>false</bool>
      </attribute>
-     <column>
-      <property name="text">
-       <string>模型名称</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>预训练模型</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>备注</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>状态</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>操作</string>
-      </property>
-     </column>
     </widget>
    </item>
   </layout>

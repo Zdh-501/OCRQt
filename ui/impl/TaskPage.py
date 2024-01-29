@@ -19,7 +19,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
         # 假设您的按钮叫做 pushButton
         self.confirm_Button.clicked.connect(self.onPushButtonClicked)
-        #self.select_Button.clicked.connet()
+
 
 
         # 设置选中行为为整行选中
