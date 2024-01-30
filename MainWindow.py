@@ -66,7 +66,6 @@ class MainWindow(QWidget, Ui_MainPage):
             # 弹出提示框提醒用户任务未完成
             QMessageBox.warning(self, "任务未完成", "当前检测任务未完成，请先完成当前任务再退出用户", QMessageBox.Ok)
             return
-
         # 弹出提示框询问用户是否退出
         reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
                                      QMessageBox.No)
@@ -90,7 +89,7 @@ class MainWindow(QWidget, Ui_MainPage):
                 except TypeError:
                     # 如果之前没有连接，则会抛出 TypeError 异常，可以忽略
                     pass
-                # 根据用户权限决定是否连接信号
+                #todo 根据用户权限决定是否连接信号 错误日志界面 用户管理界面
                 if self.user_permission == '1':  # 确认管理员权限
                     # 连接信号和槽任务界面模型修改
                     self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
