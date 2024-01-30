@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QTableWidgetItem,
 
 from ui.layout.UI_UsersPage import Ui_UsersPage
 from SQL.dbFunction import *
-
+#todo 管理失效时间
 class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def __init__(self):
         super(UsersPage, self).__init__()

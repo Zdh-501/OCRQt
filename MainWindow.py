@@ -56,7 +56,7 @@ class MainWindow(QWidget, Ui_MainPage):
         # pushButton_6 是退出当前用户的按钮
         self.pushButton_6.clicked.connect(self.logout_user)
         # 进入登录界面，并更新当前显示用户
-        # todo 需要重新补充 权限检测逻辑 比如log日志待修改
+        # todo 需要重新补充 权限检测逻辑 比如log日志待修改、用户管理
         self.perform_logout()
     def show_permission_warning(self):
         QMessageBox.warning(self, '权限不足', '您没有执行该操作的权限。')
