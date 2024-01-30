@@ -61,6 +61,12 @@ class MainWindow(QWidget, Ui_MainPage):
     def show_permission_warning(self):
         QMessageBox.warning(self, '权限不足', '您没有执行该操作的权限。')
     def logout_user(self):
+        # 检查任务完成状态列表是否不为空且最后一项不为True
+        if self.picture_page.task_completion_status and not self.picture_page.task_completion_status[-1]:
+            # 弹出提示框提醒用户任务未完成
+            QMessageBox.warning(self, "任务未完成", "当前检测任务未完成，请先完成当前任务再退出用户", QMessageBox.Ok)
+            return
+
         # 弹出提示框询问用户是否退出
         reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
                                      QMessageBox.No)
@@ -91,6 +97,7 @@ class MainWindow(QWidget, Ui_MainPage):
                 else:
                     # 如果权限不足，禁用按钮或连接到权限警告
                     self.task_page.select_Button.clicked.connect(self.show_permission_warning)
+                break
             else:
                 # 用户取消登录，弹出提示是否重试
                 retry_reply = QMessageBox.question(self, '登录失败', "您必须登录才能继续。是否重新登录？", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
