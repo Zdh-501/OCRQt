@@ -30,9 +30,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.record_page=RecordPage()
         self.log_page=LogPage()
         self.users_page=UsersPage()
-        # 进入登录界面，并更新当前显示用户
-        #todo 需要重新补充 权限检测逻辑 比如log日志待修改
-        self.perform_logout()
+
         # 连接信号和槽
         self.task_page.detectionCountAndTypeChanged.connect(self.picture_page.setLabelsAndPages)
         # 连接 TaskPage 的 itemDetailsChanged 信号到 PicturePage 的槽
@@ -57,7 +55,9 @@ class MainWindow(QWidget, Ui_MainPage):
         self.pushButton_5.clicked.connect(self.showUsersPage)
         # pushButton_6 是退出当前用户的按钮
         self.pushButton_6.clicked.connect(self.logout_user)
-
+        # 进入登录界面，并更新当前显示用户
+        # todo 需要重新补充 权限检测逻辑 比如log日志待修改
+        self.perform_logout()
     def show_permission_warning(self):
         QMessageBox.warning(self, '权限不足', '您没有执行该操作的权限。')
     def logout_user(self):
@@ -68,8 +68,8 @@ class MainWindow(QWidget, Ui_MainPage):
             self.perform_logout()
 
     def perform_logout(self):
-        # 展示登录对话框
         while True:
+            # 展示登录对话框
             login_dialog = LoginDialog(self)
             login_dialog.setModal(True)  # 使登录对话框成为模态
             if login_dialog.exec_() == QDialog.Accepted:
@@ -91,14 +91,12 @@ class MainWindow(QWidget, Ui_MainPage):
                 else:
                     # 如果权限不足，禁用按钮或连接到权限警告
                     self.task_page.select_Button.clicked.connect(self.show_permission_warning)
-
-                break  # 用户成功登录，退出循环
             else:
                 # 用户取消登录，弹出提示是否重试
                 retry_reply = QMessageBox.question(self, '登录失败', "您必须登录才能继续。是否重新登录？", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
                 if retry_reply == QMessageBox.No:
-                    self.close()  # 用户选择不重新登录，关闭程序
-                    break  # 退出循环
+                    sys.exit()  # 关闭整个应用程序
+                    return  # 退出 perform_logout 方法
     def on_select_button_clicked(self):
         # 弹出配置对话框并更新 PicturePage 实例
         dialog = OCRConfigDialog(self)

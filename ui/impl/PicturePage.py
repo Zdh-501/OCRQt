@@ -118,7 +118,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
     def load_camera_parameters(self):
         # 假设 JSON 文件位于正确的路径
-        with open('camera_parameters.json', 'r', encoding='utf-8') as file:
+        with open('D:\\camera_parameters.json', 'r', encoding='utf-8') as file:
             camera_params = json.load(file)
 
         # 清理字典中所有键的空格

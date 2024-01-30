@@ -4,6 +4,7 @@ import pyodbc
 def dbConnect():
     try:
         # todo 读取配置文件 此处要改成绝对路径
+
         with open('D:\\config.json', 'r') as config_file:
             config = json.load(config_file)
 
