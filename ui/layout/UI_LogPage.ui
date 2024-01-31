@@ -15,18 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTableWidget" name="tableWidget">
-     <column>
-      <property name="text">
-       <string>发生时间</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>提示信息</string>
-      </property>
-     </column>
-    </widget>
+    <widget class="QTableWidget" name="tableWidget"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

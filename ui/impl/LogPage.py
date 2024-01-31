@@ -16,9 +16,9 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         # 启用表格排序功能
         self.tableWidget.setSortingEnabled(True)
-        self.loadErrorLogs()  # 调用方法来加载错误日志
-        self.clearButton.clicked.connect(self.clearData)
-        self.flashButton.clicked.connect(self.flashData)
+        #self.loadErrorLogs()  # 调用方法来加载错误日志
+        #self.clearButton.clicked.connect(self.clearData)
+        #self.flashButton.clicked.connect(self.flashData)
 
     def loadErrorLogs(self):
         try:

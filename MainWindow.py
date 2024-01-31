@@ -13,6 +13,8 @@ from ui.impl.LogPage import LogPage
 from ui.impl.UsersPage import UsersPage
 from ui.impl.OCRConfigDialog import *
 from ui.impl.LoginDialog import LoginDialog
+
+from SQL.dbFunction import *
 class MainWindow(QWidget, Ui_MainPage):
     def __init__(self):
         super().__init__()
@@ -93,9 +95,12 @@ class MainWindow(QWidget, Ui_MainPage):
                 if self.user_permission == '1':  # 确认管理员权限
                     # 连接信号和槽任务界面模型修改
                     self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
+                    # 连接清除按钮的信号
+                    self.log_page.clearButton.clicked.connect(self.clearErrorLogs)
                 else:
                     # 如果权限不足，禁用按钮或连接到权限警告
                     self.task_page.select_Button.clicked.connect(self.show_permission_warning)
+                    self.log_page.clearButton.clicked.connect(self.show_permission_warning)
                 break
             else:
                 # 用户取消登录，弹出提示是否重试
@@ -103,6 +108,29 @@ class MainWindow(QWidget, Ui_MainPage):
                 if retry_reply == QMessageBox.No:
                     sys.exit()  # 关闭整个应用程序
                     return  # 退出 perform_logout 方法
+
+    def clearErrorLogs(self):
+        # 弹出提示框以确认操作
+        reply = QMessageBox.question(self, '确认删除', '是否要删除全部错误信息？',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            # 用户确认删除
+            # 连接到数据库
+            connection = dbConnect()
+            cursor = connection.cursor()
+
+            # 删除ErrorLog表中的所有数据
+            cursor.execute("DELETE FROM ErrorLog")
+
+            # 提交更改
+            connection.commit()
+
+
+
+            # 关闭数据库连接
+            connection.close()
+
     def on_select_button_clicked(self):
         # 弹出配置对话框并更新 PicturePage 实例
         dialog = OCRConfigDialog(self)
