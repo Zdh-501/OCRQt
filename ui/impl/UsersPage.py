@@ -12,6 +12,10 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
         self.loadUsersData()
 
+    def set_user_info(self, cwid, name, permission):
+        self.user_cwid = cwid
+        self.user_name = name
+        self.user_permission = permission
     def loadUsersData(self):
         connection = dbConnect()
         cursor = connection.cursor()

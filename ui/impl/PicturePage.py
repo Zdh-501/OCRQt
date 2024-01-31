@@ -60,6 +60,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         else:
             self.textBrowser_2.setText("生产工位：")
 
+    def set_user_info(self, cwid, name, permission):
+        self.user_cwid = cwid
+        self.user_name = name
+        self.user_permission = permission
     def onProgressBarDoubleClicked(self, value):
         sender = self.sender()
 
@@ -352,10 +356,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 # 插入错误信息到 ErrorLog 表
                 insert_query = """
-                   INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
-                   VALUES (?, ?)
+                   INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
+                   VALUES (?, ? ,? ,?)
                    """
-                cursor.execute(insert_query, (current_time, error_message))
+                cursor.execute(insert_query, (current_time, error_message,self.user_cwid,self.user_name))
                 connection.commit()
 
                 print("错误信息已记录到数据库")
@@ -389,10 +393,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                         # 插入错误信息到 ErrorLog 表
                         insert_query = """
-                           INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
-                           VALUES (?, ?)
+                           INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
+                            VALUES (?, ? ,? ,?)
                            """
-                        cursor.execute(insert_query, (current_time, error_message))
+                        cursor.execute(insert_query, (current_time, error_message ,self.user_cwid ,self.user_name))
                         connection.commit()
 
                         print("错误信息已记录到数据库")
@@ -439,10 +443,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 # 插入错误信息到 ErrorLog 表
                 insert_query = """
-                               INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
-                               VALUES (?, ?)
+                               INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
+                               VALUES (?, ? ,? ,?)
                                """
-                cursor.execute(insert_query, (current_time, error_message))
+                cursor.execute(insert_query, (current_time, error_message ,self.user_cwid ,self.user_name))
                 connection.commit()
 
                 print("错误信息已记录到数据库")
@@ -663,10 +667,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 # 插入错误信息到 ErrorLog 表
                 insert_query = """
-                   INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage)
-                   VALUES (?, ?)
+                   INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
+                   VALUES (?, ? ,? ,?)
                    """
-                cursor.execute(insert_query, (current_time, error_message))
+                cursor.execute(insert_query, (current_time, error_message,self.user_cwid ,self.user_name))
                 connection.commit()
 
                 print("错误信息已记录到数据库")

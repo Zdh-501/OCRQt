@@ -1,6 +1,6 @@
 import sys
-
-
+from datetime import datetime
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 
 from PyQt5.QtGui import QIcon
@@ -16,6 +16,7 @@ from ui.impl.LoginDialog import LoginDialog
 
 from SQL.dbFunction import *
 class MainWindow(QWidget, Ui_MainPage):
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -39,7 +40,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.task_page.itemDetailsChanged.connect(self.picture_page.updateTextBrowser)
         # 连接信号和槽切换主界面
         self.task_page.switchToPage.connect(self.switchPage)
-
+        self.log_page.flashButton.clicked.connect(self.flashErrorData)
         # 检测任务完成发送信号切换页面 备用
         #self.picture_page.Compl.connect(self.showTaskPage)
 
@@ -60,6 +61,7 @@ class MainWindow(QWidget, Ui_MainPage):
         # 进入登录界面，并更新当前显示用户
         # todo 需要重新补充 权限检测逻辑 比如log日志待修改、用户管理
         self.perform_logout()
+
     def show_permission_warning(self):
         QMessageBox.warning(self, '权限不足', '您没有执行该操作的权限。')
     def logout_user(self):
@@ -67,6 +69,32 @@ class MainWindow(QWidget, Ui_MainPage):
         if self.picture_page.task_completion_status and not self.picture_page.task_completion_status[-1]:
             # 弹出提示框提醒用户任务未完成
             QMessageBox.warning(self, "任务未完成", "当前检测任务未完成，请先完成当前任务再退出用户", QMessageBox.Ok)
+            # 获取当前时间
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # 错误信息
+            error_message = "存在未完成任务的情况下点击了退出登录按钮"
+
+            try:
+                # 连接数据库
+                connection = dbConnect()
+                cursor = connection.cursor()
+
+                # 插入错误信息到 ErrorLog 表
+                insert_query = """
+                                       INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
+                                        VALUES (?, ? ,? ,?)
+                                       """
+                cursor.execute(insert_query, (current_time, error_message, self.user_cwid, self.user_name))
+                connection.commit()
+
+                print("错误信息已记录到数据库")
+            except pyodbc.Error as e:
+                print("数据库错误: ", e)
+            finally:
+                # 确保无论如何都关闭数据库连接
+                if connection:
+                    connection.close()
             return
         # 弹出提示框询问用户是否退出
         reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
@@ -85,9 +113,15 @@ class MainWindow(QWidget, Ui_MainPage):
                 self.user_name = login_dialog.user_name
                 self.user_permission = login_dialog.permission
                 self.userName.setText(self.user_name)  # 更新界面以反映用户登录
+                # 更新分页面的用户信息
+                self.picture_page.set_user_info(self.user_cwid, self.user_name, self.user_permission)
+                self.users_page.set_user_info(self.user_cwid, self.user_name, self.user_permission)
+                #加载错误日志
+                self.loadErrorLogs()
                 # 断开 select_Button 上可能存在的所有连接
                 try:
                     self.task_page.select_Button.clicked.disconnect()
+                    self.log_page.clearButton.clicked.disconnect()
                 except TypeError:
                     # 如果之前没有连接，则会抛出 TypeError 异常，可以忽略
                     pass
@@ -108,7 +142,66 @@ class MainWindow(QWidget, Ui_MainPage):
                 if retry_reply == QMessageBox.No:
                     sys.exit()  # 关闭整个应用程序
                     return  # 退出 perform_logout 方法
+    #不在LogPage中添加此函数，而在此处跟新loadError避免当前用户信息未初始化的问题
+    def loadErrorLogs(self):
+        # 连接到数据库
+        connection = dbConnect()
+        cursor = connection.cursor()
 
+        if self.user_permission == '1':
+            # 如果是管理员，查询所有数据
+            cursor.execute("SELECT OccurrenceTime, CWID, UserName, ErrorMessage FROM ErrorLog")
+            column_count = 4
+            header_labels = ["发生时间", "CWID", "用户名称", "错误信息"]
+        else:
+            # 如果不是管理员，只显示与self.user_cwid相对应的数据
+            query = "SELECT OccurrenceTime, ErrorMessage FROM ErrorLog WHERE CWID = ?"
+            cursor.execute(query, (self.user_cwid,))
+            column_count = 2
+            header_labels = ["发生时间", "错误信息"]
+
+        rows = cursor.fetchall()
+
+        # 设置tableWidget的行数和列数
+        self.log_page.tableWidget.setRowCount(len(rows))
+        self.log_page.tableWidget.setColumnCount(column_count)
+
+        # 设置列标题
+        self.log_page.tableWidget.setHorizontalHeaderLabels(header_labels)
+        # 设置表格头（列标题）的伸缩模式为Stretch，以使所有列均匀地占据整个表格宽度
+        header = self.log_page.tableWidget.horizontalHeader()
+        header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        # 设置字体
+        font = QtGui.QFont()
+        font.setPointSize(13)  # 设置字体大小为13
+
+        # 设置行高
+        row_height = 50  # 将行高设置为50像素
+
+        # 遍历并添加数据到tableWidget中
+        for row_number, row_data in enumerate(rows):
+            self.log_page.tableWidget.setRowHeight(row_number, row_height)  # 设置行高
+
+            for column_number, data in enumerate(row_data):
+                item = QtWidgets.QTableWidgetItem(str(data))
+                item.setFont(font)  # 设置字体
+                # 设置单元格不可编辑
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                #居中显示
+                if not column_number == 3:
+                    item.setTextAlignment(Qt.AlignCenter)
+                # 如果是第一列，设置文本居中对齐
+                if column_number == 0:
+                    item.setTextAlignment(Qt.AlignCenter)
+
+                self.log_page.tableWidget.setItem(row_number, column_number, item)
+
+
+        # 关闭数据库连接
+        if connection:
+            connection.close()
+    def flashErrorData(self):
+        self.loadErrorLogs()
     def clearErrorLogs(self):
         # 弹出提示框以确认操作
         reply = QMessageBox.question(self, '确认删除', '是否要删除全部错误信息？',

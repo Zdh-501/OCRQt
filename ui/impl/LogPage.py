@@ -13,7 +13,6 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
     def __init__(self):
         super(LogPage, self).__init__()
         self.setupUi(self)  # 从UI_DataCollectPage.py中加载UI定义
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
         # 启用表格排序功能
         self.tableWidget.setSortingEnabled(True)
         #self.loadErrorLogs()  # 调用方法来加载错误日志
@@ -71,7 +70,7 @@ class LogPage(QtWidgets.QWidget,Ui_LogPage):
             self.tableWidget.setRowCount(0)
     def flashData(self):
         self.tableWidget.clearContents()
-        self.loadErrorLogs()
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainWindow = LogPage()
