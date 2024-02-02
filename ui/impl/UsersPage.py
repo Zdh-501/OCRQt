@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QTableWidgetItem,
 
 from ui.layout.UI_UsersPage import Ui_UsersPage
 from SQL.dbFunction import *
+from ui.impl.UserManagementDialog import *
 #todo 管理失效时间
 class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def __init__(self):
@@ -88,15 +89,16 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         # 将容器小部件放置到表格中的“操作”列
         self.tableWidget.setCellWidget(row_number, 6, container)
 
-    def manageUser(self, cwid):
-        #todo 处理“管理”按钮点击事件
-        #todo 能够设置自动失效时间
-        print(f"Managing user with CWID: {cwid}")
 
     def changeUserPassword(self, cwid):
         #todo 处理“修改密码”按钮点击事件
         print(f"Changing password for user with CWID: {cwid}")
 
+    def manageUser(self, cwid):
+        dialog = UserManagementDialog(cwid, self)
+        if dialog.exec_():
+            # 可以在这里重新加载用户数据来更新UI
+            self.loadUsersData()
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mywindow = UsersPage()
