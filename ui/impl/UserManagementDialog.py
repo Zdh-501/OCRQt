@@ -1,12 +1,15 @@
 from PyQt5 import QtWidgets,QtGui
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMessageBox
+from datetime import datetime, timedelta
 
+from SQL.dbFunction import *
 class UserManagementDialog(QtWidgets.QDialog):
     def __init__(self, cwid, parent=None):
         super().__init__(parent)
         self.cwid = cwid
         self.initUI()
-        self.loadData()
+
 
     def initUI(self):
         # 移除问号按钮
@@ -64,13 +67,34 @@ class UserManagementDialog(QtWidgets.QDialog):
         self.layout.addWidget(self.permissionComboBox)
         self.layout.addWidget(self.saveButton)
 
-    def loadData(self):
-        # 加载用户当前的失效时间和权限
-        # 这里需要从数据库中获取数据
-        pass
-
     def saveChanges(self):
-        # 保存更改到数据库
-        # 更新失效时间和用户权限
-        print(f"Updated CWID: {self.cwid}, Expiry: {self.expiryTimeEdit.value()}, Permission: {self.permissionComboBox.currentText()}")
+        connection = dbConnect()
+        cursor = connection.cursor()
+
+        # 根据statusComboBox的值设置isActive
+        is_active = True if self.statusComboBox.currentText() == '激活' else False
+
+        # 根据expiryTimeEdit的值和当前时间计算ExpiryTime
+        expiry_months = self.expiryTimeEdit.value()
+        expiry_time = datetime.now() + timedelta(days=expiry_months * 30)  # 大约每月30天
+
+        # 根据permissionComboBox的值设置Permission
+        permission_value = 1 if self.permissionComboBox.currentText() == '管理员' else 2
+
+        try:
+            # 更新数据库
+            cursor.execute("""
+                UPDATE Users
+                SET IsActive = ?, ExpiryTime = ?, Permission = ?
+                WHERE CWID = ?
+            """, (is_active, expiry_time, permission_value, self.cwid))
+            connection.commit()
+
+            QMessageBox.information(self, '成功', '用户信息更新成功！')
+        except Exception as e:
+            QMessageBox.warning(self, '错误', f'更新数据库时发生错误：{e}')
+        finally:
+            cursor.close()
+            connection.close()
+
         self.accept()
