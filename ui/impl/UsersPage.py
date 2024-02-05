@@ -7,6 +7,7 @@ from ui.layout.UI_UsersPage import Ui_UsersPage
 from SQL.dbFunction import *
 from ui.impl.UserManagementDialog import *
 from ui.impl.ChangPasswordDialog import *
+from ui.impl.AddUserDialog import *
 #todo 管理失效时间
 class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def __init__(self):
@@ -141,6 +142,14 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         if dialog.exec_():
             # 如果需要，更新用户界面或者进行其他操作
             pass
+
+    # 在 UsersPage 类中添加一个新方法来创建 "新增用户" 对话框
+    def createAddUserDialog(self):
+        # 检查用户权限，如果为1（管理员），则打开对话框
+        if self.user_permission == '1':
+            dialog = AddUserDialog(self)
+            dialog.userAdded.connect(self.loadUsersData)
+            dialog.exec_()  # 显示对话框
 
     def manageUser(self, cwid):
         dialog = UserManagementDialog(cwid, self)

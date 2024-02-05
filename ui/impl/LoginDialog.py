@@ -2,6 +2,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QLineEdit, QPushButton, QVBoxLayout, QLabel, QApplication, QWidget, QTableWidget, \
     QMessageBox
+from PyQt5 import QtGui
 import pyodbc
 
 from SQL.dbFunction import *
@@ -11,7 +12,7 @@ class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super(LoginDialog, self).__init__(parent)
         # 调整对话框大小
-        self.resize(350, 200)  # 或者您可以使用更具体的尺寸
+        self.resize(400, 300)  # 或者您可以使用更具体的尺寸
         # 移除问号按钮
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setWindowTitle('用户校验')
@@ -20,11 +21,27 @@ class LoginDialog(QDialog):
         self.password.setEchoMode(QLineEdit.Password)
         self.loginButton = QPushButton("确认", self)
 
+        # 设置字体
+        font = QtGui.QFont()
+        font.setPointSize(14)  # 设置字体大小为14
+
+        # 应用字体到所有的UI元素
+        self.username.setFont(font)
+        self.password.setFont(font)
+        self.loginButton.setFont(font)
+
+        # 创建布局并添加UI元素
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("用户名（CWID）:"))
+        userLabel = QLabel("用户名（CWID）:")
+        userLabel.setFont(font)  # 应用字体到标签
+        layout.addWidget(userLabel)
         layout.addWidget(self.username)
-        layout.addWidget(QLabel("密码:"))
+
+        passLabel = QLabel("密码:")
+        passLabel.setFont(font)  # 应用字体到标签
+        layout.addWidget(passLabel)
         layout.addWidget(self.password)
+
         layout.addWidget(self.loginButton)
 
         self.loginButton.clicked.connect(self.handleLogin)

@@ -133,6 +133,7 @@ class MainWindow(QWidget, Ui_MainPage):
                 # 更新分页面的用户信息
                 self.picture_page.set_user_info(self.user_cwid, self.user_name, self.user_permission)
                 self.users_page.set_user_info(self.user_cwid, self.user_name, self.user_permission)
+
                 #加载用户信息
                 self.users_page.loadUsersData()
                 #加载错误日志
@@ -150,11 +151,13 @@ class MainWindow(QWidget, Ui_MainPage):
                     self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
                     # 连接清除按钮的信号
                     self.log_page.clearButton.clicked.connect(self.clearErrorLogs)
+                    self.users_page.addButton.setEnabled(True)
+                    self.users_page.addButton.clicked.connect(self.users_page.createAddUserDialog)
                 else:
                     # 如果权限不足，禁用按钮或连接到权限警告
                     self.task_page.select_Button.clicked.connect(self.show_permission_warning)
                     self.log_page.clearButton.clicked.connect(self.show_permission_warning)
-
+                    self.users_page.addButton.setEnabled(False)
                 break
             else:
                 # 用户取消登录，弹出提示是否重试
