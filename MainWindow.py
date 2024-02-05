@@ -113,9 +113,29 @@ class MainWindow(QWidget, Ui_MainPage):
                 self.user_name = login_dialog.user_name
                 self.user_permission = login_dialog.permission
                 self.userName.setText(self.user_name)  # 更新界面以反映用户登录
+                # 获取当前时间作为最后登录时间
+                current_time = datetime.now()
+
+                # 更新数据库的 LastLoginTime 字段
+                try:
+                    connection = dbConnect()
+                    cursor = connection.cursor()
+                    cursor.execute("""
+                                    UPDATE Users
+                                    SET LastLoginTime = ?
+                                    WHERE CWID = ?
+                                """, (current_time, self.user_cwid))
+                    connection.commit()
+                except Exception as e:
+                    print(f"更新登录时间出错: {e}")
+                finally:
+                    cursor.close()
+                    connection.close()
                 # 更新分页面的用户信息
                 self.picture_page.set_user_info(self.user_cwid, self.user_name, self.user_permission)
                 self.users_page.set_user_info(self.user_cwid, self.user_name, self.user_permission)
+                #加载用户信息
+                self.users_page.loadUsersData()
                 #加载错误日志
                 self.loadErrorLogs()
                 # 断开 select_Button 上可能存在的所有连接
@@ -135,6 +155,7 @@ class MainWindow(QWidget, Ui_MainPage):
                     # 如果权限不足，禁用按钮或连接到权限警告
                     self.task_page.select_Button.clicked.connect(self.show_permission_warning)
                     self.log_page.clearButton.clicked.connect(self.show_permission_warning)
+
                 break
             else:
                 # 用户取消登录，弹出提示是否重试
@@ -142,6 +163,8 @@ class MainWindow(QWidget, Ui_MainPage):
                 if retry_reply == QMessageBox.No:
                     sys.exit()  # 关闭整个应用程序
                     return  # 退出 perform_logout 方法
+        # 初始化时更新用户管理按钮行为
+        self.users_page.updateButtonBehaviors()
     #不在LogPage中添加此函数，而在此处跟新loadError避免当前用户信息未初始化的问题
     def loadErrorLogs(self):
         # 连接到数据库

@@ -1,11 +1,12 @@
 import sys
 from datetime import datetime
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QApplication
+from PyQt5.QtWidgets import QMessageBox,QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QApplication
 
 from ui.layout.UI_UsersPage import Ui_UsersPage
 from SQL.dbFunction import *
 from ui.impl.UserManagementDialog import *
+from ui.impl.ChangPasswordDialog import *
 #todo 管理失效时间
 class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def __init__(self):
@@ -13,8 +14,9 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
         self.loadUsersData()
 
+
     def set_user_info(self, cwid, name, permission):
-        self.user_cwid = cwid
+        self.user_cwid = cwid  #当前用户的cwid
         self.user_name = name
         self.user_permission = permission
     def loadUsersData(self):
@@ -27,7 +29,7 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         for row_data in cursor:
             is_active = row_data[3]
             expiry_time = row_data[5]
-            if is_active and expiry_time and datetime.now() > expiry_time:
+            if is_active and expiry_time is not None and datetime.now() > expiry_time:
                 records_to_update.append(row_data[0])  # 收集需要更新的CWID
 
         # 更新数据库中的用户状态
@@ -67,14 +69,23 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         for i in range(7):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
 
+    def createButtonClickedFunction(self, cwid):
+        return lambda: self.checkPermissionAndManageUser(cwid)
+
+    def createChangePasswordClickedFunction(self, cwid):
+        return lambda: self.changeUserPassword(cwid)
     def addOperationButtons(self, row_number, cwid):
         # 创建“管理”和“修改密码”按钮
         manage_button = QPushButton('管理')
         change_password_button = QPushButton('修改密码')
 
-        # 为按钮设置点击事件处理函数
-        manage_button.clicked.connect(lambda: self.manageUser(cwid))
-        change_password_button.clicked.connect(lambda: self.changeUserPassword(cwid))
+        # 为按钮设置唯一的对象名称
+        manage_button.setObjectName(f"manageButton_{row_number}")
+        change_password_button.setObjectName(f"changePasswordButton_{row_number}")
+
+        # 为按钮设置点击事件处理函数，确保lambda函数捕获当前循环中的cwid值
+        manage_button.clicked.connect(self.createButtonClickedFunction(cwid))
+        change_password_button.clicked.connect(self.createChangePasswordClickedFunction(cwid))
 
         # 创建一个水平布局来放置按钮
         layout = QHBoxLayout()
@@ -89,16 +100,61 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         # 将容器小部件放置到表格中的“操作”列
         self.tableWidget.setCellWidget(row_number, 6, container)
 
+    def updateButtonBehaviors(self):
+        # 仅更新基于权限变化需要更新行为的按钮
+        for row in range(self.tableWidget.rowCount()):
+            manage_button = self.tableWidget.cellWidget(row, 6).layout().itemAt(0).widget()
+            change_password_button = self.tableWidget.cellWidget(row, 6).layout().itemAt(1).widget()
 
+            # 先断开旧的信号连接
+            try:
+                manage_button.clicked.disconnect()
+            except TypeError:
+                pass  # 没有连接任何槽函数，忽略
+            try:
+                change_password_button.clicked.disconnect()
+            except TypeError:
+                pass  # 没有连接任何槽函数，忽略
+
+            # 根据用户是否是管理员连接信号
+            cwid_in_row = self.tableWidget.item(row, 0).text()
+            if self.user_permission == '1':  # 如果是管理员
+                manage_button.setEnabled(True)
+                change_password_button.setEnabled(True)
+                manage_button.clicked.connect(
+                    self.createButtonClickedFunction(cwid_in_row))
+                change_password_button.clicked.connect(
+                    self.createChangePasswordClickedFunction(cwid_in_row))
+            else:
+                manage_button.setEnabled(False)
+                # 如果是操作员且是自己的账号，允许修改密码
+                if cwid_in_row == self.user_cwid:
+                    change_password_button.setEnabled(True)
+                    change_password_button.clicked.connect(
+                        self.createChangePasswordClickedFunction(cwid_in_row))
+                else:
+                    change_password_button.setEnabled(False)
     def changeUserPassword(self, cwid):
-        #todo 处理“修改密码”按钮点击事件
-        print(f"Changing password for user with CWID: {cwid}")
+        # 确保对话框是模态的，以便用户必须在返回主界面前处理它
+        dialog = ChangePasswordDialog(cwid, self)
+        dialog.setModal(True)
+        if dialog.exec_():
+            # 如果需要，更新用户界面或者进行其他操作
+            pass
 
     def manageUser(self, cwid):
         dialog = UserManagementDialog(cwid, self)
         if dialog.exec_():
             # 可以在这里重新加载用户数据来更新UI
             self.loadUsersData()
+
+    def checkPermissionAndManageUser(self, cwid):
+        if self.user_permission == '1':
+            self.manageUser(cwid)
+        else:
+            self.show_permission_warning()
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mywindow = UsersPage()
