@@ -8,7 +8,7 @@ from SQL.dbFunction import *
 from ui.impl.UserManagementDialog import *
 from ui.impl.ChangPasswordDialog import *
 from ui.impl.AddUserDialog import *
-#todo 管理失效时间
+
 class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def __init__(self):
         super(UsersPage, self).__init__()

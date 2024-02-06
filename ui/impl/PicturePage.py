@@ -482,7 +482,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.captured_images.clear()  # 清空存储的图像列表
         self.currentTaskNumber =self.currentTaskNumber + 1
         print(results)
-        # todo 要添加传入图像是否顺序正确的逻辑判断
         # 可以在这里更新UI等
         extracted_data = self.extract_relevant_data(results)
         # 提取日期和批号
@@ -699,7 +698,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.progressBar_2.update()
 
     def get_workstation_number(self, username):
-        # todo
+        # todo 工位信息
         pass
 
 # 创建应用实例和窗口，然后运行

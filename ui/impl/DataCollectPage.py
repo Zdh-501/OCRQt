@@ -85,8 +85,6 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
             return
         full_path = os.path.join(save_path, filename)
         full_path = full_path.encode('utf-8').decode('utf-8')
-        #todo 中文乱码还未解决
-        # 检查图像是否可用（这里假设您已经有了当前图像的np.ndarray）
         if hasattr(self, 'current_image') and self.current_image is not None:
             # 创建并启动图像保存线程
             self.image_save_thread = ImageSaveThread(self.current_image, full_path, file_format)
@@ -172,7 +170,7 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         # 设置光度立体算法模式
         photometric_settings = mphdc.GetPhotometricSettings(self.camera)
         photometric_settings.AlgorithmMode = mphdc.PhotometricAlgorithmModeType.Fast.value
-        #todo 添加修改通道
+
 
         mphdc.SetPhotometricSettings(self.camera, photometric_settings)
     def display_image_on_label(self, image_np):
