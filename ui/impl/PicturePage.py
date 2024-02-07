@@ -7,7 +7,7 @@ import json
 import re
 
 from PyQt5 import QtCore
-from PyQt5.QtGui import QPixmap, QImage, QFontMetrics
+from PyQt5.QtGui import QPixmap, QImage, QFontMetrics, QFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from pyqt5_plugins.examplebutton import QtWidgets
@@ -53,12 +53,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.takePictureButton.clicked.connect(self.take_photo_and_skip)
         self.progressBar.doubleClickedValue.connect(self.onProgressBarDoubleClicked)
         self.progressBar_2.doubleClickedValue.connect(self.onProgressBarDoubleClicked)
-        current_username = 'root'
-        workstation_number = self.get_workstation_number(current_username)
-        if workstation_number is not None:
-            self.textBrowser_2.setText(f"生产工位: {workstation_number}")
-        else:
-            self.textBrowser_2.setText("生产工位：")
+        self.get_workstation_number()
+
 
     def set_user_info(self, cwid, name, permission):
         self.user_cwid = cwid
@@ -697,9 +693,31 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.progressBar.update()
         self.progressBar_2.update()
 
-    def get_workstation_number(self, username):
-        # todo 工位信息
-        pass
+    def get_workstation_number(self):
+        # 读取配置文件
+        with open('D:\\config.json', 'r', encoding='utf-8') as config_file:
+            config = json.load(config_file)
+
+        # 获取工位号
+        workstation_number = config.get('workstation_number')
+        # 创建一个 QFont 对象
+        font = QFont()
+
+        # 设置字体大小
+        font.setPointSize(14)  # 这里的数字12可以替换成您想要的字体大小
+
+        # 设置字体加粗
+        font.setBold(True)
+
+        # 将设置好的字体应用到 textBrowser_2
+        self.textBrowser_2.setFont(font)
+        # 检查工位号是否存在
+        if workstation_number:
+            # 将工位号显示在textBrowser_2中
+            self.textBrowser_2.setText(str(workstation_number))
+        else:
+            # 如果没有找到工位号，显示错误信息或适当的消息
+            self.textBrowser_2.setText("工位号未找到")
 
 # 创建应用实例和窗口，然后运行
 # app = QApplication(sys.argv)

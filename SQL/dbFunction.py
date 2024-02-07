@@ -5,7 +5,7 @@ def dbConnect():
     try:
         #绝对路径
 
-        with open('D:\\config.json', 'r') as config_file:
+        with open('D:\\config.json', 'r', encoding='utf-8') as config_file:
             config = json.load(config_file)
 
         connection_string = f'DRIVER={{{config["driver"]}}};' \
