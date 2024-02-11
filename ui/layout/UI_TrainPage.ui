@@ -106,7 +106,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="dataButton">
        <property name="text">
         <string>选择</string>
        </property>
@@ -162,7 +162,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="preModelButton">
        <property name="text">
         <string>选择</string>
        </property>
@@ -218,7 +218,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="saveButton">
        <property name="text">
         <string>选择</string>
        </property>
@@ -522,7 +522,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_4">
+      <widget class="QPushButton" name="trainButton">
        <property name="minimumSize">
         <size>
          <width>50</width>

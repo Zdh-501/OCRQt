@@ -22,6 +22,8 @@ class AddUserDialog(QtWidgets.QDialog):
         # 创建并设置输入字段
         self.cwidLineEdit = QtWidgets.QLineEdit(self)
         self.cwidLineEdit.setFont(font)  # 应用字体
+        self.nameLineEdit = QtWidgets.QLineEdit(self)
+        self.nameLineEdit.setFont(font)  # 应用字体
         self.passwordLineEdit = QtWidgets.QLineEdit(self)
         self.passwordLineEdit.setFont(font)  # 应用字体
         self.passwordLineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
@@ -45,6 +47,8 @@ class AddUserDialog(QtWidgets.QDialog):
         # 添加输入字段到布局
         layout.addWidget(QtWidgets.QLabel('CWID:'))
         layout.addWidget(self.cwidLineEdit)
+        layout.addWidget(QtWidgets.QLabel('用户名称:'))
+        layout.addWidget(self.nameLineEdit)
         layout.addWidget(QtWidgets.QLabel('密码:'))
         layout.addWidget(self.passwordLineEdit)
         layout.addWidget(QtWidgets.QLabel('权限:'))
@@ -77,6 +81,7 @@ class AddUserDialog(QtWidgets.QDialog):
     def saveUser(self):
         # 获取输入值
         cwid = self.cwidLineEdit.text()
+        name = self.nameLineEdit.text()
         password = self.passwordLineEdit.text()
         permission_text = self.permissionComboBox.currentText()
         permission = '1' if permission_text == '管理员' else '2'  # 将权限转换为相应的数字
@@ -92,9 +97,9 @@ class AddUserDialog(QtWidgets.QDialog):
             connection = dbConnect()
             cursor = connection.cursor()
             cursor.execute("""
-                INSERT INTO Users (CWID, Password, Permission, IsActive, ExpiryTime)
-                VALUES (?, ?, ?, ?, ?)
-            """, (cwid, password, permission, is_active, expiry_time))
+                INSERT INTO Users (CWID, UserName, Password, Permission, IsActive, ExpiryTime)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (cwid, name, password, permission, is_active, expiry_time))
             connection.commit()
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, '错误', f'添加用户时发生错误：{e}')
