@@ -26,7 +26,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
     def select_pre_model_path(self):
         # 打开文件选择对话框
-        pre_model_path, _ = QFileDialog.getOpenFileName(self, "选择预训练模型文件")
+        pre_model_path = QFileDialog.getExistingDirectory(self, "选择预训练模型文件")
         # 将选定的路径显示在preEdit输入框中
         if pre_model_path:  # 如果用户选择了文件
             self.preEdit.setText(pre_model_path.replace('/', '\\'))  # 在Windows上使用反斜杠
@@ -88,7 +88,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             return
 
         # 构建数据集划分命令
-        divide_dataset_cmd = f"python ..\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\""
+        divide_dataset_cmd = f"python .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\""
         subprocess.run(divide_dataset_cmd, shell=True, check=True)
 
         # 根据模型类型构建相应的训练命令
@@ -105,14 +105,14 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
     def construct_train_command(self, model_type, dataset_root_path, pre_model_path, save_path, epochs, batch_size):
         if model_type == 'det':
-            config_file = "configs\\det\\det_mv3_db.yml"
+            config_file = ".\\PaddleOCR\\configs\\det\\det_mv3_db.yml"
             model_dir = "det"
         elif model_type == 'rec':
-            config_file = "configs\\rec\\rec_mv3_none_bilstm_ctc.yml"
+            config_file = ".\\PaddleOCR\\configs\\rec\\rec_mv3_none_bilstm_ctc.yml"
             model_dir = "rec"
 
         train_cmd = (
-            f"python3 ..\\PaddleOCR\\tools\\train.py -c {config_file} "
+            f"python .\\PaddleOCR\\tools\\train.py -c {config_file} "
             f"-o Global.pretrained_model=\"{pre_model_path}\" "
             f"Global.save_model_dir=\"{save_path}\\{model_dir}\" "
             f"Global.epoch_num={epochs} "
