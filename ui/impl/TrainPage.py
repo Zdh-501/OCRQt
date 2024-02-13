@@ -102,8 +102,8 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             train_cmd = self.construct_train_command('rec', dataset_root_path, pre_model_path, save_path, epochs,
                                                      batch_size)
 
-        # 使用子线程执行训练命令
-        self.training_thread = TrainingThread(train_cmd)
+        # 使用子线程同时执行划分数据集和训练命令
+        self.training_thread = TrainingThread(divide_dataset_cmd, train_cmd)
         self.training_thread.start()
 
         #todo 添加上传数据库功能

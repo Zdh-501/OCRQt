@@ -185,10 +185,13 @@ class ImageSaveThread(QThread):
             self.save_finished.emit("图像编码失败")
 
 class TrainingThread(QThread):
-    def __init__(self, train_cmd):
+    def __init__(self, divide_dataset_cmd, train_cmd):
         super(TrainingThread, self).__init__()
+        self.divide_dataset_cmd = divide_dataset_cmd
         self.train_cmd = train_cmd
 
     def run(self):
-        # 在这个子线程中执行训练命令
+        # 先执行划分数据集的命令
+        subprocess.run(self.divide_dataset_cmd, shell=True, check=True)
+        # 然后执行训练命令
         subprocess.run(self.train_cmd, shell=True, check=True)
