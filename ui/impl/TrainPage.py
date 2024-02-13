@@ -3,10 +3,10 @@ import os
 import subprocess
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication,QFileDialog,QMessageBox
-
-from ui.layout.UI_TrainPage import Ui_TrainPage
 from PyQt5 import QtCore, QtWidgets
 
+from ui.layout.UI_TrainPage import Ui_TrainPage
+from ui.impl.myThread import *
 class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
     def __init__(self):
@@ -102,8 +102,10 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             train_cmd = self.construct_train_command('rec', dataset_root_path, pre_model_path, save_path, epochs,
                                                      batch_size)
 
-        # 执行训练命令
-        subprocess.run(train_cmd, shell=True, check=True)
+        # 使用子线程执行训练命令
+        self.training_thread = TrainingThread(train_cmd)
+        self.training_thread.start()
+
         #todo 添加上传数据库功能
 
     def construct_train_command(self, model_type, dataset_root_path, pre_model_path, save_path, epochs, batch_size):

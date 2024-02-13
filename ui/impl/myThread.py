@@ -183,3 +183,12 @@ class ImageSaveThread(QThread):
                 self.save_finished.emit(f"保存图像失败: {e}")
         else:
             self.save_finished.emit("图像编码失败")
+
+class TrainingThread(QThread):
+    def __init__(self, train_cmd):
+        super(TrainingThread, self).__init__()
+        self.train_cmd = train_cmd
+
+    def run(self):
+        # 在这个子线程中执行训练命令
+        subprocess.run(self.train_cmd, shell=True, check=True)
