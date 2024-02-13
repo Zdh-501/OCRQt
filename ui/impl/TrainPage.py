@@ -80,15 +80,18 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         save_path = self.saveEdit.text().replace('/', '\\')  # 模型保存路径输入框
         epochs = self.epochEdit.text()  # Epoch次数输入框
         batch_size = self.batchEdit.text()  # Batch size输入框
-
+        det_path = os.path.join(dataset_root_path, "det")  # 构造det数据集的路径
+        rec_path = os.path.join(dataset_root_path, "rec")  # 构造rec数据集的路径
         # 推断训练模型类型
         model_type = self.infer_model_type_from_pretrained_name(pre_model_path)
         if model_type is None:
             QMessageBox.warning(self, '错误', '无法根据预训练模型名称推断模型类型。')
             return
 
+        print(f"Dataset root path: {dataset_root_path}")
         # 构建数据集划分命令
-        divide_dataset_cmd = f"python .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\""
+
+        divide_dataset_cmd = f"python .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\" --detRootPath \"{det_path}\" --recRootPath \"{rec_path}\""
         subprocess.run(divide_dataset_cmd, shell=True, check=True)
 
         # 根据模型类型构建相应的训练命令
