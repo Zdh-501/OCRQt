@@ -101,6 +101,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
         # 执行训练命令
         subprocess.run(train_cmd, shell=True, check=True)
+        #todo 添加上传数据库功能
 
     def construct_train_command(self, model_type, dataset_root_path, pre_model_path, save_path, epochs, batch_size):
         if model_type == 'det':

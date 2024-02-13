@@ -475,7 +475,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         print("OCR线程已启动...")
 
     def onOcrFinished(self, results):
-        self.captured_images.clear()  # 清空存储的图像列表
         self.currentTaskNumber =self.currentTaskNumber + 1
         print(results)
         # 可以在这里更新UI等
@@ -500,7 +499,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.progressBar.setValue(max(0,self.current_label_index // 2 + 1))
                     self.progressBar_2.setValue(max(0,self.current_label_index // 2 - 1 ))
                     return
-                #todo 添加上传系统
+
             elif len(dates) == 0 and len(batch_numbers) == 2:
                 reply = QMessageBox.question(self, '消息提示',
                                              '未检测到日期信息，'
@@ -515,7 +514,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
                     self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
                     return
-                #todo 添加上传系统
+
 
         # 当前任务的索引
         task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
@@ -551,7 +550,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not self.camera_worker.isRunning():
             self.camera_worker.start()
 
-        # todo 处理OCR结果,要保存在数据库
+        # todo 处理OCR结果,上传系统并保存在本地数据库
 
         # 更新 self.textBrowser_4
         self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
@@ -565,6 +564,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"生产日期: {dates[0]}")
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
+        self.captured_images.clear()  # 清空存储的图像列表
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
@@ -585,7 +585,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         return extracted_data
 
     def display_image_on_label(self, image_np):
-        # todo 同时将图像存储在列表中,要补充存在本地,注意命名方式
         if self.should_store_captured_image:
             # 只有在标志为True时，才将图像添加到列表中
             self.captured_images.append(image_np)
