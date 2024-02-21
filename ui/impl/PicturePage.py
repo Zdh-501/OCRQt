@@ -343,7 +343,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # 错误信息
-            error_message = "尝试在未完成前一个任务的情况下拍照"
+            error_message = "在未完成前一个任务的情况下，尝试对下一个产品进行拍照"
 
             try:
                 # 连接数据库

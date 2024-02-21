@@ -201,7 +201,7 @@ class MainWindow(QWidget, Ui_MainPage):
         font.setPointSize(13)  # 设置字体大小为13
 
         # 设置行高
-        row_height = 50  # 将行高设置为50像素
+        row_height = 100  # 将行高设置为100像素
 
         # 遍历并添加数据到tableWidget中
         for row_number, row_data in enumerate(rows):

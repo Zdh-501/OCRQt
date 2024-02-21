@@ -31,7 +31,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 调整列宽以占满整个表格
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
-        # 添加数据
+        #添加数据
         self.addTask({
             "批号": "CY32403",
             "物料类型": "小盒",
