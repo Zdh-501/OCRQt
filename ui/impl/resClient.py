@@ -3,7 +3,7 @@ from xml.etree import ElementTree as ET
 from datetime import datetime, timedelta
 
 # 假设这是BES系统期望的任务信息结构
-class TaskInfo:
+class Result:
     def __init__(self, task_identifier, task_key, identify_number, order_no, production_date, expiry_date, image, cwid, operation_time):
         self.TASK_IDENTIFIER = task_identifier
         self.TASK_KEY = task_key
@@ -16,7 +16,7 @@ class TaskInfo:
         self.OPERATIONTIME = operation_time
 
 # 自定义任务数据
-task_info = TaskInfo(
+result = Result(
     task_identifier='T12345',
     task_key=1,
     identify_number=100,
@@ -28,41 +28,38 @@ task_info = TaskInfo(
     operation_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 )
 
-def send_results_to_bes(task_info):
+def send_result_to_bes(result):
     # 构建要发送的XML数据
     data_xml = ET.Element('DATA')
-    ET.SubElement(data_xml, 'TASK_IDENTIFIER').text = str(task_info.TASK_IDENTIFIER)
-    ET.SubElement(data_xml, 'TASK_KEY').text = str(task_info.TASK_KEY)
-    ET.SubElement(data_xml, 'SEQUENCE').text = str(task_info.IDENTIFY_NUMBER)
-    ET.SubElement(data_xml, 'ORDER_NO').text = task_info.ORDER_NO
-    ET.SubElement(data_xml, 'PRODUCTION_DATE').text = task_info.PRODUCTION_DATE
-    ET.SubElement(data_xml, 'EXPIRY_DATE').text = task_info.EXPIRY_DATE
+    ET.SubElement(data_xml, 'TASK_IDENTIFIER').text = str(result.TASK_IDENTIFIER)
+    ET.SubElement(data_xml, 'TASK_KEY').text = str(result.TASK_KEY)
+    ET.SubElement(data_xml, 'SEQUENCE').text = str(result.IDENTIFY_NUMBER)
+    ET.SubElement(data_xml, 'ORDER_NO').text = result.ORDER_NO
+    ET.SubElement(data_xml, 'PRODUCTION_DATE').text = result.PRODUCTION_DATE
+    ET.SubElement(data_xml, 'EXPIRY_DATE').text = result.EXPIRY_DATE
     # 假设图片数据和其他信息已经准备好
-    ET.SubElement(data_xml, 'IMAGE').text = '图片数据'
+    ET.SubElement(data_xml, 'IMAGE').text = result.IMAGE  # 图片数据使用CDATA包装
     ET.SubElement(data_xml, 'CWID').text = '操作员CWID'
     ET.SubElement(data_xml, 'OPERATIONTIME').text = '操作时间'
 
-    # 将构建的XML转换为字符串，并包装在CDATA标签内
-    wrapped_data_xml = f"<![CDATA[{ET.tostring(data_xml, encoding='unicode', method='xml')}]>"
-    # 将Element转换为字符串
+    # 注意，这里不再使用CDATA包装整个XML结构，而只包装实际的数据值
     data_xml_str = ET.tostring(data_xml, encoding='unicode', method='xml')
-    # 包装CDATA，确保不添加XML声明
-    wrapped_data_xml = f"<![CDATA[{data_xml_str}]]>"
+
     # 构建SOAP请求体
     soap_body = f"""
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-                       xmlns:web="http://localhost/BOI/">
-       <soapenv:Header/>
-       <soapenv:Body>
-          <web:synInvoke>
-             <web:from>SmartWork@123</web:from>
-             <web:token></web:token>
-             <web:funcName>IF-EQ-02</web:funcName>
-             <web:parameters>{wrapped_data_xml}</web:parameters>
-          </web:synInvoke>
-       </soapenv:Body>
-    </soapenv:Envelope>
-    """
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                           xmlns:web="http://localhost/BOI/">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <web:synInvoke>
+                 <web:from>SmartWork@123</web:from>
+                 <web:token></web:token>
+                 <web:funcName>IF-EQ-02</web:funcName>
+                 <web:parameters><![CDATA[{data_xml_str}]]></web:parameters>
+              </web:synInvoke>
+           </soapenv:Body>
+        </soapenv:Envelope>
+        """
 
     # BES系统的接口地址
     bes_url = 'http://36.250.224.10:8084/SmartWorkESB_KMSC/services/XmlService'
@@ -78,4 +75,4 @@ def send_results_to_bes(task_info):
 
     # 输出响应
     print(response.text)
-send_results_to_bes(task_info)
+send_result_to_bes(result)

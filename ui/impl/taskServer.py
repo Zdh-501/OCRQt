@@ -48,17 +48,24 @@ class taskService(ServiceBase):
         # 如果数据无效，返回错误消息
 
         # 假设任务处理成功
-        return "Task processed successfully"
+        # 这里我们打印接收到的任务信息
+        print("Received task: ", task_info)
+        return '任务已接收'
 
 
 # 创建应用
 application = Application([taskService],
-                          tns='urn:my-company:taskService',
+                          tns='http://115.236.153.174/taskService',
                           in_protocol=Soap11(validator='lxml'),
                           out_protocol=Soap11())
 
 # WSGI应用
 wsgi_app = WsgiApplication(application)
+
+def run_server():
+    from wsgiref.simple_server import make_server
+    server = make_server('0.0.0.0', 8000, wsgi_app)
+    server.serve_forever()
 
 # 在Web服务器上运行服务
 if __name__ == '__main__':

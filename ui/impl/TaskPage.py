@@ -1,10 +1,11 @@
 import sys
-
+import threading
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication
+from PyQt5 import QtCore, QtWidgets
 
 from ui.layout.UI_TaskPage import Ui_TaskPage
-from PyQt5 import QtCore, QtWidgets
+from ui.impl.taskServer import run_server
 
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
@@ -16,6 +17,10 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
     def __init__(self):
         super(TaskPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
+
+        # 启动后台服务的线程
+        self.server_thread = threading.Thread(target=run_server, daemon=True)
+        self.server_thread.start()
 
         # 假设您的按钮叫做 pushButton
         self.confirm_Button.clicked.connect(self.onPushButtonClicked)
