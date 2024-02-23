@@ -104,6 +104,13 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             return
 
         task_identifier = task_identifier_item.text()
+        # 检查状态是否为“已完成”
+        status_item = self.tableWidget.item(row, self.tableWidget.columnCount() - 1)  # 假设状态位于最后一列
+        if status_item and status_item.text() == "已完成":
+            # 如果状态为“已完成”，则只在表中删除该行，不从数据库中删除
+            self.tableWidget.removeRow(row)
+            QMessageBox.information(self, '操作成功', '所选任务已成功删除。')
+            return  # 直接返回，不执行数据库删除操作
         # 弹出确认框
         reply = QMessageBox.question(self, '确认删除', '是否确认删除当前选中的任务？',
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -134,10 +141,21 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
                     connection.close()
 
     def addTask(self, task_data):
-        #todo 从数据库中读取
         # 限制显示的行数为10
-        while self.tableWidget.rowCount() >= 10:
-            self.tableWidget.removeRow(0)  # 删除最旧的一行
+        while self.tableWidget.rowCount() > 10:
+            # 从最旧的一行开始检查（即第一行）
+            for rowIndex in range(self.tableWidget.rowCount()):
+                # 获取每一行的最后一个字段内容
+                # 假设状态是最后一列，使用columnCount() - 1来定位最后一列
+                statusItem = self.tableWidget.item(rowIndex, self.tableWidget.columnCount() - 1)
+                if statusItem and statusItem.text() == "已完成":
+                    # 如果最后一个字段内容为“已完成”，则删除该行
+                    self.tableWidget.removeRow(rowIndex)
+                    break  # 退出循环，因为我们已经找到并删除了一行，需要重新检查行数是否符合要求
+            else:
+                # 如果所有行都被检查过，且没有找到状态为“已完成”的行，则退出循环
+                # 这意味着没有更多状态为“已完成”的行可以删除
+                break
 
         row_position = self.tableWidget.rowCount()
         self.tableWidget.insertRow(row_position)  # 插入新行

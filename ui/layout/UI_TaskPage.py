@@ -67,7 +67,7 @@ class Ui_TaskPage(object):
     def retranslateUi(self, TaskPage):
         _translate = QtCore.QCoreApplication.translate
         TaskPage.setWindowTitle(_translate("TaskPage", "TaskPage"))
-        self.tableWidget.setSortingEnabled(True)
+        #self.tableWidget.setSortingEnabled(True)
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("TaskPage", "生产线"))
         item = self.tableWidget.horizontalHeaderItem(1)
