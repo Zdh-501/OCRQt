@@ -23,7 +23,14 @@ from spyne import Application, rpc, ServiceBase, Integer, Unicode, ComplexModel
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
-
+# 将is_valid_date函数定义在类外部
+def is_valid_date(date_str):
+    """检查日期字符串是否符合YYYY/MM/DD格式，并且是有效的日期。"""
+    try:
+        datetime.strptime(date_str, "%Y/%m/%d")
+        return True
+    except ValueError:
+        return False
 class TaskInfo(ComplexModel):
     # 工单号：字符类型，长度为20，必填
     ORDER_NO = Unicode(max_length=20)
@@ -31,8 +38,8 @@ class TaskInfo(ComplexModel):
     BATCH_NO = Unicode(max_length=20)
     # 产品编码：字符类型，长度为20，必填
     PRODUCT_CODE = Unicode(max_length=20)
-    # 产品名称：字符类型，长度为20，必填
-    PRODUCT_NAME = Unicode(max_length=20)
+    # 产品名称：字符类型，长度为100，必填
+    PRODUCT_NAME = Unicode(max_length=100)
     # 生产线：字符类型，长度为20，必填
     PRODUCTION_LINE = Unicode(max_length=20)
     # 识别任务标识符：字符类型，长度为20，必填，格式为操作名+IPC编号
@@ -58,21 +65,27 @@ class TaskInfo(ComplexModel):
 
 
 class taskService(ServiceBase):
+
     @rpc(TaskInfo, _returns=Unicode)
     def receive_task_info(ctx, task_info):
-        # 在这里处理接收到的任务信息
-        # task_info.ORDER_NO, task_info.BATCH_NO, ...
-
         # 检查数据有效性
-        # 如果数据有效，开始处理任务
-        # 如果数据无效，返回错误消息
+        required_fields = ['ORDER_NO', 'BATCH_NO', 'PRODUCT_CODE', 'PRODUCT_NAME', 'PRODUCTION_LINE', 'TASK_IDENTIFIER',
+                           'TASK_KEY', 'MATERIAL_TYPE', 'IDENTIFY_TYPE', 'IDENTIFY_NUMBER', 'PRODUCTION_DATE',
+                           'EXPIRY_DATE', 'EQUIPMENT_NO', 'IS_PROCESSED']
+        for field in required_fields:
+            if getattr(task_info, field, None) in [None, '']:
+                return f'错误: {field} 是必填项。'
 
-        # 假设任务处理成功
-        # 这里我们打印接收到的任务信息
+        if not is_valid_date(task_info.PRODUCTION_DATE) or not is_valid_date(task_info.EXPIRY_DATE):
+            return '错误: 日期格式不正确，应为YYYY/MM/DD。'
+
+        # 如果数据有效，开始处理任务
         print("Received task: ", task_info)
+        # 这里进行任务处理逻辑
         # 发出信号，传递接收到的任务信息
         mywindow.signals.task_received.emit(task_info)  # 假设 mywindow 是 MainWindow 的实例
-        return '任务已接收'
+        # 任务处理成功
+        return '任务已成功接收'
 
 
 # 创建应用
@@ -166,6 +179,42 @@ class MainWindow(QWidget, Ui_MainPage):
 
         # 调用addTask方法更新tableWidget
         self.task_page.addTask(task_data)
+
+        # 连接数据库
+        connection = dbConnect()
+        cursor = connection.cursor()
+
+        # 构造插入语句
+        insert_query = """INSERT INTO TaskInformation (ORDER_NO, BATCH_NO, PRODUCT_CODE, PRODUCT_NAME, PRODUCTION_LINE, 
+        TASK_IDENTIFIER, TASK_KEY, MATERIAL_TYPE, IDENTIFY_TYPE, IDENTIFY_NUMBER, PRODUCTION_DATE, EXPIRY_DATE, IS_PROCESSED)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        # 准备插入数据
+        insert_data = (
+            task_info.ORDER_NO,
+            task_info.BATCH_NO,
+            task_info.PRODUCT_CODE,
+            task_info.PRODUCT_NAME,
+            task_info.PRODUCTION_LINE,
+            task_info.TASK_IDENTIFIER,
+            task_info.TASK_KEY,
+            task_info.MATERIAL_TYPE,
+            task_info.IDENTIFY_TYPE,
+            task_info.IDENTIFY_NUMBER,
+            task_info.PRODUCTION_DATE,
+            task_info.EXPIRY_DATE,
+            task_info.IS_PROCESSED
+        )
+
+        # 执行插入操作
+        try:
+            cursor.execute(insert_query, insert_data)
+            connection.commit()
+        except Exception as e:
+            print(f"数据库错误: {e}")
+        finally:
+            # 关闭数据库连接
+            cursor.close()
+            connection.close()
     def show_permission_warning(self):
         QMessageBox.warning(self, '权限不足', '您没有执行该操作的权限。')
     def logout_user(self):
@@ -348,8 +397,6 @@ class MainWindow(QWidget, Ui_MainPage):
 
             # 提交更改
             connection.commit()
-
-
 
             # 关闭数据库连接
             connection.close()

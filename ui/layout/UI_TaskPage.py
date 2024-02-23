@@ -81,7 +81,7 @@ class Ui_TaskPage(object):
         item = self.tableWidget.horizontalHeaderItem(5)
         item.setText(_translate("TaskPage", "检测数量"))
         item = self.tableWidget.horizontalHeaderItem(6)
-        item.setText(_translate("TaskPage", "单/双面检测"))
+        item.setText(_translate("TaskPage", "识别类型"))
         item = self.tableWidget.horizontalHeaderItem(7)
         item.setText(_translate("TaskPage", "是否完成"))
         self.select_Button.setText(_translate("TaskPage", "模型选择"))

@@ -1,11 +1,11 @@
 import sys
 import threading
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QTableWidgetItem, QApplication
+from PyQt5.QtWidgets import QTableWidgetItem, QApplication, QMessageBox
 from PyQt5 import QtCore, QtWidgets
 
 from ui.layout.UI_TaskPage import Ui_TaskPage
-
+from SQL.dbFunction import *
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
     #定义信号，用于传递检测数量和单双面检测
@@ -17,12 +17,8 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         super(TaskPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
 
-
-
-        # 假设您的按钮叫做 pushButton
         self.confirm_Button.clicked.connect(self.onPushButtonClicked)
-
-
+        self.delete_Button.clicked.connect(self.onDeleteButtonClicked)
 
         # 设置选中行为为整行选中
         self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -47,7 +43,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         tasks = [
             { "批号": "CY32404", "物料类型": "中盒","产品名称": "复方酮康唑发用洗剂15+0.25毫克5毫升成品（缅甸）","任务标识符": "包盒IPC 抽查[1.2]","生产线": "支装一线","检测数量": 5 ,"识别类型": "双面","是否完成": "未完成"},
             {"批号": "CY32405", "物料类型": "内包材","产品名称": "复方酮康唑软膏 10+0.5 毫克 5g 成品（缅甸）","任务标识符": "包盒IPC 抽查[1.3]","生产线": "支装一线","检测数量": 10, "识别类型": "单面","是否完成": "未完成"},
-            { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "包盒IPC 抽查[1.4]","生产线": "支装一线","检测数量": 7, "识别类型": "单面","是否完成": "已完成"},
+            { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "T123456789","生产线": "支装一线","检测数量": 7, "识别类型": "单面","是否完成": "已完成"},
             # 更多任务字典
         ]
         for task in tasks:
@@ -56,10 +52,20 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
     def select_button(self):
         return self.select_Button
     def onPushButtonClicked(self):
+
         # 获取表格中选中行的“检测数量”
         selected_indexes = self.tableWidget.selectionModel().selectedRows()
         if selected_indexes:
-            # 获取所有列的内容
+            # 假设最后一列（“是否完成”字段）的列索引，这里需要您根据实际列数修改
+            last_column_index = self.tableWidget.columnCount() - 1
+            # 获取选中行的最后一列的项
+            completion_status_item = self.tableWidget.item(selected_indexes[0].row(), last_column_index)
+            # 检查是否完成字段的值
+            if completion_status_item and completion_status_item.text() == "已完成":
+                # 如果任务已完成，弹出提示
+                QMessageBox.information(self, "任务状态", "当前选中的任务已完成，请选中其他任务")
+                return  # 退出函数，不继续执行后面的代码
+           # 获取所有列的内容
             row_data = {}
             for column in range(self.tableWidget.columnCount()-1):
                 item = self.tableWidget.item(selected_indexes[0].row(), column)
@@ -71,7 +77,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             # 此处需要修改 假设“检测数量”是第6列，索引从0开始
             detection_count_index = selected_indexes[0].sibling(selected_indexes[0].row(), 5)
             detection_count = int(self.tableWidget.itemFromIndex(detection_count_index).text())
-            # 假设“单双面检测”字段是第7列，索引从0开始，即列索引为6
+            # 假设“识别类型”字段是第7列，索引从0开始，即列索引为6
             detection_type_index = selected_indexes[0].sibling(selected_indexes[0].row(), 6)
             detection_type = self.tableWidget.itemFromIndex(detection_type_index).text()
             # 发射带有两个参数的信号
@@ -80,6 +86,53 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
             # 发射信号以通知 MainWindow 切换到第二页
             self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
+
+    def onDeleteButtonClicked(self):
+        # 获取当前选中的行
+        selected_indexes = self.tableWidget.selectionModel().selectedRows()
+        if not selected_indexes:
+            QMessageBox.warning(self, '选择错误', '请先选择要删除的任务。')
+            return
+
+        # 确定选中的行号
+        row = selected_indexes[0].row()
+
+        # 从表中获取任务标识符
+        task_identifier_item = self.tableWidget.item(row, 1)
+        if task_identifier_item is None:
+            QMessageBox.warning(self, '选择错误', '无法找到任务标识符。')
+            return
+
+        task_identifier = task_identifier_item.text()
+        # 弹出确认框
+        reply = QMessageBox.question(self, '确认删除', '是否确认删除当前选中的任务？',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        # 如果用户选择“Yes”，则执行删除操作
+        if reply == QMessageBox.Yes:
+            connection = None
+            # 从数据库中删除任务
+            try:
+                connection = dbConnect()
+                cursor = connection.cursor()
+
+                delete_query = "DELETE FROM TaskInformation WHERE TASK_IDENTIFIER = ?"
+                cursor.execute(delete_query, (task_identifier,))
+
+                connection.commit()
+                # 删除成功后，关闭游标和连接
+                cursor.close()
+                # 从表中删除选中的行
+                self.tableWidget.removeRow(row)
+
+                QMessageBox.information(self, '操作成功', '所选任务已成功删除。')
+
+            except Exception as e:
+                QMessageBox.warning(self, '数据库错误', f'无法删除任务。错误信息：{e}')
+            finally:
+                if connection is not None:
+                    connection.close()
+
     def addTask(self, task_data):
         #todo 从数据库中读取
         # 限制显示的行数为10

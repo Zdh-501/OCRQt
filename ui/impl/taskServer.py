@@ -2,8 +2,15 @@ from spyne import Application, rpc, ServiceBase, \
     Integer, Unicode, Array, ComplexModel
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-
-
+from datetime import datetime
+# 将is_valid_date函数定义在类外部
+def is_valid_date(date_str):
+    """检查日期字符串是否符合YYYY/MM/DD格式，并且是有效的日期。"""
+    try:
+        datetime.strptime(date_str, "%Y/%m/%d")
+        return True
+    except ValueError:
+        return False
 class TaskInfo(ComplexModel):
     # 工单号：字符类型，长度为20，必填
     ORDER_NO = Unicode(max_length=20)
@@ -40,17 +47,20 @@ class TaskInfo(ComplexModel):
 class taskService(ServiceBase):
     @rpc(TaskInfo, _returns=Unicode)
     def receive_task_info(ctx, task_info):
-        # 在这里处理接收到的任务信息
-        # task_info.ORDER_NO, task_info.BATCH_NO, ...
-
         # 检查数据有效性
-        # 如果数据有效，开始处理任务
-        # 如果数据无效，返回错误消息
+        required_fields = ['ORDER_NO', 'BATCH_NO', 'PRODUCT_CODE', 'PRODUCT_NAME', 'PRODUCTION_LINE', 'TASK_IDENTIFIER', 'TASK_KEY', 'MATERIAL_TYPE', 'IDENTIFY_TYPE', 'IDENTIFY_NUMBER', 'PRODUCTION_DATE', 'EXPIRY_DATE', 'EQUIPMENT_NO', 'IS_PROCESSED']
+        for field in required_fields:
+            if getattr(task_info, field, None) in [None, '']:
+                return f'错误: {field} 是必填项。'
 
-        # 假设任务处理成功
-        # 这里我们打印接收到的任务信息
+        if not is_valid_date(task_info.PRODUCTION_DATE) or not is_valid_date(task_info.EXPIRY_DATE):
+            return '错误: 日期格式不正确，应为YYYY/MM/DD。'
+
+        # 如果数据有效，开始处理任务
         print("Received task: ", task_info)
-        return '任务已接收'
+        # 这里进行任务处理逻辑
+        # 假设任务处理成功
+        return '任务已成功接收'
 
 
 # 创建应用
