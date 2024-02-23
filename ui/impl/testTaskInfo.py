@@ -26,11 +26,11 @@ class TaskInfo:
 
 # 自定义任务数据
 task_info = TaskInfo(
-    order_no='O123456789',
+    order_no='O00001',
     batch_no='B123456789',
     product_code='P123456789',
     product_name='Product XYZ',
-    production_line='Line 1',
+    production_line='Line 9',
     task_identifier='T123456789',
     task_key=123,
     material_type=10,
@@ -69,7 +69,7 @@ def send_task_info(task_info):
     </soapenv:Envelope>"""
 
     # 服务接口URL，应该匹配您服务的实际地址和端口
-    service_url = 'http://192.168.31.199:8000/soap'
+    service_url = 'http://192.168.3.45:8000/soap'
 
     # 设置请求头
     headers = {

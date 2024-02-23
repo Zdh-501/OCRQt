@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import QTableWidgetItem, QApplication
 from PyQt5 import QtCore, QtWidgets
 
 from ui.layout.UI_TaskPage import Ui_TaskPage
-from ui.impl.taskServer import run_server
 
 class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
 
@@ -18,9 +17,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         super(TaskPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
 
-        # 启动后台服务的线程
-        self.server_thread = threading.Thread(target=run_server, daemon=True)
-        self.server_thread.start()
+
 
         # 假设您的按钮叫做 pushButton
         self.confirm_Button.clicked.connect(self.onPushButtonClicked)
@@ -44,13 +41,13 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             "任务标识符": "包盒IPC 抽查[1.1]",
             "生产线": "支装一线",
             "检测数量": 8,
-            "单/双面检测": "单面",
+            "识别类型": "单面",
             "是否完成": "未完成"
         })
         tasks = [
-            { "批号": "CY32404", "物料类型": "中盒","产品名称": "复方酮康唑发用洗剂15+0.25毫克5毫升成品（缅甸）","任务标识符": "包盒IPC 抽查[1.2]","生产线": "支装一线","检测数量": 5 ,"单/双面检测": "双面","是否完成": "未完成"},
-            {"批号": "CY32405", "物料类型": "内包材","产品名称": "复方酮康唑软膏 10+0.5 毫克 5g 成品（缅甸）","任务标识符": "包盒IPC 抽查[1.3]","生产线": "支装一线","检测数量": 10, "单/双面检测": "单面","是否完成": "未完成"},
-            { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "包盒IPC 抽查[1.4]","生产线": "支装一线","检测数量": 7, "单/双面检测": "单面","是否完成": "已完成"},
+            { "批号": "CY32404", "物料类型": "中盒","产品名称": "复方酮康唑发用洗剂15+0.25毫克5毫升成品（缅甸）","任务标识符": "包盒IPC 抽查[1.2]","生产线": "支装一线","检测数量": 5 ,"识别类型": "双面","是否完成": "未完成"},
+            {"批号": "CY32405", "物料类型": "内包材","产品名称": "复方酮康唑软膏 10+0.5 毫克 5g 成品（缅甸）","任务标识符": "包盒IPC 抽查[1.3]","生产线": "支装一线","检测数量": 10, "识别类型": "单面","是否完成": "未完成"},
+            { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "包盒IPC 抽查[1.4]","生产线": "支装一线","检测数量": 7, "识别类型": "单面","是否完成": "已完成"},
             # 更多任务字典
         ]
         for task in tasks:
@@ -95,7 +92,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 设置行高
         self.tableWidget.setRowHeight(row_position, 100)  # 示例行高为100
         # 根据字段顺序添加数据到表格中
-        col_order = ['生产线', '任务标识符', '产品名称', '批号', '物料类型', '检测数量', '单/双面检测','是否完成']
+        col_order = ['生产线', '任务标识符', '产品名称', '批号', '物料类型', '检测数量', '识别类型','是否完成']
         for col, field in enumerate(col_order):
             if field == '检测数量':
                 # 对于数值字段，使用数值进行设置
