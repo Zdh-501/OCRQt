@@ -46,7 +46,7 @@ task_info = TaskInfo(
 
 def send_task_info(task_info):
     # 构造XML数据，确保命名空间与服务端设置的tns一致
-    tns = 'http://115.236.153.174/taskService'
+    tns = 'taskService'
     data_xml = ET.Element(f'{{{tns}}}receive_task_info')
     task_info_element = ET.SubElement(data_xml, f'{{{tns}}}task_info')
 
@@ -69,7 +69,7 @@ def send_task_info(task_info):
     </soapenv:Envelope>"""
 
     # 服务接口URL，应该匹配您服务的实际地址和端口
-    service_url = 'http://192.168.31.199:8000/soap'
+    service_url = 'http://192.168.3.45:8000/soap'
 
     # 设置请求头
     headers = {

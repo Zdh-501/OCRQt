@@ -90,7 +90,7 @@ class taskService(ServiceBase):
 
 # 创建应用
 application = Application([taskService],
-                          tns='http://115.236.153.174/taskService',
+                          tns='taskService',
                           in_protocol=Soap11(validator='lxml'),
                           out_protocol=Soap11())
 
