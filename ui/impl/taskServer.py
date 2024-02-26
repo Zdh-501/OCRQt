@@ -33,9 +33,9 @@ class TaskInfo(ComplexModel):
     # 识别总数：整型，必填
     IDENTIFY_NUMBER = Integer
     # 生产日期：字符类型，必填，格式为YYYY/MM/DD
-    PRODUCTION_DATE = Unicode(pattern='[0-9]{4}/[0-9]{2}/[0-9]{2}')
+    PRODUCTION_DATE = Unicode(max_length=20)
     # 有效期至：字符类型，必填，格式为YYYY/MM/DD
-    EXPIRY_DATE = Unicode(pattern='[0-9]{4}/[0-9]{2}/[0-9]{2}')
+    EXPIRY_DATE = Unicode(max_length=20)
     # 识别设备标识符：字符类型，长度为20，必填
     EQUIPMENT_NO = Unicode(max_length=20)
     # 是否已处理：整型，必填，可能的值为1（处理成功）、2（处理失败）

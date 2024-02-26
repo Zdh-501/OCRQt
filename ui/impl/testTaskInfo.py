@@ -36,7 +36,7 @@ task_info = TaskInfo(
     material_type=10,
     identify_type=20,
     identify_number=10,
-    production_date=datetime.now().strftime('%Y/%m/%d'),
+    production_date=datetime.now().strftime('%m/%d/%Y'),
     expiry_date=(datetime.now() + timedelta(days=365)).strftime('%Y/%m/%d'),
     equipment_no='E123456789',
     is_processed=1,
@@ -68,7 +68,7 @@ def send_task_info(task_info):
        </soapenv:Body>
     </soapenv:Envelope>"""
 
-    # 服务接口URL，应该匹配您服务的实际地址和端口
+    # 服务接口URL
     service_url = 'http://192.168.3.45:8000/soap'
 
     # 设置请求头
