@@ -6,7 +6,7 @@ from datetime import datetime , timedelta
 class TaskInfo:
     def __init__(self, order_no, batch_no, product_code, product_name, production_line, task_identifier, task_key,
                  material_type, identify_type, identify_number, production_date, expiry_date, equipment_no,
-                 is_processed, error_msg):
+                 ):
         self.ORDER_NO = order_no
         self.BATCH_NO = batch_no
         self.PRODUCT_CODE = product_code
@@ -20,8 +20,7 @@ class TaskInfo:
         self.PRODUCTION_DATE = production_date
         self.EXPIRY_DATE = expiry_date
         self.EQUIPMENT_NO = equipment_no
-        self.IS_PROCESSED = is_processed
-        self.ERROR_MSG = error_msg
+
 
 
 # 自定义任务数据
@@ -36,11 +35,9 @@ task_info = TaskInfo(
     material_type=10,
     identify_type=20,
     identify_number=10,
-    production_date=datetime.now().strftime('%m/%d/%Y'),
+    production_date=datetime.now().strftime('%Y/%m/%d'),
     expiry_date=(datetime.now() + timedelta(days=365)).strftime('%Y/%m/%d'),
     equipment_no='E123456789',
-    is_processed=1,
-    error_msg=''
 )
 
 

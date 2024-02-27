@@ -58,10 +58,10 @@ class TaskInfo(ComplexModel):
     EXPIRY_DATE = Unicode(max_length=20)
     # 识别设备标识符：字符类型，长度为20，必填
     EQUIPMENT_NO = Unicode(max_length=20)
-    # 是否已处理：整型，必填，可能的值为1（处理成功）、2（处理失败）
-    IS_PROCESSED = Integer
+    # 是否已处理：整型，非必填，可能的值为1（处理成功）、2（处理失败）
+    #IS_PROCESSED = Integer(nillable=True)
     # 错误消息反馈：字符类型，长度为512，非必填（可为空）
-    ERROR_MSG = Unicode(max_length=512, nillable=True)
+    #ERROR_MSG = Unicode(max_length=512, nillable=True)
 
 
 class taskService(ServiceBase):
@@ -71,7 +71,7 @@ class taskService(ServiceBase):
         # 检查数据有效性
         required_fields = ['ORDER_NO', 'BATCH_NO', 'PRODUCT_CODE', 'PRODUCT_NAME', 'PRODUCTION_LINE', 'TASK_IDENTIFIER',
                            'TASK_KEY', 'MATERIAL_TYPE', 'IDENTIFY_TYPE', 'IDENTIFY_NUMBER', 'PRODUCTION_DATE',
-                           'EXPIRY_DATE', 'EQUIPMENT_NO', 'IS_PROCESSED']
+                           'EXPIRY_DATE', 'EQUIPMENT_NO']
         for field in required_fields:
             if getattr(task_info, field, None) in [None, '']:
                 return f'错误: {field} 是必填项。'
