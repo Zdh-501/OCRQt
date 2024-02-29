@@ -19,9 +19,11 @@ from ui.impl.LoginDialog import LoginDialog
 from SQL.dbFunction import *
 
 
-from spyne import Application, rpc, ServiceBase, Integer, Unicode, ComplexModel
+from spyne import Application, rpc, ServiceBase, Integer, Unicode, String
+from spyne.model.complex import ComplexModel
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
+from datetime import datetime
 
 # 将is_valid_date函数定义在类外部
 def is_valid_date(date_str):
@@ -63,21 +65,25 @@ class TaskInfo(ComplexModel):
     # 错误消息反馈：字符类型，长度为512，非必填（可为空）
     #ERROR_MSG = Unicode(max_length=512, nillable=True)
 
-
+class TaskInfoResponse(ComplexModel):
+    receive_task_infoFlag = Integer(doc="成功为0，失败为1")
+    message = String
 class taskService(ServiceBase):
 
-    @rpc(TaskInfo, _returns=Unicode)
+    @rpc(TaskInfo, _returns=TaskInfoResponse)  # Corrected the return type here
     def receive_task_info(ctx, task_info):
+        # Initial response setup
+        response = TaskInfoResponse(receive_task_infoFlag=1, message='Initial error')
         # 检查数据有效性
         required_fields = ['ORDER_NO', 'BATCH_NO', 'PRODUCT_CODE', 'PRODUCT_NAME', 'PRODUCTION_LINE', 'TASK_IDENTIFIER',
                            'TASK_KEY', 'MATERIAL_TYPE', 'IDENTIFY_TYPE', 'IDENTIFY_NUMBER', 'PRODUCTION_DATE',
                            'EXPIRY_DATE', 'EQUIPMENT_NO']
         for field in required_fields:
             if getattr(task_info, field, None) in [None, '']:
-                return f'错误: {field} 是必填项。'
+                return TaskInfoResponse(receive_task_infoFlag=1, message=f'错误: {field} 是必填项。')
 
         if not is_valid_date(task_info.PRODUCTION_DATE) or not is_valid_date(task_info.EXPIRY_DATE):
-            return '错误: 日期格式不正确，应为YYYY/MM/DD。'
+            return TaskInfoResponse(receive_task_infoFlag=1, message='错误: 日期格式不正确，应为YYYY/MM/DD。')
 
         # 如果数据有效，开始处理任务
         print("Received task: ", task_info)
@@ -85,7 +91,9 @@ class taskService(ServiceBase):
         # 发出信号，传递接收到的任务信息
         mywindow.signals.task_received.emit(task_info)  # 假设 mywindow 是 MainWindow 的实例
         # 任务处理成功
-        return '任务已成功接收'
+        response.receive_task_infoFlag = 0  # 成功标识
+        response.message = '任务已成功接收'
+        return response
 
 
 # 创建应用
