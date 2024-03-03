@@ -19,6 +19,7 @@ from ui.impl.TaskDialog import TaskDialog
 from ui.impl.myThread import *
 from SQL.dbFunction import *
 
+from ui.impl.resClient import *
 
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     #定义一个任务完成信号
@@ -201,7 +202,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         exposure_value = float(exposure_value)  # 将字符串转换为浮点数
         # 设置相机曝光值
         mphdc.SetPhotometricExposureIntensityMain(self.camera, exposure_value)
-        print('曝光',exposure_value)
+        #print('曝光',exposure_value)
 
 
         # 获取检测参数unclip_ratio的值
@@ -219,6 +220,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 填充数据
         for row, (key, value) in enumerate(item_details.items()):
+            if key=="任务标识符":
+                self.task_identifier=value
+                #print(self.task_identifier)
             self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(key))
             self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(value))
 
@@ -517,10 +521,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
 
         # 当前任务的索引
-        task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
+        self.task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
         # 标记当前任务为完成
-        if task_index <= len(self.task_completion_status):
-            self.task_completion_status[task_index - 1] = True
+        if self.task_index <= len(self.task_completion_status):
+            self.task_completion_status[self.task_index - 1] = True
         #  添加逻辑判断当前整体任务是否完成
         if self.task_completion_status[self.count - 1] == True:
             self.isComplete = True
@@ -550,7 +554,45 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not self.camera_worker.isRunning():
             self.camera_worker.start()
 
-        # todo 处理OCR结果,上传系统并保存在本地数据库
+        # todo 处理OCR结果,上传系统并保存在本地数据库 待测试
+        # 连接数据库
+        connection = dbConnect()
+        cursor = connection.cursor()
+
+        # 构造查询语句
+        # 假设 self.task_identifier 已经定义并且包含了要查询的任务标识符的值
+        query = """SELECT ORDER_NO, TASK_IDENTIFIER, TASK_KEY, PRODUCTION_DATE, EXPIRY_DATE
+                   FROM TaskInformation
+                   WHERE TASK_IDENTIFIER = ?"""
+        try:
+            # 执行查询操作
+            cursor.execute(query, (self.task_identifier,))
+            # 获取查询结果的第一条记录
+            result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
+            # 检查是否找到了结果
+            if result:
+                # 将查询结果存储在类的属性中
+                self.order_no, self.task_identifier, self.task_key, self.production_date, self.expiry_date = result
+                result = Result(
+                    task_identifier=self.task_identifier,
+                    task_key=self.task_key,
+                    sequence=self.task_index,
+                    order_no=self.order_no,
+                    production_date=self.production_date,
+                    expiry_date=self.expiry_date,
+                    image=self.captured_images,
+                    cwid=self.user_cwid,
+                    operation_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                )
+                send_result_to_bes(result)
+            else:
+                print("没有找到匹配的任务信息。")
+        except Exception as e:
+            print(f"数据库错误: {e}")
+        finally:
+            # 关闭数据库连接
+            cursor.close()
+            connection.close()
 
         # 更新 self.textBrowser_4
         self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
@@ -565,6 +607,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
         self.captured_images.clear()  # 清空存储的图像列表
+
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
@@ -637,12 +680,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
     def take_photo_and_skip(self):
         # 当前任务的索引
-        task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
+        self.task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
         # 计算上一个任务的索引
         prev_task_index = (self.current_label_index // 2 - 1) if self.detection_type == "双面" else (
                 self.current_label_index - 1)
         print(prev_task_index)
-        print(task_index)
+        print(self.task_index)
         print('检测前', self.task_completion_status)
 
         # 检查上一个任务是否已完成

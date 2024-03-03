@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 
 # 假设这是BES系统期望的任务信息结构
 class Result:
-    def __init__(self, task_identifier, task_key, identify_number, order_no, production_date, expiry_date, image, cwid, operation_time):
+    def __init__(self, task_identifier, task_key, sequence, order_no, production_date, expiry_date, image, cwid, operation_time):
         self.TASK_IDENTIFIER = task_identifier
         self.TASK_KEY = task_key
-        self.IDENTIFY_NUMBER = identify_number
+        self.SEQUENCE = sequence
         self.ORDER_NO = order_no
         self.PRODUCTION_DATE = production_date
         self.EXPIRY_DATE = expiry_date
@@ -19,7 +19,7 @@ class Result:
 result = Result(
     task_identifier='T12345',
     task_key=1,
-    identify_number=100,
+    sequence=100,
     order_no='O12345',
     production_date=datetime.now().strftime('%Y-%m-%d'),
     expiry_date=(datetime.now() + timedelta(days=365)).strftime('%Y-%m-%d'),
@@ -33,7 +33,7 @@ def send_result_to_bes(result):
     data_xml = ET.Element('DATA')
     ET.SubElement(data_xml, 'TASK_IDENTIFIER').text = str(result.TASK_IDENTIFIER)
     ET.SubElement(data_xml, 'TASK_KEY').text = str(result.TASK_KEY)
-    ET.SubElement(data_xml, 'SEQUENCE').text = str(result.IDENTIFY_NUMBER)
+    ET.SubElement(data_xml, 'SEQUENCE').text = str(result.SEQUENCE)
     ET.SubElement(data_xml, 'ORDER_NO').text = result.ORDER_NO
     ET.SubElement(data_xml, 'PRODUCTION_DATE').text = result.PRODUCTION_DATE
     ET.SubElement(data_xml, 'EXPIRY_DATE').text = result.EXPIRY_DATE
