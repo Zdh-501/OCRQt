@@ -364,7 +364,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 print("错误信息已记录到数据库")
             except pyodbc.Error as e:
-                print("数据库错误: ", e)
+                print("数据库错误1: ", e)
             finally:
                 # 确保无论如何都关闭数据库连接
                 if connection:
@@ -401,7 +401,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                         print("错误信息已记录到数据库")
                     except pyodbc.Error as e:
-                        print("数据库错误: ", e)
+                        print("数据库错误2: ", e)
                     finally:
                         # 确保无论如何都关闭数据库连接
                         if connection:
@@ -451,7 +451,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 print("错误信息已记录到数据库")
             except pyodbc.Error as e:
-                print("数据库错误: ", e)
+                print("数据库错误3: ", e)
             finally:
                 # 确保无论如何都关闭数据库连接
                 if connection:
@@ -565,14 +565,18 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                    FROM TaskInformation
                    WHERE TASK_IDENTIFIER = ?"""
         try:
+            print("查询的任务标识符", self.task_identifier)
+            print("查询的任务标识符类型:", type(self.task_identifier))
             # 执行查询操作
             cursor.execute(query, (self.task_identifier,))
             # 获取查询结果的第一条记录
             result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
+            print(result)
             # 检查是否找到了结果
             if result:
                 # 将查询结果存储在类的属性中
                 self.order_no, self.task_identifier, self.task_key, self.production_date, self.expiry_date = result
+                images_str = ','.join(map(str, self.captured_images))
                 result = Result(
                     task_identifier=self.task_identifier,
                     task_key=self.task_key,
@@ -580,7 +584,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     order_no=self.order_no,
                     production_date=self.production_date,
                     expiry_date=self.expiry_date,
-                    image=self.captured_images,
+                    image=images_str,
                     cwid=self.user_cwid,
                     operation_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 )
@@ -588,7 +592,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             else:
                 print("没有找到匹配的任务信息。")
         except Exception as e:
-            print(f"数据库错误: {e}")
+            print(f"数据库错误类型: {type(e)}, 错误信息: {e}")
         finally:
             # 关闭数据库连接
             cursor.close()
@@ -712,7 +716,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 print("错误信息已记录到数据库")
             except pyodbc.Error as e:
-                print("数据库错误: ", e)
+                print("数据库错误5: ", e)
             finally:
                 # 确保无论如何都关闭数据库连接
                 if connection:

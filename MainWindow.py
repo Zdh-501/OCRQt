@@ -210,7 +210,7 @@ class MainWindow(QWidget, Ui_MainPage):
             task_info.IDENTIFY_NUMBER,
             task_info.PRODUCTION_DATE,
             task_info.EXPIRY_DATE,
-            task_info.IS_PROCESSED
+            "1" #1为已接受，但未处理
         )
 
         # 执行插入操作
