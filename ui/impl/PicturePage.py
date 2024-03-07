@@ -551,6 +551,20 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if not self.camera_worker.isRunning():
             self.camera_worker.start()
 
+        # 更新 self.textBrowser_4
+        self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
+        # 显示批号
+        for batch_number in batch_numbers:
+            self.textBrowser_4.append(f"批号: {batch_number}")
+        # 根据日期数量显示不同的文本
+        if len(dates) == 1:
+            self.textBrowser_4.append(f"日期: {dates[0]}")
+        elif len(dates) == 2:
+            self.textBrowser_4.append(f"生产日期: {dates[0]}")
+            self.textBrowser_4.append(f"有效期至: {dates[1]}")
+
+        self.captured_images.clear()  # 清空存储的图像列表
+
         # todo 处理OCR结果,上传系统并保存在本地数据库 待测试
         # 连接数据库
         connection = dbConnect()
@@ -558,7 +572,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 构造查询语句
         # 假设 self.task_identifier 已经定义并且包含了要查询的任务标识符的值
-        query = """SELECT ORDER_NO, BATCH_NO, TASK_IDENTIFIER, TASK_KEY, PRODUCTION_DATE, EXPIRY_DATE
+        query = """SELECT ORDER_NO, TASK_IDENTIFIER, TASK_KEY
                    FROM TaskInformation
                    WHERE  TASK_KEY = ?"""
         try:
@@ -569,8 +583,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 检查是否找到了结果
             if result:
                 # 将查询结果存储在类的属性中
-                self.order_no, self.batch_no, self.task_identifier, self.task_key, self.production_date, self.expiry_date = result
+                self.order_no, self.task_identifier, self.task_key = result
                 self.operation_time= datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                self.batch_no= batch_numbers
+                self.production_date = dates[0]
+                self.expiry_date = dates[1]
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
                 for image_np in self.captured_images:
@@ -604,20 +621,47 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 关闭数据库连接
             cursor.close()
             connection.close()
+        # 连接数据库
+        connection = dbConnect()
+        cursor = connection.cursor()
 
-        # 更新 self.textBrowser_4
-        self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
-        # 显示批号
-        for batch_number in batch_numbers:
-            self.textBrowser_4.append(f"批号: {batch_number}")
-        # 根据日期数量显示不同的文本
-        if len(dates) == 1:
-            self.textBrowser_4.append(f"日期: {dates[0]}")
-        elif len(dates) == 2:
-            self.textBrowser_4.append(f"生产日期: {dates[0]}")
-            self.textBrowser_4.append(f"有效期至: {dates[1]}")
+        # 将结果存入结果数据表
+        try:
+            # 先执行之前的查询操作，然后...
 
-        self.captured_images.clear()  # 清空存储的图像列表
+            # 插入数据到 ResultTable
+            insert_query = """
+            INSERT INTO ResultTable (TASK_IDENTIFIER, BATCH_NO, SEQUENCE, ORDER_NO, PRODUCTION_DATE, EXPIRY_DATE, IMAGE, CWID, OPERATIONTIME)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            # 准备要插入的数据
+            data_to_insert = (
+                self.task_identifier,
+                self.batch_no,
+                self.task_index,
+                self.order_no,
+                self.production_date,
+                self.expiry_date,
+                self.images_str,
+                self.user_cwid,
+                self.operation_time
+            )
+
+            # 执行插入操作
+            cursor.execute(insert_query, data_to_insert)
+
+            # 提交事务
+            connection.commit()
+            print("结果信息成功上传到ResultTable中。")
+
+        except Exception as e:
+            print(f"插入数据时发生错误: {type(e)}, 错误信息: {e}")
+
+        finally:
+            # 无论成功还是失败，都要关闭数据库连接
+            cursor.close()
+            connection.close()
+
 
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}

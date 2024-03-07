@@ -56,8 +56,8 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 获取表格中选中行的“检测数量”
         selected_indexes = self.tableWidget.selectionModel().selectedRows()
         if selected_indexes:
-            # 假设最后一列（“是否完成”字段）的列索引，这里需要您根据实际列数修改
-            last_column_index = self.tableWidget.columnCount() - 1
+            # 假设倒数第二列的列索引，这里需要您根据实际列数修改
+            last_column_index = self.tableWidget.columnCount() - 2
             # 获取选中行的最后一列的项
             completion_status_item = self.tableWidget.item(selected_indexes[0].row(), last_column_index)
             # 检查是否完成字段的值
@@ -67,25 +67,30 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
                 return  # 退出函数，不继续执行后面的代码
            # 获取所有列的内容
             row_data = {}
-            for column in range(self.tableWidget.columnCount()-1):
+            for column in range(self.tableWidget.columnCount()-2):
                 item = self.tableWidget.item(selected_indexes[0].row(), column)
                 header = self.tableWidget.horizontalHeaderItem(column).text()  # 获取表头文本
                 row_data[header] = item.text() if item else ""
 
-            # 发射包含所有信息的信号
-            self.itemDetailsChanged.emit(row_data)
+
             # 此处需要修改 假设“检测数量”是第6列，索引从0开始
             detection_count_index = selected_indexes[0].sibling(selected_indexes[0].row(), 5)
             detection_count = int(self.tableWidget.itemFromIndex(detection_count_index).text())
             # 假设“识别类型”字段是第7列，索引从0开始，即列索引为6
             detection_type_index = selected_indexes[0].sibling(selected_indexes[0].row(), 6)
             detection_type = self.tableWidget.itemFromIndex(detection_type_index).text()
+            print("test",row_data)
+            print("test",detection_count, detection_type)
+            # 发射信号以通知 MainWindow 切换到第二页
+            self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
+
+            # 发射包含所有信息的信号
+            self.itemDetailsChanged.emit(row_data)
             # 发射带有两个参数的信号
             self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
 
 
-            # 发射信号以通知 MainWindow 切换到第二页
-            self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
+
 
     def onDeleteButtonClicked(self):
         # 获取当前选中的行
@@ -97,7 +102,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 确定选中的行号
         row = selected_indexes[0].row()
 
-        # 从表中获取任务标识符
+        # 从表中获取任务Key值
         task_key = self.tableWidget.item(row, 8)
         if task_key is None:
             QMessageBox.warning(self, '选择错误', '无法找到任务Key值。')
