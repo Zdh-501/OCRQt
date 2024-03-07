@@ -572,7 +572,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 构造查询语句
         # 假设 self.task_identifier 已经定义并且包含了要查询的任务标识符的值
-        query = """SELECT ORDER_NO, TASK_IDENTIFIER, TASK_KEY
+        query = """SELECT ORDER_NO, TASK_IDENTIFIER
                    FROM TaskInformation
                    WHERE  TASK_KEY = ?"""
         try:
@@ -583,9 +583,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 检查是否找到了结果
             if result:
                 # 将查询结果存储在类的属性中
-                self.order_no, self.task_identifier, self.task_key = result
+                self.order_no, self.task_identifier = result
                 self.operation_time= datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                self.batch_no= batch_numbers
+                self.batch_no= batch_numbers[0]
                 self.production_date = dates[0]
                 self.expiry_date = dates[1]
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
@@ -621,6 +621,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 关闭数据库连接
             cursor.close()
             connection.close()
+
         # 连接数据库
         connection = dbConnect()
         cursor = connection.cursor()
@@ -646,7 +647,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.user_cwid,
                 self.operation_time
             )
-
+            print(data_to_insert)
             # 执行插入操作
             cursor.execute(insert_query, data_to_insert)
 
