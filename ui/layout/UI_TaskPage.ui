@@ -54,12 +54,17 @@
      </column>
      <column>
       <property name="text">
-       <string>单/双面检测</string>
+       <string>识别类型</string>
       </property>
      </column>
      <column>
       <property name="text">
        <string>是否完成</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>任务Key值</string>
       </property>
      </column>
     </widget>

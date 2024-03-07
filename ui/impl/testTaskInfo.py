@@ -25,8 +25,8 @@ class TaskInfo:
 
 # 自定义任务数据
 task_info = TaskInfo(
-    order_no='O00001',
-    batch_no='CY32404',
+    order_no='O00002',
+    batch_no='CY32405',
     product_code='P123456789',
     product_name='复方酮康唑发用洗剂15+0.25毫克50毫升成品（Rx）',
     production_line='Line 9',

@@ -30,24 +30,24 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
         #添加数据
-        self.addTask({
-            "批号": "CY32403",
-            "物料类型": "小盒",
-            "产品名称": "复方酮康唑发用洗剂15+0.25毫克50毫升成品（Rx）",
-            "任务标识符": "包盒IPC 抽查[1.1]",
-            "生产线": "支装一线",
-            "检测数量": 8,
-            "识别类型": "单面",
-            "是否完成": "未完成"
-        })
-        tasks = [
-            { "批号": "CY32404", "物料类型": "中盒","产品名称": "复方酮康唑发用洗剂15+0.25毫克5毫升成品（缅甸）","任务标识符": "包盒IPC 抽查[1.2]","生产线": "支装一线","检测数量": 5 ,"识别类型": "双面","是否完成": "未完成"},
-            {"批号": "CY32405", "物料类型": "内包材","产品名称": "复方酮康唑软膏 10+0.5 毫克 5g 成品（缅甸）","任务标识符": "包盒IPC 抽查[1.3]","生产线": "支装一线","检测数量": 10, "识别类型": "单面","是否完成": "未完成"},
-            { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "T123456789","生产线": "支装一线","检测数量": 7, "识别类型": "单面","是否完成": "已完成"},
-            # 更多任务字典
-        ]
-        for task in tasks:
-            self.addTask(task)
+        # self.addTask({
+        #     "批号": "CY32403",
+        #     "物料类型": "小盒",
+        #     "产品名称": "复方酮康唑发用洗剂15+0.25毫克50毫升成品（Rx）",
+        #     "任务标识符": "包盒IPC 抽查[1.1]",
+        #     "生产线": "支装一线",
+        #     "检测数量": 8,
+        #     "识别类型": "单面",
+        #     "是否完成": "未完成"
+        # })
+        # tasks = [
+        #     { "批号": "CY32404", "物料类型": "中盒","产品名称": "复方酮康唑发用洗剂15+0.25毫克5毫升成品（缅甸）","任务标识符": "包盒IPC 抽查[1.2]","生产线": "支装一线","检测数量": 5 ,"识别类型": "双面","是否完成": "未完成"},
+        #     {"批号": "CY32405", "物料类型": "内包材","产品名称": "复方酮康唑软膏 10+0.5 毫克 5g 成品（缅甸）","任务标识符": "包盒IPC 抽查[1.3]","生产线": "支装一线","检测数量": 10, "识别类型": "单面","是否完成": "未完成"},
+        #     { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "T123456789","生产线": "支装一线","检测数量": 7, "识别类型": "单面","是否完成": "已完成"},
+        #     # 更多任务字典
+        # ]
+        # for task in tasks:
+        #     self.addTask(task)
 
     def select_button(self):
         return self.select_Button
@@ -98,14 +98,14 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         row = selected_indexes[0].row()
 
         # 从表中获取任务标识符
-        task_identifier_item = self.tableWidget.item(row, 1)
-        if task_identifier_item is None:
-            QMessageBox.warning(self, '选择错误', '无法找到任务标识符。')
+        task_key = self.tableWidget.item(row, 8)
+        if task_key is None:
+            QMessageBox.warning(self, '选择错误', '无法找到任务Key值。')
             return
 
-        task_identifier = task_identifier_item.text()
+        task_key = task_key.text()
         # 检查状态是否为“已完成”
-        status_item = self.tableWidget.item(row, self.tableWidget.columnCount() - 1)  # 假设状态位于最后一列
+        status_item = self.tableWidget.item(row, self.tableWidget.columnCount() - 2)  # 倒数第二列
         if status_item and status_item.text() == "已完成":
             # 如果状态为“已完成”，则只在表中删除该行，不从数据库中删除
             self.tableWidget.removeRow(row)
@@ -123,8 +123,8 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
                 connection = dbConnect()
                 cursor = connection.cursor()
 
-                delete_query = "DELETE FROM TaskInformation WHERE TASK_IDENTIFIER = ?"
-                cursor.execute(delete_query, (task_identifier,))
+                delete_query = "DELETE FROM TaskInformation WHERE TASK_KEY = ?"
+                cursor.execute(delete_query, (task_key,))
 
                 connection.commit()
                 # 删除成功后，关闭游标和连接
@@ -147,9 +147,9 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             for rowIndex in range(self.tableWidget.rowCount()):
                 # 获取每一行的最后一个字段内容
                 # 假设状态是最后一列，使用columnCount() - 1来定位最后一列
-                statusItem = self.tableWidget.item(rowIndex, self.tableWidget.columnCount() - 1)
+                statusItem = self.tableWidget.item(rowIndex, self.tableWidget.columnCount() - 2)
                 if statusItem and statusItem.text() == "已完成":
-                    # 如果最后一个字段内容为“已完成”，则删除该行
+                    # 如果倒数第二个字段内容为“已完成”，则删除该行
                     self.tableWidget.removeRow(rowIndex)
                     break  # 退出循环，因为我们已经找到并删除了一行，需要重新检查行数是否符合要求
             else:
@@ -163,7 +163,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 设置行高
         self.tableWidget.setRowHeight(row_position, 100)  # 示例行高为100
         # 根据字段顺序添加数据到表格中
-        col_order = ['生产线', '任务标识符', '产品名称', '批号', '物料类型', '检测数量', '识别类型','是否完成']
+        col_order = ['生产线', '任务标识符', '产品名称', '批号', '物料类型', '检测数量', '识别类型','是否完成','任务Key值']
         for col, field in enumerate(col_order):
             if field == '检测数量':
                 # 对于数值字段，使用数值进行设置

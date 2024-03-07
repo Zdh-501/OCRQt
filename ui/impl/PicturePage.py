@@ -220,9 +220,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 填充数据
         for row, (key, value) in enumerate(item_details.items()):
-            if key=="任务标识符":
-                self.task_identifier=value
-                #print(self.task_identifier)
             self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(key))
             self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(value))
 
@@ -563,16 +560,17 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 假设 self.task_identifier 已经定义并且包含了要查询的任务标识符的值
         query = """SELECT ORDER_NO, BATCH_NO, TASK_IDENTIFIER, TASK_KEY, PRODUCTION_DATE, EXPIRY_DATE
                    FROM TaskInformation
-                   WHERE TASK_IDENTIFIER = ?"""
+                   WHERE  TASK_KEY = ?"""
         try:
             # 执行查询操作
-            cursor.execute(query, (self.task_identifier,))
+            cursor.execute(query, (self.task_key,))
             # 获取查询结果的第一条记录
             result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
             # 检查是否找到了结果
             if result:
                 # 将查询结果存储在类的属性中
                 self.order_no, self.batch_no, self.task_identifier, self.task_key, self.production_date, self.expiry_date = result
+                self.operation_time= datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
                 for image_np in self.captured_images:
@@ -595,7 +593,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     expiry_date=self.expiry_date,
                     image=self.images_str,
                     cwid=self.user_cwid,
-                    operation_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    operation_time=self.operation_time
                 )
                 send_result_to_bes(result)
             else:

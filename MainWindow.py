@@ -172,7 +172,7 @@ class MainWindow(QWidget, Ui_MainPage):
         # 转换物料类型和识别类型为文本描述
         material_type_mapping = {10: "内包材", 20: "小盒", 30: "瓶签"}
         identify_type_mapping = {10: "单面", 20: "双面"}
-
+        self.picture_page.task_key=task_info.TASK_KEY
         # 构造addTask方法需要的字典
         task_data = {
             "生产线": task_info.PRODUCTION_LINE,
@@ -182,7 +182,8 @@ class MainWindow(QWidget, Ui_MainPage):
             "物料类型": material_type_mapping.get(task_info.MATERIAL_TYPE, "未知"),
             "检测数量": task_info.IDENTIFY_NUMBER,
             "识别类型": identify_type_mapping.get(task_info.IDENTIFY_TYPE, "未知"),
-            "是否完成": "未完成"  # 根据实际情况设置
+            "是否完成": "未完成",  # 根据实际情况设置
+            "任务Key值":task_info.TASK_KEY
         }
 
         # 调用addTask方法更新tableWidget
