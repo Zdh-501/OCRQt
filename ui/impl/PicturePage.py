@@ -5,7 +5,7 @@ from datetime import datetime
 import ctypes as ct
 import json
 import re
-
+import base64 #todo 这是新添加的
 from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics, QFont
 from PyQt5.QtCore import Qt
@@ -561,7 +561,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 构造查询语句
         # 假设 self.task_identifier 已经定义并且包含了要查询的任务标识符的值
-        query = """SELECT ORDER_NO, TASK_IDENTIFIER, TASK_KEY, PRODUCTION_DATE, EXPIRY_DATE
+        query = """SELECT ORDER_NO, BATCH_NO, TASK_IDENTIFIER, TASK_KEY, PRODUCTION_DATE, EXPIRY_DATE
                    FROM TaskInformation
                    WHERE TASK_IDENTIFIER = ?"""
         try:
@@ -572,16 +572,28 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 检查是否找到了结果
             if result:
                 # 将查询结果存储在类的属性中
-                self.order_no, self.task_identifier, self.task_key, self.production_date, self.expiry_date = result
-                images_str = ','.join(map(str, self.captured_images))
+                self.order_no, self.batch_no, self.task_identifier, self.task_key, self.production_date, self.expiry_date = result
+                # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
+                self.images_base64 = []
+                for image_np in self.captured_images:
+                    # 将 NumPy 图像数组编码为 JPEG 格式的字节流
+                    retval, buffer = cv2.imencode('.jpg', image_np)
+                    if retval:
+                        # 将字节流编码为 Base64 字符串
+                        image_base64 = base64.b64encode(buffer).decode('utf-8')
+                        self.images_base64.append(image_base64)
+
+                # 将 Base64 字符串列表连接成一个长字符串，以逗号分隔
+                self.images_str = ','.join(self.images_base64)
                 result = Result(
                     task_identifier=self.task_identifier,
+                    batch_no=self.batch_no,
                     task_key=self.task_key,
                     sequence=self.task_index,
                     order_no=self.order_no,
                     production_date=self.production_date,
                     expiry_date=self.expiry_date,
-                    image=images_str,
+                    image=self.images_str,
                     cwid=self.user_cwid,
                     operation_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 )

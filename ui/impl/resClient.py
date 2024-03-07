@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 
 # 假设这是BES系统期望的任务信息结构
 class Result:
-    def __init__(self, task_identifier, task_key, sequence, order_no, production_date, expiry_date, image, cwid, operation_time):
+    def __init__(self, task_identifier, batch_no, task_key, sequence, order_no, production_date, expiry_date, image, cwid, operation_time):
         self.TASK_IDENTIFIER = task_identifier
+        self.BATCH_NO= batch_no
         self.TASK_KEY = task_key
         self.SEQUENCE = sequence
         self.ORDER_NO = order_no
@@ -18,6 +19,7 @@ class Result:
 # 自定义任务数据
 result = Result(
     task_identifier='T12345',
+    batch_no=2,
     task_key=1,
     sequence=100,
     order_no='O12345',
@@ -32,6 +34,7 @@ def send_result_to_bes(result):
     # 构建要发送的XML数据
     data_xml = ET.Element('DATA')
     ET.SubElement(data_xml, 'TASK_IDENTIFIER').text = str(result.TASK_IDENTIFIER)
+    ET.SubElement(data_xml, 'BATCH_NO').text = str(result.BATCH_NO)
     ET.SubElement(data_xml, 'TASK_KEY').text = str(result.TASK_KEY)
     ET.SubElement(data_xml, 'SEQUENCE').text = str(result.SEQUENCE)
     ET.SubElement(data_xml, 'ORDER_NO').text = result.ORDER_NO
