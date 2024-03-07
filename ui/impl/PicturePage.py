@@ -565,13 +565,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                    FROM TaskInformation
                    WHERE TASK_IDENTIFIER = ?"""
         try:
-            print("查询的任务标识符", self.task_identifier)
-            print("查询的任务标识符类型:", type(self.task_identifier))
             # 执行查询操作
             cursor.execute(query, (self.task_identifier,))
             # 获取查询结果的第一条记录
             result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
-            print(result)
             # 检查是否找到了结果
             if result:
                 # 将查询结果存储在类的属性中

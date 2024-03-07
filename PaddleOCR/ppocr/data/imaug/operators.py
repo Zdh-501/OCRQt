@@ -86,12 +86,18 @@ class NormalizeImage(object):
     def __call__(self, data):
         img = data['image']
         from PIL import Image
-        if isinstance(img, Image.Image):
+        import numpy as np
+
+        if isinstance(img, Image.Image):  # 如果img是PIL图像实例，则转换为numpy数组
             img = np.array(img)
-        assert isinstance(img,
-                          np.ndarray), "invalid input 'img' in NormalizeImage"
-        data['image'] = (
-            img.astype('float32') * self.scale - self.mean) / self.std
+
+        assert isinstance(img, np.ndarray), "invalid input 'img' in NormalizeImage"
+
+        if img.shape[-1] == 4:  # 检查是否有四个通道，如果有，则只取前三个RGB通道
+            img = img[..., :3]
+
+        # 现在img已经确保是三个通道的，可以安全地进行归一化
+        data['image'] = ((img.astype('float32') * self.scale - self.mean) / self.std)
         return data
 
 

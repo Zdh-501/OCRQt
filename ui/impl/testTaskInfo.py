@@ -66,7 +66,7 @@ def send_task_info(task_info):
     </soapenv:Envelope>"""
 
     # 服务接口URL
-    service_url = 'http://localhost:8000/soap'
+    service_url = 'http:// 2.0.1.37:8000/soap'
 
     # 设置请求头
     headers = {
