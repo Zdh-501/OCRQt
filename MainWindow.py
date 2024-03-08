@@ -172,7 +172,6 @@ class MainWindow(QWidget, Ui_MainPage):
         # 转换物料类型和识别类型为文本描述
         material_type_mapping = {10: "内包材", 20: "小盒", 30: "瓶签"}
         identify_type_mapping = {10: "单面", 20: "双面"}
-        self.picture_page.task_key=task_info.TASK_KEY
         # 构造addTask方法需要的字典
         task_data = {
             "生产线": task_info.PRODUCTION_LINE,
@@ -188,7 +187,7 @@ class MainWindow(QWidget, Ui_MainPage):
 
         # 调用addTask方法更新tableWidget
         self.task_page.addTask(task_data)
-
+        print("测试：",task_info.BATCH_NO)
         # 连接数据库
         connection = dbConnect()
         cursor = connection.cursor()

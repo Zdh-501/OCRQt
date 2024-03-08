@@ -165,25 +165,28 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
         self.lang = config.get('lang', self.lang)
 
-    def extract_info(self,task_dict, key1, key2):
+    def extract_info(self,task_dict, key1, key2, key3):
         # 检查两个键是否都存在于字典中
-        if key1 in task_dict and key2 in task_dict:
+        if key1 in task_dict and key2 in task_dict and key3 in task_dict:
             value1 = task_dict[key1]
             value2 = task_dict[key2]
-            return value1, value2
+            value3 = task_dict[key3]
+            return value1, value2, value3
         else:
             # 如果任何一个键不存在，返回一个错误信息或者None
-            return None, None
+            return None, None, None
 
 
     def updateTextBrowser(self, item_details):
         #保存任务信息
         self.currentTask=item_details
         # 提取产品名称和物料类型信息
-        self.product_name, self.material_type = self.extract_info(self.currentTask, "产品名称", "物料类型")
+        self.product_name, self.material_type, self.task_key= self.extract_info(self.currentTask, "产品名称", "物料类型","任务Key值")
+        print("任务Key值1",self.task_key)
         # 根据产品名称和物料类型信息提取相机参数信息
         self.camera_parameters = self.get_camera_parameters_for_current_product()
-
+        if self.camera_parameters is None:
+            self.camera_parameters = {}  # 或者设置一个有意义的默认值
         if not hasattr(self, 'camera'):
             # 初始化相机
             self.init_camera()
@@ -207,6 +210,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 获取检测参数unclip_ratio的值
         unclip_ratio = self.camera_parameters.get("检测参数unclip_ratio", 2.5)  # 提供默认值以防万一
+
         # 设置检测参数unclip_ratio值
         self.det_db_unclip_ratio = unclip_ratio
 
@@ -563,7 +567,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"生产日期: {dates[0]}")
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
-        self.captured_images.clear()  # 清空存储的图像列表
+
 
         # todo 处理OCR结果,上传系统并保存在本地数据库 待测试
         # 连接数据库
@@ -576,6 +580,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                    FROM TaskInformation
                    WHERE  TASK_KEY = ?"""
         try:
+            print("任务Key值1-1", self.task_key)
             # 执行查询操作
             cursor.execute(query, (self.task_key,))
             # 获取查询结果的第一条记录
@@ -586,8 +591,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.order_no, self.task_identifier = result
                 self.operation_time= datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 self.batch_no= batch_numbers[0]
-                self.production_date = dates[0]
-                self.expiry_date = dates[1]
+                if len(dates) == 1:
+                    self.expiry_date = dates[0]
+                    self.production_date = ''  # 或者使用 '' 表示空字符串，根据您的需要
+                else:
+                    self.production_date = dates[0]
+                    self.expiry_date = dates[1]
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
                 for image_np in self.captured_images:
@@ -600,6 +609,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
                 # 将 Base64 字符串列表连接成一个长字符串，以逗号分隔
                 self.images_str = ','.join(self.images_base64)
+
                 result = Result(
                     task_identifier=self.task_identifier,
                     batch_no=self.batch_no,
@@ -647,7 +657,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.user_cwid,
                 self.operation_time
             )
-            print(data_to_insert)
             # 执行插入操作
             cursor.execute(insert_query, data_to_insert)
 
@@ -662,7 +671,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 无论成功还是失败，都要关闭数据库连接
             cursor.close()
             connection.close()
-
+        self.captured_images.clear()  # 清空存储的图像列表
 
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}

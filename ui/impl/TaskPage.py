@@ -67,7 +67,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
                 return  # 退出函数，不继续执行后面的代码
            # 获取所有列的内容
             row_data = {}
-            for column in range(self.tableWidget.columnCount()-2):
+            for column in range(self.tableWidget.columnCount()):
                 item = self.tableWidget.item(selected_indexes[0].row(), column)
                 header = self.tableWidget.horizontalHeaderItem(column).text()  # 获取表头文本
                 row_data[header] = item.text() if item else ""
@@ -79,8 +79,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             # 假设“识别类型”字段是第7列，索引从0开始，即列索引为6
             detection_type_index = selected_indexes[0].sibling(selected_indexes[0].row(), 6)
             detection_type = self.tableWidget.itemFromIndex(detection_type_index).text()
-            print("test",row_data)
-            print("test",detection_count, detection_type)
+
             # 发射信号以通知 MainWindow 切换到第二页
             self.switchToPage.emit(1)  # 页面索引从0开始，第三页的索引是2
 

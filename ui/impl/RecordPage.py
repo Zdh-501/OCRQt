@@ -3,8 +3,10 @@ import sys
 import pyodbc
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt,QSize
-from PyQt5.QtGui import QPixmap, QIcon, QImageReader, QFont
+from PyQt5.QtGui import QPixmap, QIcon, QImageReader, QFont, QImage
 from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QGraphicsPixmapItem, QGraphicsScene, QApplication
+from pyqt5_plugins.examplebuttonplugin import QtGui
+
 from ui.layout.UI_RecordPage import Ui_RecordPage
 from SQL.dbFunction import dbConnect
 
@@ -17,6 +19,8 @@ class RecordPage(QtWidgets.QWidget, Ui_RecordPage):
         self.scene = QGraphicsScene(self)
         self.graphicsView.setScene(self.scene)
         self.pixmapItem = None
+
+        self.results_data = []  # 用于存储查询结果的全局变量
 
         # 设置 listWidget 的图标尺寸
         self.listWidget.setIconSize(QSize(100, 100))  # 将图标尺寸设置为 100x100
@@ -40,63 +44,50 @@ class RecordPage(QtWidgets.QWidget, Ui_RecordPage):
         self.dateTimeEdit_2.setDateTime(QtCore.QDateTime.currentDateTime())  # 默认结束时间为当前时间
 
     def displayImage(self, item):
+        # 获取选中项的索引
+        index = self.listWidget.row(item)
+        # 获取保存的结果数据
+        data = self.results_data[index]
+        image_data = data[6]  # 假定IMAGE字段在结果中的索引为6
+
         try:
-            # 从 UserRole 提取信息
-            item_data = item.data(Qt.UserRole)
-            image_path = item_data['TestResultImagePath']
+            if image_data:
+                # 对图像数据进行Base64解码并显示
+                image_bytes = QtCore.QByteArray.fromBase64(image_data.encode())
+                image = QImage.fromData(image_bytes)
+                pixmap = QPixmap.fromImage(image)
 
-            product_name = item_data['ProductName']
-
-            product_id = item_data['ProductCode']
-
-
-            # 显示图片
-            pixmap = self.load_image(image_path)
-            if not pixmap.isNull():
                 self.scene.clear()
                 self.pixmapItem = QGraphicsPixmapItem(pixmap)
                 self.scene.addItem(self.pixmapItem)
                 self.graphicsView.fitInView(self.pixmapItem, Qt.KeepAspectRatio)
         except Exception as e:
             print(f"在 displayImage 方法中发生错误: {e}")
+        self.displayProductInfo()
 
-        # 显示产品信息
-        self.displayProductInfo(product_id)
+    def displayProductInfo(self):
+        # 获取最后一次点击的项目的索引
+        index = self.listWidget.currentRow()
+        # 获取保存的结果数据
+        data = self.results_data[index]
+        task_identifier, sequence, order_no, batch_no, production_date, expiry_date, image_data, cwid, operationtime = data
 
-
-    def displayProductInfo(self, product_id):
         try:
-            # 假设 dbConnect 是一个返回新的数据库连接的函数
+            info = (f"任务标识符: {task_identifier}\n"
+                    f"序列: {sequence}\n"
+                    f"订单号: {order_no}\n"
+                    f"批号: {batch_no}\n"
+                    f"生产日期: {production_date}\n"
+                    f"有效期至: {expiry_date}\n"
+                    f"工作编号: {cwid}\n"
+                    f"操作时间: {operationtime}\n")
+            # 设置文本
+            self.textBrowser.setText(info)
 
-            connection = dbConnect()
-            with connection.cursor() as cursor:
-                # 根据 product_id 查询数据
-                query = "SELECT * FROM ProductDetails WHERE ProductCode = ?"
-                cursor.execute(query, (product_id,))
-                result = cursor.fetchone()
-                # cursor.fetchone() 返回的默认结果类型是元组，每个元素对应 SQL 查询中选择的列
-                if result:
-                    # 格式化并显示全部产品信息
-                    info = (f"产品编码: {result[0]}\n"
-                            f"产品名称: {result[1]}\n"
-                            f"任务序号: {result[2]}\n"
-                            f"生产批号: {result[3]}\n"
-                            f"生产日期: {result[4]}\n"
-                            f"有效期至: {result[5]}\n"
-                            f"检测结果: {result[6]}\n"
-                            f"完成时间: {result[7]}")
-                    # 设置字体大小
-                    font = QFont()
-                    font.setPointSize(12)  # 设置字体大小为 12，您可以根据需要调整这个值
-
-                    self.textBrowser.setFont(font)
-                    self.textBrowser.setText(info)
-                    self.textBrowser.setText(info)
-                    self.label_4.setText(result[2])  # 产品名称
+            # 设置label_4显示cwid和operationtime
+            self.label_4.setText(f"{cwid}_{operationtime}")
         except Exception as e:
-            print(f"数据库查询错误: {e}")
-        finally:
-            connection.close()
+            print(f"在 displayProductInfo 方法中发生错误: {e}")
 
     def scaleImage(self, factor):
         if self.pixmapItem:
@@ -104,64 +95,63 @@ class RecordPage(QtWidgets.QWidget, Ui_RecordPage):
             self.pixmapItem.setScale(currentScale * factor)
 
 
-    def load_image(self, image_path):
 
-        # 检查文件是否存在
-        if not os.path.exists(image_path):
-            QMessageBox.critical(self, "加载图片错误", "文件不存在: " + image_path)
-            return None
-
-        reader = QImageReader(image_path)
-        image = reader.read()
-        if image.isNull():
-            error = reader.errorString()
-            QMessageBox.critical(self, "加载图片错误", f"无法加载图片: {error}")
-            return None
-        return QPixmap.fromImage(image)
 
     def query_records(self):
         start_time = self.dateTimeEdit_1.dateTime().toString("yyyy-MM-dd HH:mm:ss")
         end_time = self.dateTimeEdit_2.dateTime().toString("yyyy-MM-dd HH:mm:ss")
-        batch_number_filter = self.lineEdit.text().strip()
+        batch_no_filter = self.lineEdit.text().strip()  # 更改为使用批号过滤
 
         try:
             with self.db.cursor() as cursor:
-                # 构建基础查询语句
-                query = "SELECT TestResultImagePath, ProductName, ProductCode FROM ProductDetails WHERE ProductionDate BETWEEN ? AND ?"
+                # 构建查询语句以选择所有字段
+                query = """SELECT TASK_IDENTIFIER, SEQUENCE, ORDER_NO, BATCH_NO, PRODUCTION_DATE, 
+                                EXPIRY_DATE, IMAGE, CWID, OPERATIONTIME 
+                           FROM dbo.ResultTable 
+                           WHERE OPERATIONTIME BETWEEN ? AND ?"""
                 params = [start_time, end_time]
 
-                # 如果 self.lineEdit 中有输入内容，则添加额外的筛选条件
-                if batch_number_filter:
-                    query += " AND BatchNumber = ?"
-                    params.append(batch_number_filter)
+                # 如果有输入批号，则添加筛选条件
+                if batch_no_filter:
+                    query += " AND BATCH_NO = ?"
+                    params.append(batch_no_filter)
 
                 # 执行查询
                 cursor.execute(query, params)
-                results = cursor.fetchall()
+                self.results_data = cursor.fetchall()
                 self.listWidget.clear()  # 清空当前列表
 
-                for row in results:
-                    test_result_image_path, product_name, product_code = row
-                    # 使用 load_image 方法加载图片
+                for row in self.results_data:
+                    task_identifier, sequence, order_no, batch_no, production_date, \
+                        expiry_date, image_data, cwid, operationtime = row
 
-                    pixmap = self.load_image(test_result_image_path)
-                    if pixmap is None:  # 如果加载失败，则跳过当前项
+                    # 解析 IMAGE 字段数据
+                    pixmap = self.convert_image_data(image_data)
+                    if pixmap is None:  # 如果解析失败，则跳过当前项
                         continue
 
                     icon = QIcon(pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-
-                    # 创建带有图标和文本的 QListWidgetItem
-                    item_text = f"{product_name} ({product_code}) {test_result_image_path}"
+                    item_text = f"{task_identifier} ({order_no}) - {batch_no}"
                     item = QListWidgetItem(icon, item_text)
-                    item.setData(Qt.UserRole,
-                                 {"TestResultImagePath": test_result_image_path, "ProductName": product_name,
-                                  "ProductCode": product_code})
+                    self.listWidget.addItem(item)
+
                     item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                     item.setCheckState(Qt.Unchecked)
                     self.listWidget.addItem(item)
         except Exception as e:
             QMessageBox.critical(self, "数据库错误", str(e))
 
+    def convert_image_data(self, image_data):
+        # 假设 IMAGE 字段包含的是Base64编码的图像数据
+        if image_data is not None and image_data != '':
+            # 对图像数据进行Base64解码
+            image_bytes = QtCore.QByteArray.fromBase64(image_data.encode())
+            image = QtGui.QImage.fromData(image_bytes)
+            if image.isNull():
+                QMessageBox.critical(self, "图像显示错误", "无法解析图像数据")
+                return None
+            return QPixmap.fromImage(image)
+        return None
     def toggleSelectAll(self, state):
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
