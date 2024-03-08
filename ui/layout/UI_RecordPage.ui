@@ -88,6 +88,7 @@
            <property name="font">
             <font>
              <pointsize>10</pointsize>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -125,7 +126,7 @@
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>批号：</string>
+              <string>CWID：</string>
              </property>
             </widget>
            </item>
@@ -135,18 +136,7 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,5">
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>产品筛选</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="comboBox"/>
-           </item>
-          </layout>
+          <layout class="QHBoxLayout" name="horizontalLayout_3"/>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -194,16 +184,9 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
-            <widget class="QPushButton" name="pushButton_2">
+            <widget class="QCheckBox" name="checkBox">
              <property name="text">
-              <string>升序</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_5">
-             <property name="text">
-              <string>降序</string>
+              <string>全选</string>
              </property>
             </widget>
            </item>
@@ -214,21 +197,10 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox">
-             <property name="text">
-              <string>全选</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
-          <widget class="QListWidget" name="listWidget">
-           <property name="sortingEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
+          <widget class="QTableWidget" name="tableWidget"/>
          </item>
         </layout>
        </widget>
