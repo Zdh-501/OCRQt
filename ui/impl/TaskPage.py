@@ -29,30 +29,18 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
         # 调整列宽以占满整个表格
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
-        #添加数据
-        # self.addTask({
-        #     "批号": "CY32403",
-        #     "物料类型": "小盒",
-        #     "产品名称": "复方酮康唑发用洗剂15+0.25毫克50毫升成品（Rx）",
-        #     "任务标识符": "包盒IPC 抽查[1.1]",
-        #     "生产线": "支装一线",
-        #     "检测数量": 8,
-        #     "识别类型": "单面",
-        #     "是否完成": "未完成"
-        # })
-        # tasks = [
-        #     { "批号": "CY32404", "物料类型": "中盒","产品名称": "复方酮康唑发用洗剂15+0.25毫克5毫升成品（缅甸）","任务标识符": "包盒IPC 抽查[1.2]","生产线": "支装一线","检测数量": 5 ,"识别类型": "双面","是否完成": "未完成"},
-        #     {"批号": "CY32405", "物料类型": "内包材","产品名称": "复方酮康唑软膏 10+0.5 毫克 5g 成品（缅甸）","任务标识符": "包盒IPC 抽查[1.3]","生产线": "支装一线","检测数量": 10, "识别类型": "单面","是否完成": "未完成"},
-        #     { "批号": "CY32406", "物料类型": "小盒","产品名称": "复方","任务标识符": "T123456789","生产线": "支装一线","检测数量": 7, "识别类型": "单面","是否完成": "已完成"},
-        #     # 更多任务字典
-        # ]
-        # for task in tasks:
-        #     self.addTask(task)
-
+    def handleTaskCompletion(self, task_key):
+        rows = self.tableWidget.rowCount()
+        for row in range(rows):
+            task_key_item = self.tableWidget.item(row, self.tableWidget.columnCount() - 1)  # 假设最后一列是"任务Key值"
+            if task_key_item and task_key_item.text() == task_key:
+                # 如果找到匹配的任务Key值，更新"是否完成"字段
+                completion_item = QtWidgets.QTableWidgetItem("已完成")
+                self.tableWidget.setItem(row, self.tableWidget.columnCount() - 2, completion_item)  # 假设倒数第二列是"是否完成"
+                break  # 如果task_key是唯一的，找到匹配项后可以直接退出循环
     def select_button(self):
         return self.select_Button
     def onPushButtonClicked(self):
-
         # 获取表格中选中行的“检测数量”
         selected_indexes = self.tableWidget.selectionModel().selectedRows()
         if selected_indexes:
@@ -71,9 +59,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
                 item = self.tableWidget.item(selected_indexes[0].row(), column)
                 header = self.tableWidget.horizontalHeaderItem(column).text()  # 获取表头文本
                 row_data[header] = item.text() if item else ""
-
-
-            # 此处需要修改 假设“检测数量”是第6列，索引从0开始
+            # 假设“检测数量”是第6列，索引从0开始
             detection_count_index = selected_indexes[0].sibling(selected_indexes[0].row(), 5)
             detection_count = int(self.tableWidget.itemFromIndex(detection_count_index).text())
             # 假设“识别类型”字段是第7列，索引从0开始，即列索引为6
@@ -87,9 +73,6 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             self.itemDetailsChanged.emit(row_data)
             # 发射带有两个参数的信号
             self.detectionCountAndTypeChanged.emit(detection_count, detection_type)
-
-
-
 
     def onDeleteButtonClicked(self):
         # 获取当前选中的行

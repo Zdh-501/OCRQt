@@ -150,7 +150,7 @@ class MainWindow(QWidget, Ui_MainPage):
 
         # 检测任务完成发送信号切换页面 备用
         #self.picture_page.Compl.connect(self.showTaskPage)
-
+        self.picture_page.taskCompleted.connect(self.task_page.handleTaskCompletion)
         self.pages = [self.task_page,self.picture_page,self.record_page,self.log_page,self.users_page]
 
         for i in self.pages:

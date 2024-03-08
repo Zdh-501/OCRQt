@@ -24,6 +24,8 @@ from ui.impl.resClient import *
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     #定义一个任务完成信号
     Compl = pyqtSignal()
+    # 定义一个任务完成信号，传递 task_key 值
+    taskCompleted = pyqtSignal(str)
     def __init__(self):
         super(PicturePage, self).__init__()
         self.setupUi(self)
@@ -182,7 +184,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.currentTask=item_details
         # 提取产品名称和物料类型信息
         self.product_name, self.material_type, self.task_key= self.extract_info(self.currentTask, "产品名称", "物料类型","任务Key值")
-        print("任务Key值1",self.task_key)
         # 根据产品名称和物料类型信息提取相机参数信息
         self.camera_parameters = self.get_camera_parameters_for_current_product()
         if self.camera_parameters is None:
@@ -580,7 +581,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                    FROM TaskInformation
                    WHERE  TASK_KEY = ?"""
         try:
-            print("任务Key值1-1", self.task_key)
+
             # 执行查询操作
             cursor.execute(query, (self.task_key,))
             # 获取查询结果的第一条记录
@@ -672,7 +673,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             cursor.close()
             connection.close()
         self.captured_images.clear()  # 清空存储的图像列表
-
+        #更新“已完成”
+        self.tableWidget_2.setItem(7, 1, QtWidgets.QTableWidgetItem("已完成"))
+        # 假设这是在任务完成后的逻辑
+        self.taskCompleted.emit(self.task_key)
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
