@@ -568,9 +568,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"生产日期: {dates[0]}")
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
-
-
-        # todo 处理OCR结果,上传系统并保存在本地数据库 待测试
         # 连接数据库
         connection = dbConnect()
         cursor = connection.cursor()

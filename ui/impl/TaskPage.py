@@ -36,6 +36,7 @@ class TaskPage(QtWidgets.QWidget,Ui_TaskPage):
             if task_key_item and task_key_item.text() == task_key:
                 # 如果找到匹配的任务Key值，更新"是否完成"字段
                 completion_item = QtWidgets.QTableWidgetItem("已完成")
+                completion_item.setTextAlignment(QtCore.Qt.AlignCenter)  # 居中对齐文本
                 self.tableWidget.setItem(row, self.tableWidget.columnCount() - 2, completion_item)  # 假设倒数第二列是"是否完成"
                 break  # 如果task_key是唯一的，找到匹配项后可以直接退出循环
     def select_button(self):
