@@ -257,7 +257,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.currentTaskNumber = 0
         self.start_camera_view()
         self.current_label_index = 0
-        self.isComplete = False  # 用于在未完成任务时切换页面的提示
+        self.isComplete = False  # 用于表示当前整体任务的完成情况
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
         self.captured_images=[]
@@ -583,6 +583,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         try:
 
             # 执行查询操作
+            print("测试，",self.task_key)
             cursor.execute(query, (self.task_key,))
             # 获取查询结果的第一条记录
             result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
@@ -590,6 +591,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             if result:
                 # 将查询结果存储在类的属性中
                 self.order_no, self.task_identifier = result
+                print("测试",self.task_identifier)
                 self.operation_time= datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 self.batch_no= batch_numbers[0]
                 if len(dates) == 1:
@@ -627,7 +629,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             else:
                 print("没有找到匹配的任务信息。")
         except Exception as e:
-            print(f"数据库错误类型: {type(e)}, 错误信息: {e}")
+            print(f" 类型: {type(e)}, 错误信息: {e}")
         finally:
             # 关闭数据库连接
             cursor.close()
@@ -673,10 +675,14 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             cursor.close()
             connection.close()
         self.captured_images.clear()  # 清空存储的图像列表
-        #更新“已完成”
-        self.tableWidget_2.setItem(7, 1, QtWidgets.QTableWidgetItem("已完成"))
-        # 假设这是在任务完成后的逻辑
-        self.taskCompleted.emit(self.task_key)
+        if self.isComplete:
+            #更新“已完成”
+            item = QtWidgets.QTableWidgetItem("已完成")
+            item.setTextAlignment(QtCore.Qt.AlignCenter)  # 设置文本居中对齐
+            self.tableWidget_2.setItem(7, 1, item)
+
+            # 假设这是在任务完成后的逻辑
+            self.taskCompleted.emit(self.task_key)
     def extract_relevant_data(self,results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 

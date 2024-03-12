@@ -187,7 +187,7 @@ class MainWindow(QWidget, Ui_MainPage):
 
         # 调用addTask方法更新tableWidget
         self.task_page.addTask(task_data)
-        print("测试：",task_info.BATCH_NO)
+
         # 连接数据库
         connection = dbConnect()
         cursor = connection.cursor()
