@@ -675,7 +675,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if self.isComplete:
             #更新“已完成”
             item = QtWidgets.QTableWidgetItem("已完成")
-            item.setTextAlignment(QtCore.Qt.AlignCenter)  # 设置文本居中对齐
             self.tableWidget_2.setItem(7, 1, item)
 
             # 假设这是在任务完成后的逻辑

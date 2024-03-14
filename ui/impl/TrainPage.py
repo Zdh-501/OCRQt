@@ -124,9 +124,9 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             f"Train.loader.batch_size_per_card={batch_size} "
             f"Eval.loader.batch_size_per_card={batch_size} "
             f"Train.dataset.data_dir=\"{dataset_root_path}\\{model_dir}\\train\" "
-            f"Train.dataset.label_file_list=\"{dataset_root_path}\\{model_dir}\\train\\label.txt\" "
+            f"Train.dataset.label_file_list=\"['{dataset_root_path}\\{model_dir}\\train.txt']\" "
             f"Eval.dataset.data_dir=\"{dataset_root_path}\\{model_dir}\\val\" "
-            f"Eval.dataset.label_file_list=\"{dataset_root_path}\\{model_dir}\\val\\label.txt\""
+            f"Eval.dataset.label_file_list=\"['{dataset_root_path}\\{model_dir}\\val.txt']\""
         )
         return train_cmd
 
