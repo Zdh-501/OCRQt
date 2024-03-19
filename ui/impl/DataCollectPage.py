@@ -216,3 +216,4 @@ if __name__ == '__main__':
     mainWindow = DataCollectPage()
     mainWindow.show()
     app.exec_()
+

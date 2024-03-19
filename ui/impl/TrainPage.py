@@ -128,6 +128,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             f"Eval.dataset.data_dir=\"{dataset_root_path}\\{model_dir}\\val\" "
             f"Eval.dataset.label_file_list=\"['{dataset_root_path}\\{model_dir}\\val.txt']\""
         )
+
         return train_cmd
 
 # if __name__ == '__main__':
