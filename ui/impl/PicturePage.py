@@ -679,22 +679,29 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
             # 假设这是在任务完成后的逻辑
             self.taskCompleted.emit(self.task_key)
-    def extract_relevant_data(self,results):
+
+    def extract_relevant_data(self, results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
-        # 更新正则表达式以匹配 YYYY/MM/DD, YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
-        date_regex = r'(\d{4}[/-]\d{2}[/-]\d{2})|(\d{2}[/-]\d{2}[/-]\d{4})'
-        batch_number_regex = r'CY\w+'
+        # 定义更具体的日期正则表达式，以更准确地匹配日期
+        date_regex = r'(?<!\d)(?:(\d{4}[/-](?:0[1-9]|1[0-2])[/-](?:0[1-9]|[12][0-9]|3[01]))|((?:0[1-9]|[12][0-9]|3[01])[/-](?:0[1-9]|1[0-2])[/-]\d{4}))(?!\d)'
+        batch_number_regex = r'CY\d{5}'
 
         for label_index, result in results:
-            if result:  # 检查结果是否非空
-                for item in result[0]:  # 假设每个结果是 [[[坐标], (文本, 置信度)]]
-                    text = item[1][0]  # 提取文本
-                    # 检查并提取符合日期和批号格式的文本
-                    if re.match(date_regex, text):
-                        extracted_data['dates'].append(text)
-                    elif re.match(batch_number_regex, text):
-                        extracted_data['batch_numbers'].append(text)
+            if result:
+                for item in result[0]:
+                    text = item[1][0]
+
+                    # 优先检查并提取符合日期格式的文本
+                    date_matches = re.findall(date_regex, text)
+                    for date_match in date_matches:
+                        # 由于日期正则有两部分，需要检查哪一部分匹配并添加
+                        date = date_match[0] if date_match[0] else date_match[1]
+                        extracted_data['dates'].append(date)
+
+                    # 检查并提取符合批号格式的文本
+                    batch_number_matches = re.findall(batch_number_regex, text)
+                    extracted_data['batch_numbers'].extend(batch_number_matches)
 
         return extracted_data
 
