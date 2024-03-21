@@ -569,7 +569,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
         self.dbThread = DatabaseOperationThread(self.task_key, self.captured_images, self.user_cwid, self.task_index, dates, batch_numbers)
-        self.dbThread.operationFinished.connect(self.onDatabaseOperationFinished)
         self.dbThread.start()
         self.captured_images.clear()  # 清空存储的图像列表
         if self.isComplete:
@@ -580,17 +579,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 假设这是在任务完成后的逻辑
             self.taskCompleted.emit(self.task_key)
 
-    def onDatabaseOperationFinished(self, error):
-        if error:
-            QMessageBox.critical(self, "数据库操作错误", error)
-        else:
-            if result:
-                # 处理数据库操作结果
-                print("数据库操作成功，结果：", result)
-                # 根据结果更新UI或进行其他操作
-                # ...
-            else:
-                QMessageBox.warning(self, "警告", "没有找到匹配的任务信息。")
     def extract_relevant_data(self, results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
@@ -598,21 +586,30 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         date_regex = r'(?<!\d)(?:(\d{4}[/-](?:0[1-9]|1[0-2])[/-](?:0[1-9]|[12][0-9]|3[01]))|((?:0[1-9]|[12][0-9]|3[01])[/-](?:0[1-9]|1[0-2])[/-]\d{4}))(?!\d)'
         batch_number_regex = r'CY\d{5}'
 
+        # 预处理函数，用于确保批号和日期之间有一个空格
+        def preprocess_text(text):
+            # 正则表达式匹配批号紧接着的日期，考虑两种日期格式
+            pattern = re.compile(r'(CY\d{5})((?:\d{2}/\d{2}/\d{4})|(?:\d{4}/\d{2}/\d{2}))')
+            # 在批号和日期之间插入空格
+            return re.sub(pattern, r'\1 \2', text)
+
         for label_index, result in results:
             if result:
-                for item in result[0]:
-                    text = item[1][0]
+                for item in result:
+                    for detected_item in item:
+                        for inner_item in detected_item:
+                            if isinstance(inner_item, tuple) and len(inner_item) == 2:
+                                text = inner_item[0]
+                                # 应用预处理步骤
+                                preprocessed_text = preprocess_text(text)
+                                # 然后进行正则表达式匹配
+                                date_matches = re.findall(date_regex, preprocessed_text)
+                                for date_match in date_matches:
+                                    date = date_match[0] if date_match[0] else date_match[1]
+                                    extracted_data['dates'].append(date)
 
-                    # 优先检查并提取符合日期格式的文本
-                    date_matches = re.findall(date_regex, text)
-                    for date_match in date_matches:
-                        # 由于日期正则有两部分，需要检查哪一部分匹配并添加
-                        date = date_match[0] if date_match[0] else date_match[1]
-                        extracted_data['dates'].append(date)
-
-                    # 检查并提取符合批号格式的文本
-                    batch_number_matches = re.findall(batch_number_regex, text)
-                    extracted_data['batch_numbers'].extend(batch_number_matches)
+                                batch_number_matches = re.findall(batch_number_regex, preprocessed_text)
+                                extracted_data['batch_numbers'].extend(batch_number_matches)
 
         return extracted_data
 

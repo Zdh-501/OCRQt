@@ -138,8 +138,6 @@ class OcrThread(QThread):
 
         self.finished.emit(results)  # 发送完成信号，附带检测结果
 class DatabaseOperationThread(QThread):
-    operationFinished = pyqtSignal(object, str)  # 第一个参数为操作结果，第二个参数为错误信息
-
     def __init__(self, task_key, captured_images, user_cwid, task_index, dates, batch_numbers, parent=None):
         super(DatabaseOperationThread, self).__init__(parent)
         self.task_key = task_key
@@ -252,7 +250,7 @@ class DatabaseOperationThread(QThread):
             # 无论成功还是失败，都要关闭数据库连接
             cursor.close()
             connection.close()
-        self.operationFinished.emit(None if error else "操作成功", error)
+
 class LabelThread(QThread):
     def __init__(self, command, working_dir):
         super().__init__()
