@@ -568,109 +568,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"生产日期: {dates[0]}")
             self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
-        # 连接数据库
-        connection = dbConnect()
-        cursor = connection.cursor()
-
-        # 构造查询语句
-        # 假设 self.task_identifier 已经定义并且包含了要查询的任务标识符的值
-        query = """SELECT ORDER_NO, TASK_IDENTIFIER
-                   FROM TaskInformation
-                   WHERE  TASK_KEY = ?"""
-        try:
-
-            # 执行查询操作
-            print("测试，",self.task_key)
-            cursor.execute(query, (self.task_key,))
-            # 获取查询结果的第一条记录
-            result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
-            # 检查是否找到了结果
-            if result:
-                # 将查询结果存储在类的属性中
-                self.order_no, self.task_identifier = result
-                print("测试",self.task_identifier)
-                self.operation_time= datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                self.batch_no= batch_numbers[0]
-                if len(dates) == 1:
-                    self.expiry_date = dates[0]
-                    self.production_date = ''  # 或者使用 '' 表示空字符串，根据您的需要
-                else:
-                    self.production_date = dates[0]
-                    self.expiry_date = dates[1]
-                # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
-                self.images_base64 = []
-                for image_np in self.captured_images:
-                    # 将 NumPy 图像数组编码为 JPEG 格式的字节流
-                    retval, buffer = cv2.imencode('.jpg', image_np)
-                    if retval:
-                        # 将字节流编码为 Base64 字符串
-                        image_base64 = base64.b64encode(buffer).decode('utf-8')
-                        self.images_base64.append(image_base64)
-
-                # 将 Base64 字符串列表连接成一个长字符串，以逗号分隔
-                self.images_str = ','.join(self.images_base64)
-
-                result = Result(
-                    task_identifier=self.task_identifier,
-                    batch_no=self.batch_no,
-                    task_key=self.task_key,
-                    sequence=self.task_index,
-                    order_no=self.order_no,
-                    production_date=self.production_date,
-                    expiry_date=self.expiry_date,
-                    image=self.images_str,
-                    cwid=self.user_cwid,
-                    operation_time=self.operation_time
-                )
-                send_result_to_bes(result)
-            else:
-                print("没有找到匹配的任务信息。")
-        except Exception as e:
-            print(f" 类型: {type(e)}, 错误信息: {e}")
-        finally:
-            # 关闭数据库连接
-            cursor.close()
-            connection.close()
-
-        # 连接数据库
-        connection = dbConnect()
-        cursor = connection.cursor()
-
-        # 将结果存入结果数据表
-        try:
-            # 先执行之前的查询操作，然后...
-
-            # 插入数据到 ResultTable
-            insert_query = """
-            INSERT INTO ResultTable (TASK_IDENTIFIER, BATCH_NO, SEQUENCE, ORDER_NO, PRODUCTION_DATE, EXPIRY_DATE, IMAGE, CWID, OPERATIONTIME)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            # 准备要插入的数据
-            data_to_insert = (
-                self.task_identifier,
-                self.batch_no,
-                self.task_index,
-                self.order_no,
-                self.production_date,
-                self.expiry_date,
-                self.images_str,
-                self.user_cwid,
-                self.operation_time
-            )
-            # 执行插入操作
-            cursor.execute(insert_query, data_to_insert)
-
-            # 提交事务
-            connection.commit()
-            print("结果信息成功上传到ResultTable中。")
-
-        except Exception as e:
-            print(f"插入数据时发生错误: {type(e)}, 错误信息: {e}")
-
-        finally:
-            # 无论成功还是失败，都要关闭数据库连接
-            cursor.close()
-            connection.close()
+        self.dbThread = DatabaseOperationThread(self.task_key, self.captured_images, self.user_cwid, self.task_index, dates, batch_numbers)
+        self.dbThread.operationFinished.connect(self.onDatabaseOperationFinished)
+        self.dbThread.start()
         self.captured_images.clear()  # 清空存储的图像列表
         if self.isComplete:
             #更新“已完成”
@@ -680,6 +580,17 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 假设这是在任务完成后的逻辑
             self.taskCompleted.emit(self.task_key)
 
+    def onDatabaseOperationFinished(self, error):
+        if error:
+            QMessageBox.critical(self, "数据库操作错误", error)
+        else:
+            if result:
+                # 处理数据库操作结果
+                print("数据库操作成功，结果：", result)
+                # 根据结果更新UI或进行其他操作
+                # ...
+            else:
+                QMessageBox.warning(self, "警告", "没有找到匹配的任务信息。")
     def extract_relevant_data(self, results):
         extracted_data = {'dates': [], 'batch_numbers': []}
 
