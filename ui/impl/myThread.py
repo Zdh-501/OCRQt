@@ -122,17 +122,17 @@ class OcrThread(QThread):
 
             # 调整图像大小
             # 假设我们想要将图像的最长边限制为960像素
-            scale_factor = 960 / max(image_np.shape[:2])
-            width = int(image_np.shape[1] * scale_factor)
-            height = int(image_np.shape[0] * scale_factor)
-            dim = (width, height)
-            resized_image = cv2.resize(image_np, dim, interpolation=cv2.INTER_AREA)
+            # scale_factor = 960 / max(image_np.shape[:2])
+            # width = int(image_np.shape[1] * scale_factor)
+            # height = int(image_np.shape[0] * scale_factor)
+            # dim = (width, height)
+            # resized_image = cv2.resize(image_np, dim, interpolation=cv2.INTER_AREA)
+            #
+            # # 打印调整后的图像大小
+            # print(f"Resized image {i} size: {resized_image.shape}")
 
-            # 打印调整后的图像大小
-            print(f"Resized image {i} size: {resized_image.shape}")
 
-
-            result = self.Ocr.ocr(resized_image, cls=True)
+            result = self.Ocr.ocr(image_np, cls=True)
             results.append((i, result))
 
 
