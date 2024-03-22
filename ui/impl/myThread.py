@@ -103,16 +103,11 @@ class CameraWorker(QThread):
 class OcrThread(QThread):
     finished = pyqtSignal(object)  # 完成信号，传递检测结果
 
-    def __init__(self, images, det_model_dir,rec_model_dir,det_db_unclip_ratio, parent=None):
+    def __init__(self, Ocr, images, det_model_dir,rec_model_dir,det_db_unclip_ratio, parent=None):
         super().__init__(parent)
         self.images = images  # NumPy图像数组列表
-        self.Ocr=PaddleOCR(use_gpu=False,
-                           det_model_dir=det_model_dir,
-                             rec_model_dir=rec_model_dir,
-                             use_angle_cls=True,
-                             det_db_unclip_ratio=det_db_unclip_ratio,
-                             lang='ch')
-        print('Ocr',paddleocr.__version__)
+        self.Ocr = Ocr  # 直接使用传入的PaddleOCR实例
+        print('Ocr', paddleocr.__version__)
 
     def run(self):
         results = []

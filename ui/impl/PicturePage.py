@@ -37,6 +37,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.5
         self.lang = 'ch'
+
+
         # 用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
 
@@ -166,6 +168,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.use_angle_cls = config.get('use_angle_cls', self.use_angle_cls)
         self.det_db_unclip_ratio = config.get('det_db_unclip_ratio', self.det_db_unclip_ratio)
         self.lang = config.get('lang', self.lang)
+        self.Ocr = PaddleOCR(use_gpu=False,
+                             det_model_dir=self.det_model_dir,
+                             rec_model_dir=self.rec_model_dir,
+                             use_angle_cls=True,
+                             det_db_unclip_ratio=self.det_db_unclip_ratio,
+                             lang='ch')
 
     def extract_info(self,task_dict, key1, key2, key3):
         # 检查两个键是否都存在于字典中
@@ -252,6 +260,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.tableWidget_2.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
     def setLabelsAndPages(self, count, detection_type):
+        self.Ocr = PaddleOCR(use_gpu=False,
+                             det_model_dir=self.det_model_dir,
+                             rec_model_dir=self.rec_model_dir,
+                             use_angle_cls=True,
+                             det_db_unclip_ratio=self.det_db_unclip_ratio,
+                             lang=self.lang)
         # 清除现有展示内容
         self.textBrowser_4.clear()
         self.currentTaskNumber = 0
@@ -473,7 +487,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             print("任务取消")
 
     def detectTask(self):
-        self.thread = OcrThread(self.captured_images, self.det_model_dir, self.rec_model_dir,
+        self.thread = OcrThread(self.Ocr, self.captured_images, self.det_model_dir, self.rec_model_dir,
                                 self.det_db_unclip_ratio)  # 使用捕获的图像
         self.thread.finished.connect(self.onOcrFinished)
         self.thread.start()
