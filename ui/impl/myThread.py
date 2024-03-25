@@ -170,8 +170,24 @@ class DatabaseOperationThread(QThread):
                     self.expiry_date = self.dates[0]
                     self.production_date = ''  # 或者使用 '' 表示空字符串，根据您的需要
                 else:
-                    self.production_date = self.dates[0]
-                    self.expiry_date = self.dates[1]
+                    # 将日期字符串转换为日期对象的函数
+                    def convert_to_date(date_str):
+                        try:
+                            return datetime.strptime(date_str, '%Y-%m-%d')
+                        except ValueError:
+                            return datetime.strptime(date_str, '%d-%m-%Y')
+
+                    # 转换两个日期
+                    date1 = convert_to_date(self.dates[0])
+                    date2 = convert_to_date(self.dates[1])
+
+                    # 比较并赋值
+                    if date1 < date2:
+                        self.production_date = self.dates[0]
+                        self.expiry_date = self.dates[1]
+                    else:
+                        self.production_date = self.dates[1]
+                        self.expiry_date = self.dates[0]
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
                 for image_np in self.captured_images:

@@ -505,7 +505,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         print("data",dates)
         # 当检测类型为 "双面" 时的特定逻辑
         if self.detection_type == "双面":
-            if len(dates) == 2 and len(batch_numbers) == 0:
+            if len(batch_numbers) == 0:
                 reply = QMessageBox.question(self, '消息提示',
                                              '未检测到批号信息，'
                                              '是否进行当前产品的重新拍摄？'
@@ -519,8 +519,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.progressBar.setValue(max(0,self.current_label_index // 2 + 1))
                     self.progressBar_2.setValue(max(0,self.current_label_index // 2 - 1 ))
                     return
+                else:
+                    self.captured_images.clear()
+                    self.camera_worker.pause()
+                    return
 
-            elif len(dates) == 0 and len(batch_numbers) == 2:
+            elif len(dates) == 0:
                 reply = QMessageBox.question(self, '消息提示',
                                              '未检测到日期信息，'
                                              '是否进行当前产品的重新拍摄？'
@@ -534,7 +538,46 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
                     self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
                     return
+                else:
+                    self.captured_images.clear()
+                    self.camera_worker.pause()
+                    return
+        elif self.detection_type == "单面":
+            if len(batch_numbers) == 0:
+                reply = QMessageBox.question(self, '消息提示',
+                                             '未检测到批号信息，'
+                                             '是否跟换当前产品的药盒后进行重新拍摄？'
+                                             '点击“Yes”重新拍摄，点击“No”则切换任务',
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    # 添加重新拍摄的代码
+                    # 清空已捕获的图像
+                    self.captured_images.clear()
+                    self.current_label_index =self.current_label_index - 1
+                    self.progressBar.setValue(max(0,self.current_label_index  + 1))
+                    return
+                else:
+                    self.captured_images.clear()
+                    self.camera_worker.pause()
+                    return
 
+            elif len(dates) == 0:
+                reply = QMessageBox.question(self, '消息提示',
+                                             '未检测到日期信息，'
+                                             '是否跟换当前产品的药盒后进行重新拍摄？'
+                                             '点击“Yes”重新拍摄，点击“No”则切换任务',
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    # 添加重新拍摄的代码
+                    # 清空已捕获的图像
+                    self.captured_images.clear()
+                    self.current_label_index = self.current_label_index - 1
+                    self.progressBar.setValue(max(0, self.current_label_index  + 1))
+                    return
+                else:
+                    self.captured_images.clear()
+                    self.camera_worker.pause()
+                    return
 
         # 当前任务的索引
         self.task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
@@ -577,10 +620,28 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"批号: {batch_number}")
         # 根据日期数量显示不同的文本
         if len(dates) == 1:
-            self.textBrowser_4.append(f"日期: {dates[0]}")
+            self.textBrowser_4.append(f"有效期至: {dates[0]}")
         elif len(dates) == 2:
-            self.textBrowser_4.append(f"生产日期: {dates[0]}")
-            self.textBrowser_4.append(f"有效期至: {dates[1]}")
+            # 将日期字符串转换为日期对象
+            date_format_ymd = '%Y/%m/%d'
+            date_format_dmy = '%d/%m/%Y'
+            try:
+                date1 = datetime.strptime(dates[0], date_format_ymd)
+            except ValueError:
+                date1 = datetime.strptime(dates[0], date_format_dmy)
+
+            try:
+                date2 = datetime.strptime(dates[1], date_format_ymd)
+            except ValueError:
+                date2 = datetime.strptime(dates[1], date_format_dmy)
+
+            # 比较日期并按顺序输出
+            if date1 < date2:
+                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+            else:
+                self.textBrowser_4.append(f"生产日期: {dates[1]}")
+                self.textBrowser_4.append(f"有效期至: {dates[0]}")
 
         self.dbThread = DatabaseOperationThread(self.task_key, self.captured_images, self.user_cwid, self.task_index, dates, batch_numbers)
         self.dbThread.start()
