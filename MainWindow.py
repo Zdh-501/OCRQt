@@ -438,8 +438,15 @@ class MainWindow(QWidget, Ui_MainPage):
     def showTaskPage2(self):
        #直接切换页面
         self.stackedWidget.setCurrentWidget(self.task_page)
+
     def showPicturePage(self):
-        if not self.picture_page.camera_worker.isRunning():
+        if self.picture_page.camera_worker.isRunning():
+            # 如果线程已经在运行，检查是否处于暂停状态
+            if self.picture_page.camera_worker.is_paused():
+                # 如果线程被暂停了，恢复线程
+                self.picture_page.camera_worker.resume()
+        else:
+            # 如果线程没有在运行，启动线程
             self.picture_page.camera_worker.start()
         self.stackedWidget.setCurrentWidget(self.picture_page)
     def showRecordPage(self):
