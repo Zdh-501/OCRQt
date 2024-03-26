@@ -50,7 +50,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.camera_params = self.load_camera_parameters()
 
         self.current_label_index = 0
-        self.currentTaskNumber = 0  # 添加一个变量来存储当前选中的任务序号
         self.isCameraStarted = False  # 相机是否已启动的标志
         self.captured_images = []  # 用于存储捕获的图像
         self.task_completion_status = []  # 初始化任务完成状态列表
@@ -270,7 +269,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                              lang=self.lang)
         # 清除现有展示内容
         self.textBrowser_4.clear()
-        self.currentTaskNumber = 0
         self.start_camera_view()
         self.current_label_index = 0
         self.isComplete = False  # 用于表示当前整体任务的完成情况
@@ -497,7 +495,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         print("OCR线程已启动...")
 
     def onOcrFinished(self, results):
-        self.currentTaskNumber =self.currentTaskNumber + 1
         print(results)
         # 可以在这里更新UI等
         extracted_data = self.extract_relevant_data(results)
@@ -624,7 +621,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.camera_worker.start()
 
         # 更新 self.textBrowser_4
-        self.textBrowser_4.append(f"第{self.currentTaskNumber}个产品")
+        self.textBrowser_4.append(f"第{self.current_label_index}个产品")
         # 显示批号
         for batch_number in batch_numbers:
             self.textBrowser_4.append(f"批号: {batch_number}")

@@ -427,12 +427,12 @@ class MainWindow(QWidget, Ui_MainPage):
 
             if reply == QMessageBox.Yes:
                 # 如果用户选择“是”，则允许切换页面
+                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
                 self.stackedWidget.setCurrentWidget(self.task_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
-            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.task_page)
     def showTaskPage2(self):
@@ -452,12 +452,12 @@ class MainWindow(QWidget, Ui_MainPage):
 
             if reply == QMessageBox.Yes:
                 # 如果用户选择“是”，则允许切换页面
+                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
                 self.stackedWidget.setCurrentWidget(self.record_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
-            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.record_page)
 
@@ -471,12 +471,12 @@ class MainWindow(QWidget, Ui_MainPage):
 
             if reply == QMessageBox.Yes:
                 # 如果用户选择“是”，则允许切换页面
+                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
                 self.stackedWidget.setCurrentWidget(self.log_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
-            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.log_page)
     def showUsersPage(self):
@@ -489,12 +489,12 @@ class MainWindow(QWidget, Ui_MainPage):
 
             if reply == QMessageBox.Yes:
                 # 如果用户选择“是”，则允许切换页面
+                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
                 self.stackedWidget.setCurrentWidget(self.users_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
-            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.users_page)
 
