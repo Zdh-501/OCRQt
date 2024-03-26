@@ -426,14 +426,18 @@ class MainWindow(QWidget, Ui_MainPage):
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
-                # 如果用户选择“是”，则允许切换页面
-                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+                if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                    self.picture_page.camera_worker.pause()  # 先暂停线程
                 self.stackedWidget.setCurrentWidget(self.task_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
             # 如果任务已完成，直接切换页面
+            # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+            if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                self.picture_page.camera_worker.pause()  # 先暂停线程
             self.stackedWidget.setCurrentWidget(self.task_page)
     def showTaskPage2(self):
        #直接切换页面
@@ -459,13 +463,18 @@ class MainWindow(QWidget, Ui_MainPage):
 
             if reply == QMessageBox.Yes:
                 # 如果用户选择“是”，则允许切换页面
-                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+                if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                    self.picture_page.camera_worker.pause()  # 先暂停线程
                 self.stackedWidget.setCurrentWidget(self.record_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
             # 如果任务已完成，直接切换页面
+            # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+            if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                self.picture_page.camera_worker.pause()  # 先暂停线程
             self.stackedWidget.setCurrentWidget(self.record_page)
 
     def showLogPage(self):
@@ -477,14 +486,18 @@ class MainWindow(QWidget, Ui_MainPage):
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
-                # 如果用户选择“是”，则允许切换页面
-                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+                if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                    self.picture_page.camera_worker.pause()  # 先暂停线程
                 self.stackedWidget.setCurrentWidget(self.log_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
             # 如果任务已完成，直接切换页面
+            # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+            if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                self.picture_page.camera_worker.pause()  # 先暂停线程
             self.stackedWidget.setCurrentWidget(self.log_page)
     def showUsersPage(self):
         # 检查当前任务是否完成
@@ -495,13 +508,17 @@ class MainWindow(QWidget, Ui_MainPage):
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
-                # 如果用户选择“是”，则允许切换页面
-                self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+                if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                    self.picture_page.camera_worker.pause()  # 先暂停线程
                 self.stackedWidget.setCurrentWidget(self.users_page)
             else:
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
+            # 首先判断相机工作线程是否存在并且正在运行，如果是，则暂停它
+            if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
+                self.picture_page.camera_worker.pause()  # 先暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.users_page)
 

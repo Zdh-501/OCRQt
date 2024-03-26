@@ -117,7 +117,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             model_dir = "rec"
 
         train_cmd = (
-            f"python .\\PaddleOCR\\tools\\train.py -c {config_file} "
+            f"{sys.executable} .\\PaddleOCR\\tools\\train.py -c {config_file} "
             f"-o Global.pretrained_model=\"{pre_model_path}\" "
             f"Global.save_model_dir=\"{save_path}\\{model_dir}\" "
             f"Global.epoch_num={epochs} "
