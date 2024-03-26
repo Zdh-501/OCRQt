@@ -1,22 +1,26 @@
 import sys
 import os
 import subprocess
+from datetime import datetime
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication,QFileDialog,QMessageBox
 from PyQt5 import QtCore, QtWidgets
 
 from ui.layout.UI_TrainPage import Ui_TrainPage
 from ui.impl.myThread import *
+from SQL.dbFunction import *
 class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
-
-    def __init__(self):
+    # 定义一个没有参数的信号
+    trainingCompleted = pyqtSignal()
+    def __init__(self, user_cwid, user_name):
         super(TrainPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
         self.trainButton.clicked.connect(self.on_train_button_clicked)
         self.dataButton.clicked.connect(self.select_data_path)
         self.preModelButton.clicked.connect(self.select_pre_model_path)
         self.saveButton.clicked.connect(self.select_save_path)
-
+        self.user_cwid=user_cwid
+        self.user_name=user_name
     def select_data_path(self):
         # 打开文件选择对话框
         data_path = QFileDialog.getExistingDirectory(self, "选择数据集目录")
@@ -103,11 +107,45 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
                                                      batch_size)
 
         # 使用子线程同时执行划分数据集和训练命令
-        self.training_thread = TrainingThread(divide_dataset_cmd, train_cmd)
-        self.training_thread.start()
-
+        # self.training_thread = TrainingThread(divide_dataset_cmd, train_cmd)
+        # self.training_thread.start()
+        self.insert_model_info_to_database()
         #todo 添加上传数据库功能
 
+    def insert_model_info_to_database(self):
+        # 连接数据库
+        connection = dbConnect()
+        cursor = connection.cursor()
+
+        # 准备要插入的数据
+        model_name = self.nameEdit.text()
+        pre_model_name = self.preEdit.text().replace('/', '\\')  # Windows路径风格
+        remarks = self.infoTextEdit.toPlainText()  # 如果是QTextEdit，使用toPlainText获取文本
+        storage_path = self.saveEdit.text().replace('/', '\\')
+        status = "进行中"
+        cwid = self.user_cwid
+        training_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 格式化当前时间
+
+        # 构建SQL插入命令
+        insert_query = """
+               INSERT INTO ModelInformation 
+               (ModelName, PretrainedModelName, Remarks, StoragePath, Status, CWID, UserName, TrainingStartTime)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           """
+
+        # 执行插入命令
+        try:
+            cursor.execute(insert_query, (
+            model_name, pre_model_name, remarks, storage_path, status, cwid, self.user_name, training_start_time))
+            connection.commit()
+            print("Model information inserted successfully.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            cursor.close()
+            connection.close()
+        # 数据插入完成后，发射信号
+        self.trainingCompleted.emit()
     def construct_train_command(self, model_type, dataset_root_path, pre_model_path, save_path, epochs, batch_size):
         if model_type == 'det':
             config_file = ".\\PaddleOCR\\configs\\det\\det_mv3_db.yml"

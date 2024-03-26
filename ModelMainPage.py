@@ -17,9 +17,11 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
         self.setWindowTitle('药品三期信息模型训练')
         # 设置窗口图标
         self.setWindowIcon(QIcon('ui/pic/logo.ico'))
+        # 调用登录逻辑
+        self.perform_login()
         # 创建分页面
         self.modelmanage_page=ModelManagePage()
-        self.train_page=TrainPage()
+        self.train_page=TrainPage(self.user_cwid,self.user_cwid)
         self.datacollect_page=DataCollectPage()
 
         self.pages = [self.modelmanage_page, self.train_page,self.datacollect_page]
@@ -31,8 +33,9 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
         self.pushButton_2.clicked.connect(self.showTrainPage)
         self.pushButton_3.clicked.connect(self.showModelManage)
 
-        # 调用登录逻辑
-        self.perform_login()
+        # 连接信号到槽
+        self.train_page.trainingCompleted.connect(self.modelmanage_page.load_models_from_database)
+
     def perform_login(self):
         while True:
             login_dialog = LoginDialog(self)
@@ -42,6 +45,7 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
                 self.user_cwid = login_dialog.username
                 self.user_name = login_dialog.user_name
                 self.user_permission = login_dialog.permission
+
 
                 # 检查用户权限，只允许管理员登录
                 if self.user_permission != '1':
