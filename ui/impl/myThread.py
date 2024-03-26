@@ -278,41 +278,24 @@ class LabelThread(QThread):
 class ImageSaveThread(QThread):
     save_finished = pyqtSignal(str)  # 用于保存完成后发出信号
 
-    def __init__(self, image, file_path, file_format):
+    def __init__(self, image_np, file_path, file_format='jpg'):
         super().__init__()
-        self.image = image
+        self.image_np = np.asarray(image_np, dtype=np.uint8)  # 确保图像数据类型为uint8
         self.file_path = file_path
-        self.file_format = file_format
+        # 转换'jpg'为'JPEG'以确保兼容性
+        self.file_format = 'JPEG' if file_format.lower() == 'jpg' else file_format.upper()
 
     def run(self):
-        # 使用pathlib处理路径
-        save_path = Path(self.file_path)
+        try:
+            img = Image.fromarray(self.image_np).convert('RGB')
+            save_path = Path(self.file_path)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # 确保目录存在
-        save_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # 定义缩放比例（例如，缩小到原来的50%）
-        scale_percent = 50
-        width = int(self.image.shape[1] * scale_percent / 100)
-        height = int(self.image.shape[0] * scale_percent / 100)
-        dim = (width, height)
-
-        # 缩放图像
-        resized_image = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
-
-        # 将图像编码为指定的格式
-        ext = f'.{self.file_format.lower()}'
-        result, encoded_image = cv2.imencode(ext, resized_image)
-        if result:
-            # 将编码后的图像写入文件
-            try:
-                with open(save_path, 'wb') as file:
-                    file.write(encoded_image)
-                self.save_finished.emit(f"图像已保存到 {save_path}")
-            except Exception as e:
-                self.save_finished.emit(f"保存图像失败: {e}")
-        else:
-            self.save_finished.emit("图像编码失败")
+            # 保存图像
+            img.save(save_path, self.file_format, quality=85)
+            self.save_finished.emit(f"图像已保存到 {save_path}")
+        except Exception as e:
+            self.save_finished.emit(f"保存图像失败: {e}")
 
 class TrainingThread(QThread):
     def __init__(self, divide_dataset_cmd, train_cmd):
