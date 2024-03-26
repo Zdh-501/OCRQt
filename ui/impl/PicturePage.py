@@ -22,6 +22,8 @@ from SQL.dbFunction import *
 from ui.impl.resClient import *
 
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
+    # 定义一个没有参数用于返回主页面的信号
+    returnToMainPageSignal = pyqtSignal()
     #定义一个任务完成信号
     Compl = pyqtSignal()
     # 定义一个任务完成信号，传递 task_key 值
@@ -522,6 +524,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 else:
                     self.captured_images.clear()
                     self.camera_worker.pause()
+                    # 发出信号
+                    self.returnToMainPageSignal.emit()
                     return
 
             elif len(dates) == 0:
@@ -541,6 +545,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 else:
                     self.captured_images.clear()
                     self.camera_worker.pause()
+                    # 发出信号
+                    self.returnToMainPageSignal.emit()
                     return
         elif self.detection_type == "单面":
             if len(batch_numbers) == 0:
@@ -559,6 +565,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 else:
                     self.captured_images.clear()
                     self.camera_worker.pause()
+                    # 发出信号
+                    self.returnToMainPageSignal.emit()
                     return
 
             elif len(dates) == 0:
@@ -577,6 +585,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 else:
                     self.captured_images.clear()
                     self.camera_worker.pause()
+                    # 发出信号
+                    self.returnToMainPageSignal.emit()
                     return
 
         # 当前任务的索引

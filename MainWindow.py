@@ -145,7 +145,7 @@ class MainWindow(QWidget, Ui_MainPage):
         # 连接信号和槽切换主界面
         self.task_page.switchToPage.connect(self.switchPage)
         self.log_page.flashButton.clicked.connect(self.flashErrorData)
-
+        self.picture_page.returnToMainPageSignal.connect(self.showTaskPage2)
         self.signals.task_received.connect(self.process_task_info)
 
         # 检测任务完成发送信号切换页面 备用
@@ -432,9 +432,15 @@ class MainWindow(QWidget, Ui_MainPage):
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
+            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.task_page)
+    def showTaskPage2(self):
+       #直接切换页面
+        self.stackedWidget.setCurrentWidget(self.task_page)
     def showPicturePage(self):
+        if not self.picture_page.camera_worker.isRunning():
+            self.picture_page.camera_worker.start()
         self.stackedWidget.setCurrentWidget(self.picture_page)
     def showRecordPage(self):
         # 检查当前任务是否完成
@@ -451,6 +457,7 @@ class MainWindow(QWidget, Ui_MainPage):
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
+            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.record_page)
 
@@ -469,6 +476,7 @@ class MainWindow(QWidget, Ui_MainPage):
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
+            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.log_page)
     def showUsersPage(self):
@@ -486,6 +494,7 @@ class MainWindow(QWidget, Ui_MainPage):
                 # 如果用户选择“否”，则不进行任何操作
                 pass
         else:
+            self.picture_page.camera_worker.pause()  # 调用 pause 方法来暂停线程
             # 如果任务已完成，直接切换页面
             self.stackedWidget.setCurrentWidget(self.users_page)
 
