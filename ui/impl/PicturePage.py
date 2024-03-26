@@ -669,22 +669,24 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             return re.sub(pattern, r'\1 \2', text)
 
         for label_index, result in results:
-            if result:
+            if result is not None:  # 检查result是否为None
                 for item in result:
-                    for detected_item in item:
-                        for inner_item in detected_item:
-                            if isinstance(inner_item, tuple) and len(inner_item) == 2:
-                                text = inner_item[0]
-                                # 应用预处理步骤
-                                preprocessed_text = preprocess_text(text)
-                                # 然后进行正则表达式匹配
-                                date_matches = re.findall(date_regex, preprocessed_text)
-                                for date_match in date_matches:
-                                    date = date_match[0] if date_match[0] else date_match[1]
-                                    extracted_data['dates'].append(date)
+                    if item is not None:  # 检查item是否为None
+                        for detected_item in item:
+                            if detected_item is not None:  # 检查detected_item是否为None
+                                for inner_item in detected_item:
+                                    if isinstance(inner_item, tuple) and len(inner_item) == 2:
+                                        text = inner_item[0]
+                                        # 应用预处理步骤
+                                        preprocessed_text = preprocess_text(text)
+                                        # 然后进行正则表达式匹配
+                                        date_matches = re.findall(date_regex, preprocessed_text)
+                                        for date_match in date_matches:
+                                            date = date_match[0] if date_match[0] else date_match[1]
+                                            extracted_data['dates'].append(date)
 
-                                batch_number_matches = re.findall(batch_number_regex, preprocessed_text)
-                                extracted_data['batch_numbers'].extend(batch_number_matches)
+                                        batch_number_matches = re.findall(batch_number_regex, preprocessed_text)
+                                        extracted_data['batch_numbers'].extend(batch_number_matches)
 
         return extracted_data
 
