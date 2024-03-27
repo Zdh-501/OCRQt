@@ -1,8 +1,8 @@
 import sys
-
+from datetime import datetime
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QTableWidgetItem, QApplication, QHeaderView, QWidget, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QTableWidgetItem, QApplication, QHeaderView, QWidget, QHBoxLayout, QPushButton, QMessageBox
 from PyQt5 import QtCore, QtWidgets
 
 from ui.layout.UI_ModelManagePage import Ui_ModelManagePage
@@ -16,7 +16,7 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
         # 设置除了状态列之外的所有列为根据表格宽度均匀分配
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # 设置表格列标题
-        columns = ['模型名称', '预训练模型', 'CWID', '用户名称', '开始训练时间', '备注', '状态', '操作']
+        columns = ['模型ID', '模型名称','预训练模型', 'CWID', '用户名称', '开始训练时间', '状态', '操作']
         self.tableWidget.setColumnCount(len(columns))
         for index, column_name in enumerate(columns):
             self.tableWidget.setHorizontalHeaderItem(index, QtWidgets.QTableWidgetItem(column_name))
@@ -28,8 +28,8 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
         connection = dbConnect()
         cursor = connection.cursor()
 
-        # SQL 查询模型信息
-        query = "SELECT ModelName, PretrainedModelName, CWID, UserName, TrainingStartTime, Remarks, Status FROM ModelInformation"
+        # SQL 查询模型信息，确保包含ModelID, Remarks, 和 StoragePath
+        query = "SELECT ModelID, ModelName, PretrainedModelName, CWID, UserName, TrainingStartTime, Status, Remarks, StoragePath FROM ModelInformation"
         try:
             cursor.execute(query)
             models_data = cursor.fetchall()  # 获取所有查询结果
@@ -50,98 +50,98 @@ class ModelManagePage(QtWidgets.QWidget,Ui_ModelManagePage):
         #self.populate_table(models_data)
 
     def populate_table(self, models_data):
-        self.tableWidget.setColumnCount(8)  # 你有7个数据列和1个操作列
-
-        # 设置行高和字体
-        row_height = 100  # 设置一个合适的行高，例如50像素
+        self.tableWidget.setColumnCount(8)  # 现在是7个可见数据列和1个操作列
+        # 保持原有的行高和字体设置不变
+        row_height = 100
         font = QFont()
-        font.setPointSize(10)  # 设置一个合适的字体大小，例如10点
+        font.setPointSize(10)
 
         self.tableWidget.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)
-
         self.tableWidget.setRowCount(len(models_data))  # 根据数据设置行数
+
         for row_index, row_data in enumerate(models_data):
             self.tableWidget.setRowHeight(row_index, row_height)
-            # 假设数据库查询结果与列的顺序是匹配的
-            for col_index, item in enumerate(row_data):
-                # 格式化时间
-                if col_index == 4:  # 假设第五个字段是时间
-                    item = item.strftime("%Y/%m/%d %H:%M:%S") if item else ""
+            for col_index, item in enumerate(row_data[:-2]):  # 排除最后两项(即Remarks和StoragePath)
+                # 检查TrainingStartTime是否是datetime对象
+                if col_index == 5:  # 假设TrainingStartTime是第六个字段
+                    if isinstance(item, datetime):
+                        item = item.strftime("%Y/%m/%d %H:%M:%S")
                 table_item = QTableWidgetItem(str(item))
-                table_item.setFont(font)  # 设置字体
-                table_item.setTextAlignment(Qt.AlignCenter)  # 设置文本居中
-                # 设置为不可编辑
+                # 保持原有的字体设置
+                table_item.setFont(font)
+                table_item.setTextAlignment(Qt.AlignCenter)
                 table_item.setFlags(table_item.flags() & ~Qt.ItemIsEditable)
-
                 self.tableWidget.setItem(row_index, col_index, table_item)
-            self.add_action_buttons(row_index)  # 为每行添加操作按钮
 
-    def add_action_buttons(self, row):
+            # 传递ModelID到操作按钮的添加方法中
+            self.add_action_buttons(row_index, row_data[0], row_data[-2], row_data[-1])
+    def add_action_buttons(self, row, model_id ,remarks, storage_path):
         # 创建包含按钮的QWidget
         widget = QWidget()
         layout = QHBoxLayout(widget)
 
-        # 创建字体对象并设置字体大小
-        font = QFont()
-        font.setPointSize(10)  # 这里设置按钮的字体大小为10点
-        # 创建删除按钮
-        btn_delete = QPushButton('删除', self)
-        btn_delete.setFont(font)  # 应用字体设置
-        btn_delete.clicked.connect(self.create_delete_function(row))
+        # 删除按钮
+        btn_delete = QPushButton('删除')
+        btn_delete.clicked.connect(lambda: self.delete_model(model_id))
         layout.addWidget(btn_delete)
 
-        # 创建再次训练按钮
-        btn_retrain = QPushButton('重新训练', self)
-        btn_retrain.setFont(font)  # 应用字体设置
-        btn_retrain.clicked.connect(self.create_retrain_function(row))
-        layout.addWidget(btn_retrain)
+        # 查看备注按钮
+        btn_view_remarks = QPushButton('查看备注')
+        btn_view_remarks.clicked.connect(lambda: self.show_popup(remarks))
+        layout.addWidget(btn_view_remarks)
 
-        # 创建保存路径按钮
-        btn_check_path = QPushButton('查看路径')
-        btn_check_path.setFont(font)  # 应用字体设置
-        btn_check_path.clicked.connect(self.create_check_path_function(row))
-        layout.addWidget(btn_check_path)
+        # 查看路径按钮
+        btn_view_path = QPushButton('查看路径')
+        btn_view_path.clicked.connect(lambda: self.show_popup(storage_path))
+        layout.addWidget(btn_view_path)
 
-        # 设置布局
+        # 设置布局并将其添加到表格中
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(QtCore.Qt.AlignCenter)
+        layout.setAlignment(Qt.AlignCenter)
         widget.setLayout(layout)
+        self.tableWidget.setCellWidget(row, 7, widget)  # 假设操作列是第8列
 
-        # 将QWidget设置为表格中的项
-        self.tableWidget.setCellWidget(row, 7, widget)
+    def delete_model(self, model_id):
+        # 首先确认用户想要删除模型
+        reply = QMessageBox.question(self, '确认删除',
+                                     "你确定要删除这个模型吗?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
-    def delete_model(self, row):
-        # 删除模型的函数
-        print(f"删除第{row}行的模型")
-        # 在这里实现删除模型的逻辑
+        if reply == QMessageBox.Yes:
+            try:
+                # 连接数据库
+                connection = dbConnect()
+                cursor = connection.cursor()
 
-    def retrain_model(self, row):
-        # 再次训练模型的函数
-        print(f"对第{row}行的模型进行重新训练")
-        # 在这里实现再次训练模型的逻辑
+                # 使用参数化的查询来防止SQL注入
+                query = "DELETE FROM ModelInformation WHERE ModelID = ?"
+                cursor.execute(query, (model_id,))
 
-    def create_check_path_function(self, row):
-        # 工厂函数，为每个按钮创建保存路径函数
-        def check_path():
-            self.check_model_path(row)
+                # 提交数据库操作
+                connection.commit()
 
-        return check_path
+                # 从表格视图中移除对应的行
+                # 这里假设每行的第一列是ModelID
+                for i in range(self.tableWidget.rowCount()):
+                    if self.tableWidget.item(i, 0).text() == str(model_id):
+                        self.tableWidget.removeRow(i)
+                        break
 
-    def create_delete_function(self, row):
-        def delete():
-            self.delete_model(row)
+                print(f"模型 {model_id} 已从数据库中删除。")
+            except Exception as e:
+                QMessageBox.warning(self, '删除失败', f"删除模型失败: {e}")
+            finally:
+                cursor.close()
+                connection.close()
 
-        return delete
+    def show_popup(self, message):
+        QMessageBox.information(self, "信息", message)
 
-    def create_retrain_function(self, row):
-        def retrain():
-            self.retrain_model(row)
 
-        return retrain
 
-    def check_model_path(self, row):
-        # 保存路径的函数
-        print(f"查看第{row}行的模型路径")
+
+
+
         # 实现保存路径的逻辑
 # if __name__ == '__main__':
 #     app = QApplication(sys.argv)
