@@ -298,13 +298,22 @@ class ImageSaveThread(QThread):
             self.save_finished.emit(f"保存图像失败: {e}")
 
 class TrainingThread(QThread):
+    trainingCompleted = pyqtSignal(bool, str)  # 参数表示训练是否成功和消息
+
     def __init__(self, divide_dataset_cmd, train_cmd):
         super(TrainingThread, self).__init__()
         self.divide_dataset_cmd = divide_dataset_cmd
         self.train_cmd = train_cmd
 
     def run(self):
-        # 先执行划分数据集的命令
-        subprocess.run(self.divide_dataset_cmd, shell=True, check=True)
-        # 然后执行训练命令
-        subprocess.run(self.train_cmd, shell=True, check=True)
+        try:
+            # 先执行划分数据集的命令
+            subprocess.run(self.divide_dataset_cmd, shell=True, check=True)
+            # 然后执行训练命令
+            subprocess.run(self.train_cmd, shell=True, check=True)
+            # 训练成功完成
+            self.trainingCompleted.emit(True, "训练成功完成。")
+        except subprocess.CalledProcessError as e:
+            # 训练失败
+            print(f"训练命令执行失败: {e}")
+            self.trainingCompleted.emit(False, f"训练命令执行失败: {e}")

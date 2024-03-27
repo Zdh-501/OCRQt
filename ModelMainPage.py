@@ -34,7 +34,7 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
         self.pushButton_3.clicked.connect(self.showModelManage)
 
         # 连接信号到槽
-        self.train_page.trainingCompleted.connect(self.modelmanage_page.load_models_from_database)
+        self.train_page.trainStrat.connect(self.modelmanage_page.load_models_from_database)
 
     def perform_login(self):
         while True:

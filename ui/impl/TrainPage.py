@@ -11,7 +11,7 @@ from ui.impl.myThread import *
 from SQL.dbFunction import *
 class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
     # 定义一个没有参数的信号
-    trainingCompleted = pyqtSignal()
+    trainStrat = pyqtSignal()
     def __init__(self, user_cwid, user_name):
         super(TrainPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
@@ -19,6 +19,8 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         self.dataButton.clicked.connect(self.select_data_path)
         self.preModelButton.clicked.connect(self.select_pre_model_path)
         self.saveButton.clicked.connect(self.select_save_path)
+
+        self.training_thread.trainingCompleted.connect(self.on_training_completed)
         self.user_cwid=user_cwid
         self.user_name=user_name
     def select_data_path(self):
@@ -95,8 +97,8 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         print(f"Dataset root path: {dataset_root_path}")
         # 构建数据集划分命令
 
-        divide_dataset_cmd = f"python .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\" --detRootPath \"{det_path}\" --recRootPath \"{rec_path}\""
-        subprocess.run(divide_dataset_cmd, shell=True, check=True)
+        divide_dataset_cmd = f"{sys.executable} .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\" --detRootPath \"{det_path}\" --recRootPath \"{rec_path}\""
+        #subprocess.run(divide_dataset_cmd, shell=True, check=True)
 
         # 根据模型类型构建相应的训练命令
         if model_type == 'det':
@@ -107,8 +109,8 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
                                                      batch_size)
 
         # 使用子线程同时执行划分数据集和训练命令
-        # self.training_thread = TrainingThread(divide_dataset_cmd, train_cmd)
-        # self.training_thread.start()
+        self.training_thread = TrainingThread(divide_dataset_cmd, train_cmd)
+        self.training_thread.start()
         self.insert_model_info_to_database()
         #todo 添加上传数据库功能
 
@@ -145,7 +147,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             cursor.close()
             connection.close()
         # 数据插入完成后，发射信号
-        self.trainingCompleted.emit()
+        self.trainStrat.emit()
     def construct_train_command(self, model_type, dataset_root_path, pre_model_path, save_path, epochs, batch_size):
         if model_type == 'det':
             config_file = ".\\PaddleOCR\\configs\\det\\det_mv3_db.yml"
@@ -169,6 +171,11 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
         return train_cmd
 
+    def on_training_completed(self, success, message):
+        if success:
+            QMessageBox.information(self, "训练完成", message)
+        else:
+            QMessageBox.critical(self, "训练失败", message)
 # if __name__ == '__main__':
 # app = QApplication(sys.argv)
 # mainWindow = TrainPage()
