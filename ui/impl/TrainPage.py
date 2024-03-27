@@ -20,9 +20,8 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         self.preModelButton.clicked.connect(self.select_pre_model_path)
         self.saveButton.clicked.connect(self.select_save_path)
 
-        self.training_thread.trainingCompleted.connect(self.on_training_completed)
-        self.user_cwid=user_cwid
-        self.user_name=user_name
+        self.user_cwid = user_cwid
+        self.user_name = user_name
     def select_data_path(self):
         # 打开文件选择对话框
         data_path = QFileDialog.getExistingDirectory(self, "选择数据集目录")
@@ -33,7 +32,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
     def select_pre_model_path(self):
         # 打开文件选择对话框，选择文件而不是文件夹
         pre_model_path, _ = QFileDialog.getOpenFileName(self, "选择预训练模型文件", "",
-                                                        "模型文件 (*.model *.bin);;所有文件 (*)")
+                                                        "模型参数文件 (*.pdparams);;所有文件 (*)")
         # 将选定的路径显示在preEdit输入框中
         if pre_model_path:  # 如果用户选择了文件
             self.preEdit.setText(pre_model_path.replace('/', '\\'))  # 在Windows上使用反斜杠
@@ -78,6 +77,16 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             return None
 
     def on_train_button_clicked(self):
+        # 检查模型类型选择
+        if not self.detBox.isChecked() and not self.recBox.isChecked():
+            QMessageBox.warning(self, '错误', '请先勾选要训练的模型类型。')
+            return
+        elif self.detBox.isChecked() and self.recBox.isChecked():
+            QMessageBox.warning(self, '错误', '只能选择一种模型类型进行训练。')
+            return
+        else:
+            model_type = 'det' if self.detBox.isChecked() else 'rec'
+
         if not self.check_all_fields_filled():
             return
 
@@ -89,17 +98,13 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         batch_size = self.batchEdit.text()  # Batch size输入框
         det_path = os.path.join(dataset_root_path, "det")  # 构造det数据集的路径
         rec_path = os.path.join(dataset_root_path, "rec")  # 构造rec数据集的路径
-        # 推断训练模型类型
-        model_type = self.infer_model_type_from_pretrained_name(pre_model_path)
-        if model_type is None:
-            QMessageBox.warning(self, '错误', '无法根据预训练模型名称推断模型类型。')
-            return
+
 
         print(f"Dataset root path: {dataset_root_path}")
         # 构建数据集划分命令
 
         divide_dataset_cmd = f"{sys.executable} .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\" --detRootPath \"{det_path}\" --recRootPath \"{rec_path}\""
-        #subprocess.run(divide_dataset_cmd, shell=True, check=True)
+
 
         # 根据模型类型构建相应的训练命令
         if model_type == 'det':
@@ -111,6 +116,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
         # 使用子线程同时执行划分数据集和训练命令
         self.training_thread = TrainingThread(divide_dataset_cmd, train_cmd)
+        self.training_thread.trainingCompleted.connect(self.on_training_completed)
         self.training_thread.start()
         self.insert_model_info_to_database()
         #todo 添加上传数据库功能
@@ -154,7 +160,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             config_file = ".\\PaddleOCR\\configs\\det\\det_mv3_db.yml"
             model_dir = "det"
         elif model_type == 'rec':
-            config_file = ".\\PaddleOCR\\configs\\rec\\rec_mv3_none_bilstm_ctc.yml"
+            config_file = ".\\PaddleOCR\\configs\\rec\\PP-OCRv3\\ch_PP-OCRv3_rec_distillation.yml"
             model_dir = "rec"
 
         train_cmd = (
