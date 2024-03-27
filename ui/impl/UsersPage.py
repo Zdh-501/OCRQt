@@ -16,6 +16,7 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         self.loadUsersData()
 
 
+
     def set_user_info(self, cwid, name, permission):
         self.user_cwid = cwid  #当前用户的cwid
         self.user_name = name
