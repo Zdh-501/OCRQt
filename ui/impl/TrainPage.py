@@ -31,8 +31,9 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             self.dataSetEdit.setText(data_path.replace('/', '\\'))  # 在Windows上使用反斜杠
 
     def select_pre_model_path(self):
-        # 打开文件选择对话框
-        pre_model_path = QFileDialog.getExistingDirectory(self, "选择预训练模型文件")
+        # 打开文件选择对话框，选择文件而不是文件夹
+        pre_model_path, _ = QFileDialog.getOpenFileName(self, "选择预训练模型文件", "",
+                                                        "模型文件 (*.model *.bin);;所有文件 (*)")
         # 将选定的路径显示在preEdit输入框中
         if pre_model_path:  # 如果用户选择了文件
             self.preEdit.setText(pre_model_path.replace('/', '\\'))  # 在Windows上使用反斜杠

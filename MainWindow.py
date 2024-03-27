@@ -125,10 +125,12 @@ class MainWindow(QWidget, Ui_MainPage):
         # 设置窗口图标
         self.setWindowIcon(QIcon('ui/pic/logo.ico'))
 
+        # 进入登录界面，并更新当前显示用户
+        self.perform_logout()
 
         #创建分页面
         self.task_page=TaskPage()
-        self.picture_page=PicturePage()
+        self.picture_page=PicturePage( self.user_cwid, self.user_name)
         self.picture_page.isComplete=True
         self.record_page=RecordPage()
         self.log_page=LogPage()
@@ -165,8 +167,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.pushButton_5.clicked.connect(self.showUsersPage)
         # pushButton_6 是退出当前用户的按钮
         self.pushButton_6.clicked.connect(self.logout_user)
-        # 进入登录界面，并更新当前显示用户
-        self.perform_logout()
+
 
     def process_task_info(self, task_info):
         # 转换物料类型和识别类型为文本描述

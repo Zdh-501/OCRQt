@@ -28,7 +28,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     Compl = pyqtSignal()
     # 定义一个任务完成信号，传递 task_key 值
     taskCompleted = pyqtSignal(str)
-    def __init__(self):
+    def __init__(self, user_cwid, user_name):
         super(PicturePage, self).__init__()
         self.setupUi(self)
         self.count = 0  # 初始化 count 属性
@@ -39,7 +39,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.5
         self.lang = 'ch'
-
+        self.user_cwid = user_cwid
+        self.user_name = user_name
 
         # 用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
