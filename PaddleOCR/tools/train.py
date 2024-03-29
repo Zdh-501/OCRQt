@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(__dir__, '..')))
 import yaml
 import paddle
 import paddle.distributed as dist
-from PaddleOCR import ppocr
+
 
 from PaddleOCR.ppocr.data import build_dataloader, set_signal_handlers
 from PaddleOCR.ppocr.modeling.architectures import build_model

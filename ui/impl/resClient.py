@@ -78,4 +78,3 @@ def send_result_to_bes(result):
 
     # 输出响应
     print(response.text)
-send_result_to_bes(result)

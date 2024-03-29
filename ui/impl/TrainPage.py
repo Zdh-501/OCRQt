@@ -103,7 +103,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         print(f"Dataset root path: {dataset_root_path}")
         # 构建数据集划分命令
 
-        divide_dataset_cmd = f"{sys.executable} .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\" --detRootPath \"{det_path}\" --recRootPath \"{rec_path}\""
+        divide_dataset_cmd = f"D:\\Anaconda3\\envs\\paddle\\python.exe .\\PaddleOCR\\PPOCRLabel\\gen_ocr_train_val_test.py --trainValTestRatio 6:2:2 --datasetRootPath \"{dataset_root_path}\" --detRootPath \"{det_path}\" --recRootPath \"{rec_path}\""
 
 
         # 根据模型类型构建相应的训练命令
@@ -164,7 +164,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             model_dir = "rec"
 
         train_cmd = (
-            f"{sys.executable} .\\PaddleOCR\\tools\\train.py -c {config_file} "
+            f"D:\\Anaconda3\\envs\\paddle\\python.exe .\\PaddleOCR\\tools\\train.py -c {config_file} "
             f"-o Global.pretrained_model=\"{pre_model_path}\" "
             f"Global.save_model_dir=\"{save_path}\\{model_dir}\" "
             f"Global.epoch_num={epochs} "
