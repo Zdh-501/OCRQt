@@ -1,6 +1,5 @@
 import sys
 
-
 from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 from PyQt5.QtGui import QIcon
 
@@ -32,10 +31,15 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
         self.pushButton_1.clicked.connect(self.showDataCollectPage)
         self.pushButton_2.clicked.connect(self.showTrainPage)
         self.pushButton_3.clicked.connect(self.showModelManage)
-
+        self.pushButton_4.clicked.connect(self.logout_user)
         # 连接信号到槽
         self.train_page.trainStrat.connect(self.modelmanage_page.load_models_from_database)
-
+    def logout_user(self):
+        # 弹出提示框询问用户是否退出
+        reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.perform_login()
     def perform_login(self):
         while True:
             login_dialog = LoginDialog(self)
