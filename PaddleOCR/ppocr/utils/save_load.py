@@ -23,8 +23,8 @@ import six
 
 import paddle
 
-from PaddleOCR.ppocr.utils.logging import get_logger
-from PaddleOCR.ppocr.utils.network import maybe_download_params
+from ppocr.utils.logging import get_logger
+from ppocr.utils.network import maybe_download_params
 
 __all__ = ['load_model']
 

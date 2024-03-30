@@ -28,16 +28,16 @@ import paddle
 import paddle.distributed as dist
 
 
-from PaddleOCR.ppocr.data import build_dataloader, set_signal_handlers
-from PaddleOCR.ppocr.modeling.architectures import build_model
-from PaddleOCR.ppocr.losses import build_loss
-from PaddleOCR.ppocr.optimizer import build_optimizer
-from PaddleOCR.ppocr.postprocess import build_post_process
-from PaddleOCR.ppocr.metrics import build_metric
-from PaddleOCR.ppocr.utils.save_load import load_model
-from PaddleOCR.ppocr.utils.utility import set_seed
-from PaddleOCR.ppocr.modeling.architectures import apply_to_static
-import PaddleOCR.tools.program as program
+from ppocr.data import build_dataloader, set_signal_handlers
+from ppocr.modeling.architectures import build_model
+from ppocr.losses import build_loss
+from ppocr.optimizer import build_optimizer
+from ppocr.postprocess import build_post_process
+from ppocr.metrics import build_metric
+from ppocr.utils.save_load import load_model
+from ppocr.utils.utility import set_seed
+from ppocr.modeling.architectures import apply_to_static
+import tools.program as program
 
 dist.get_world_size()
 

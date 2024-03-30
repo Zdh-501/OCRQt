@@ -205,7 +205,7 @@ class DataCollectPage(QtWidgets.QWidget,Ui_DataCollectPage):
         # 设置 PPOCRLabel 的工作目录为 PaddleOCR 文件夹
         working_dir = "./PaddleOCR/PPOCRLabel" #ModeMainPage启动点和PaddleOCR目录同级
         # PPOCRLabel 的命令，假设 PPOCRLabel 是一个可执行的文件或者正确配置了环境变量
-        command = ['PPOCRLabel', '--lang', 'ch']
+        command = ['paddle\\python.exe', '-m','PPOCRLabel', '--lang', 'ch']
 
         self.labelThread = LabelThread(command, working_dir)
         self.labelThread.start()
@@ -216,4 +216,3 @@ if __name__ == '__main__':
     mainWindow = DataCollectPage()
     mainWindow.show()
     app.exec_()
-
