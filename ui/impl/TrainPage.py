@@ -12,6 +12,8 @@ from SQL.dbFunction import *
 class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
     # 定义一个没有参数的信号
     trainStrat = pyqtSignal()
+    # 定义一个带有一个bool和一个str参数的信号
+    trainingFinished = pyqtSignal(bool, str)
     def __init__(self, user_cwid, user_name):
         super(TrainPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
@@ -22,6 +24,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
         self.user_cwid = user_cwid
         self.user_name = user_name
+        self.training_start_time = None  # 添加属性来存储训练开始时间
     def select_data_path(self):
         # 打开文件选择对话框
         data_path = QFileDialog.getExistingDirectory(self, "选择数据集目录")
@@ -134,7 +137,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         status = "进行中"
         cwid = self.user_cwid
         training_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 格式化当前时间
-
+        self.training_start_time = training_start_time
         # 构建SQL插入命令
         insert_query = """
                INSERT INTO ModelInformation 
@@ -181,8 +184,11 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
     def on_training_completed(self, success, message):
         if success:
             QMessageBox.information(self, "训练完成", message)
+            self.trainingFinished.emit(success, self.training_start_time)
         else:
             QMessageBox.critical(self, "训练失败", message)
+        # 发射训练完成的信号，不再需要model_name，只需要传递训练开始时间
+
 # if __name__ == '__main__':
 # app = QApplication(sys.argv)
 # mainWindow = TrainPage()

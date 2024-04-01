@@ -33,7 +33,44 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
         self.pushButton_3.clicked.connect(self.showModelManage)
         self.pushButton_4.clicked.connect(self.logout_user)
         # 连接信号到槽
+        # 连接训练页面的信号到相应的槽
+        self.train_page.trainStrat.connect(self.on_training_started)
         self.train_page.trainStrat.connect(self.modelmanage_page.load_models_from_database)
+        self.train_page.trainingFinished.connect(self.on_training_finished)
+        self.train_in_progress = False  # 添加一个标记，初始设置为 False
+    def on_training_finished(self, success, training_start_time):
+        self.train_in_progress = False  # 更新训练状态标记
+        if success:
+            # 更新数据库中的模型状态为“已完成”
+            connection = dbConnect()
+            cursor = connection.cursor()
+            try:
+                update_query = """
+                    UPDATE ModelInformation
+                    SET Status = '已完成'
+                    WHERE TrainingStartTime = ?
+                """
+                cursor.execute(update_query, (training_start_time,))
+                connection.commit()
+            except Exception as e:
+                QMessageBox.warning(self, '更新失败', f"更新模型状态失败: {e}")
+            finally:
+                cursor.close()
+                connection.close()
+            # 重新加载模型信息
+            self.modelmanage_page.load_models_from_database()
+
+    # def closeEvent(self, event):
+    #     if self.train_in_progress:
+    #         # 如果训练正在进行，显示提示消息并忽略关闭事件
+    #         QMessageBox.warning(self, '操作不允许', '当前模型正在训练，请勿关闭软件。')
+    #         event.ignore()
+    #     else:
+    #         # 如果训练不在进行，可以正常关闭
+    #         super().closeEvent(event)
+    def on_training_started(self):
+        # 设置一个标记，表示训练正在进行
+        self.train_in_progress = True
     def logout_user(self):
         # 弹出提示框询问用户是否退出
         reply = QMessageBox.question(self, '退出登录', "是否退出当前用户？", QMessageBox.Yes | QMessageBox.No,
@@ -78,21 +115,33 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
     def showDataCollectPage(self):
         self.stackedWidget.setCurrentWidget(self.datacollect_page)
 
+    # def closeEvent(self, event):
+    #     # 检查 DataCollectPage 实例中是否有 labelThread 属性，并且它是否在运行
+    #     if hasattr(self.datacollect_page, 'labelThread') and self.datacollect_page.labelThread.is_running():
+    #         # 如果 labelThread 存在并且正在运行，显示提醒框
+    #         msgBox = QMessageBox()
+    #         msgBox.setIcon(QMessageBox.Information)
+    #         msgBox.setWindowTitle("提醒")
+    #         msgBox.setText("请先关闭数据标注软件。")
+    #         msgBox.addButton("确认", QMessageBox.AcceptRole)
+    #         msgBox.exec_()
+    #         event.ignore()  # 忽略关闭事件，不关闭主窗口
+    #     else:
+    #         # 如果 labelThread 不存在或不在运行，关闭程序
+    #         event.accept()
+
     def closeEvent(self, event):
-        # 检查 DataCollectPage 实例中是否有 labelThread 属性，并且它是否在运行
-        if hasattr(self.datacollect_page, 'labelThread') and self.datacollect_page.labelThread.is_running():
-            # 如果 labelThread 存在并且正在运行，显示提醒框
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Information)
-            msgBox.setWindowTitle("提醒")
-            msgBox.setText("请先关闭数据标注软件。")
-            msgBox.addButton("确认", QMessageBox.AcceptRole)
-            msgBox.exec_()
+        if self.train_in_progress:
+            # 如果训练正在进行，显示提示消息并忽略关闭事件
+            QMessageBox.warning(self, '操作不允许', '当前模型正在训练，请勿关闭软件。')
+            event.ignore()
+        elif hasattr(self.datacollect_page, 'labelThread') and self.datacollect_page.labelThread.is_running():
+            # 如果 DataCollectPage 实例中的 labelThread 存在且正在运行，显示提醒框
+            QMessageBox.warning(self, '提醒', '请先关闭数据标注软件。')
             event.ignore()  # 忽略关闭事件，不关闭主窗口
         else:
-            # 如果 labelThread 不存在或不在运行，关闭程序
+            # 如果没有正在进行的训练和数据标注，可以正常关闭
             event.accept()
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mywindow = ModelMainPage()
