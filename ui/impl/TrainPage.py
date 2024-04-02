@@ -14,6 +14,8 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
     trainStrat = pyqtSignal()
     # 定义一个带有一个bool和一个str参数的信号
     trainingFinished = pyqtSignal(bool, str)
+    # 文件转换完成的信号，可能需要传递转换的状态或消息
+    fileConversionFinished = pyqtSignal(bool, str)
     def __init__(self, user_cwid, user_name):
         super(TrainPage, self).__init__()
         self.setupUi(self)  # 从UI_TaskPage.py中加载UI定义
@@ -21,7 +23,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         self.dataButton.clicked.connect(self.select_data_path)
         self.preModelButton.clicked.connect(self.select_pre_model_path)
         self.saveButton.clicked.connect(self.select_save_path)
-
+        self.isTrainning=False
         self.user_cwid = user_cwid
         self.user_name = user_name
         self.training_start_time = None  # 添加属性来存储训练开始时间
@@ -80,6 +82,10 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             return None
 
     def on_train_button_clicked(self):
+        if self.isTrainning:
+            QMessageBox.warning(self, '错误', '当前已有模型正在训练。')
+            return
+        self.isTrainning=True
         # 检查模型类型选择
         if not self.detBox.isChecked() and not self.recBox.isChecked():
             QMessageBox.warning(self, '错误', '请先勾选要训练的模型类型。')
@@ -88,7 +94,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             QMessageBox.warning(self, '错误', '只能选择一种模型类型进行训练。')
             return
         else:
-            model_type = 'det' if self.detBox.isChecked() else 'rec'
+            self.model_type = 'det' if self.detBox.isChecked() else 'rec'
 
         if not self.check_all_fields_filled():
             return
@@ -97,6 +103,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         dataset_root_path = self.dataSetEdit.text().replace('/', '\\')  # 替换为Windows风格的路径
         pre_model_path = self.preEdit.text().replace('/', '\\')  # 预训练模型路径输入框
         save_path = self.saveEdit.text().replace('/', '\\')  # 模型保存路径输入框
+        self.save_path=save_path
         epochs = self.epochEdit.text()  # Epoch次数输入框
         batch_size = self.batchEdit.text()  # Batch size输入框
         det_path = os.path.join(dataset_root_path, "det")  # 构造det数据集的路径
@@ -110,9 +117,10 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
 
         # 根据模型类型构建相应的训练命令
-        if model_type == 'det':
+        if self.model_type == 'det':
             train_cmd = self.construct_train_command('det', dataset_root_path, pre_model_path, save_path, epochs,
                                                      batch_size)
+
         else:
             train_cmd = self.construct_train_command('rec', dataset_root_path, pre_model_path, save_path, epochs,
                                                      batch_size)
@@ -131,9 +139,11 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
         # 准备要插入的数据
         model_name = self.nameEdit.text()
+        self.model_name=model_name
         pre_model_name = self.preEdit.text().replace('/', '\\')  # Windows路径风格
         remarks = self.infoTextEdit.toPlainText()  # 如果是QTextEdit，使用toPlainText获取文本
-        storage_path = self.saveEdit.text().replace('/', '\\')
+        storage_path = os.path.join(self.saveEdit.text(), self.model_type)
+        storage_path = storage_path.replace('/', '\\')
         status = "进行中"
         cwid = self.user_cwid
         training_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 格式化当前时间
@@ -161,10 +171,14 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
     def construct_train_command(self, model_type, dataset_root_path, pre_model_path, save_path, epochs, batch_size):
         if model_type == 'det':
             config_file = ".\\PaddleOCR\\configs\\det\\det_mv3_db.yml"
+            self.config_file=config_file
             model_dir = "det"
+            self.model_dir=model_dir
         elif model_type == 'rec':
             config_file = ".\\PaddleOCR\\configs\\rec\\PP-OCRv3\\ch_PP-OCRv3_rec_distillation.yml"
+            self.config_file = config_file
             model_dir = "rec"
+            self.model_dir = model_dir
 
         train_cmd = (
             f"paddle\\python.exe .\\PaddleOCR\\tools\\train.py -c {config_file} "
@@ -182,12 +196,35 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
         return train_cmd
 
     def on_training_completed(self, success, message):
+        self.isTrainning = False
         if success:
             QMessageBox.information(self, "训练完成", message)
+            # 发射训练完成的信号
             self.trainingFinished.emit(success, self.training_start_time)
+            # 调用文件转换的方法
+            self.start_file_conversion()
         else:
             QMessageBox.critical(self, "训练失败", message)
-        # 发射训练完成的信号，不再需要model_name，只需要传递训练开始时间
+
+    def start_file_conversion(self):
+        # 使用QThread执行文件转换
+        self.conversion_thread = FileConversionThread(
+            config_file=self.config_file,
+            save_path=self.save_path,
+            model_dir=self.model_dir,
+            model_name=self.model_name
+        )
+        self.conversion_thread.conversionFinished.connect(self.on_file_conversion_finished)
+        self.conversion_thread.start()
+
+    def on_file_conversion_finished(self, success, message):
+        # 处理文件转换完成的逻辑
+        if success:
+            QMessageBox.information(self, "文件转换成功", message)
+        else:
+            QMessageBox.warning(self, "文件转换失败", message)
+        # 发射文件转换完成的信号
+        self.fileConversionFinished.emit(success, message)
 
 # if __name__ == '__main__':
 # app = QApplication(sys.argv)

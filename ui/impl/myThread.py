@@ -317,3 +317,32 @@ class TrainingThread(QThread):
             # 训练失败
             print(f"训练命令执行失败: {e}")
             self.trainingCompleted.emit(False, f"训练命令执行失败: {e}")
+
+class FileConversionThread(QThread):
+    conversionFinished = pyqtSignal(bool, str)
+
+    def __init__(self, config_file, save_path, model_dir, model_name):
+        super().__init__()
+        self.config_file = config_file
+        # 构建 pre_model_export 的路径
+        self.pre_model_export = os.path.join(save_path, model_dir, "best_accuracy")
+        self.save_path = save_path
+        self.model_dir = model_dir
+        self.model_name = model_name
+
+    def run(self):
+        try:
+            # 构造导出模型的命令，使用 self.pre_model_export 作为模型的路径
+            cmd = (
+                f"paddle\\python.exe .\\PaddleOCR\\tools\\export_model.py "
+                f"-c {self.config_file} "
+                f"-o Global.pretrained_model=\"{self.pre_model_export}\" "
+                f"Global.save_inference_dir=\"{os.path.join(self.save_path, self.model_dir, self.model_name)}\""
+            )
+            # 执行命令
+            subprocess.run(cmd, check=True, shell=True)
+            # 如果没有异常，假定转换成功
+            self.conversionFinished.emit(True, "文件转换成功。")
+        except subprocess.CalledProcessError as e:
+            # 转换失败
+            self.conversionFinished.emit(False, f"文件转换失败: {e}")

@@ -60,14 +60,7 @@ class ModelMainPage(QWidget, Ui_ModelMainPage):
             # 重新加载模型信息
             self.modelmanage_page.load_models_from_database()
 
-    # def closeEvent(self, event):
-    #     if self.train_in_progress:
-    #         # 如果训练正在进行，显示提示消息并忽略关闭事件
-    #         QMessageBox.warning(self, '操作不允许', '当前模型正在训练，请勿关闭软件。')
-    #         event.ignore()
-    #     else:
-    #         # 如果训练不在进行，可以正常关闭
-    #         super().closeEvent(event)
+
     def on_training_started(self):
         # 设置一个标记，表示训练正在进行
         self.train_in_progress = True
