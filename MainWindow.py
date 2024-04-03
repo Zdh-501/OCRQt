@@ -445,7 +445,7 @@ class MainWindow(QWidget, Ui_MainPage):
         self.stackedWidget.setCurrentWidget(self.task_page)
 
     def showPicturePage(self):
-        if self.picture_page.camera_worker.isRunning():
+        if hasattr(self.picture_page, 'camera_worker') and self.picture_page.camera_worker.isRunning():
             # 如果线程已经在运行，检查是否处于暂停状态
             if self.picture_page.camera_worker.is_paused():
                 # 如果线程被暂停了，恢复线程

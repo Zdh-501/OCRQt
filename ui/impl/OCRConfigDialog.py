@@ -13,8 +13,8 @@ class OCRConfigDialog(QDialog):
         self.setWindowTitle("配置 OCR 参数")
 
         # 默认路径
-        self.default_det_path = "D:/Paddle/ResNet50_1220"
-        self.default_rec_path = "D:/Paddle/rec"
+        self.default_det_path = "D:/Paddle/inference_model/det/ResNet50_1220"
+        self.default_rec_path = "D:/Paddle/inference_model/rec/rec240108"
 
         # 创建检测模型路径的水平布局
         self.detModelPathLayout = QHBoxLayout()

@@ -82,10 +82,7 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             return None
 
     def on_train_button_clicked(self):
-        if self.isTrainning:
-            QMessageBox.warning(self, '错误', '当前已有模型正在训练。')
-            return
-        self.isTrainning=True
+
         # 检查模型类型选择
         if not self.detBox.isChecked() and not self.recBox.isChecked():
             QMessageBox.warning(self, '错误', '请先勾选要训练的模型类型。')
@@ -98,7 +95,10 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 
         if not self.check_all_fields_filled():
             return
-
+        if self.isTrainning:
+            QMessageBox.warning(self, '错误', '当前已有模型正在训练。')
+            return
+        self.isTrainning=True
         # 获取UI组件中的值
         dataset_root_path = self.dataSetEdit.text().replace('/', '\\')  # 替换为Windows风格的路径
         pre_model_path = self.preEdit.text().replace('/', '\\')  # 预训练模型路径输入框
@@ -174,24 +174,35 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
             self.config_file=config_file
             model_dir = "det"
             self.model_dir=model_dir
+            train_cmd = (
+                f"paddle\\python.exe .\\PaddleOCR\\tools\\train.py -c {config_file} "
+                f"-o Global.pretrained_model=\"{pre_model_path}\" "
+                f"Global.save_model_dir=\"{save_path}\\{model_dir}\" "
+                f"Global.epoch_num={epochs} "
+                f"Train.loader.batch_size_per_card={batch_size} "
+                f"Eval.loader.batch_size_per_card={batch_size} "
+                f"Train.dataset.data_dir=\"D:/OCRdata_det\" "
+                f"Train.dataset.label_file_list=\"['D:/OCRdata_det/train.txt','{dataset_root_path}\\{model_dir}\\train.txt']\" "
+                f"Eval.dataset.data_dir=\"D:\OCRdata_det\" "
+                f"Eval.dataset.label_file_list=\"['{dataset_root_path}\\{model_dir}\\val.txt']\""
+            )
         elif model_type == 'rec':
             config_file = ".\\PaddleOCR\\configs\\rec\\PP-OCRv3\\ch_PP-OCRv3_rec_distillation.yml"
             self.config_file = config_file
             model_dir = "rec"
             self.model_dir = model_dir
-
-        train_cmd = (
-            f"paddle\\python.exe .\\PaddleOCR\\tools\\train.py -c {config_file} "
-            f"-o Global.pretrained_model=\"{pre_model_path}\" "
-            f"Global.save_model_dir=\"{save_path}\\{model_dir}\" "
-            f"Global.epoch_num={epochs} "
-            f"Train.loader.batch_size_per_card={batch_size} "
-            f"Eval.loader.batch_size_per_card={batch_size} "
-            f"Train.dataset.data_dir=\"{dataset_root_path}\\{model_dir}\\train\" "
-            f"Train.dataset.label_file_list=\"['{dataset_root_path}\\{model_dir}\\train.txt']\" "
-            f"Eval.dataset.data_dir=\"{dataset_root_path}\\{model_dir}\\val\" "
-            f"Eval.dataset.label_file_list=\"['{dataset_root_path}\\{model_dir}\\val.txt']\""
-        )
+            train_cmd = (
+                f"paddle\\python.exe .\\PaddleOCR\\tools\\train.py -c {config_file} "
+                f"-o Global.pretrained_model=\"{pre_model_path}\" "
+                f"Global.save_model_dir=\"{save_path}\\{model_dir}\" "
+                f"Global.epoch_num={epochs} "
+                f"Train.loader.batch_size_per_card={batch_size} "
+                f"Eval.loader.batch_size_per_card={batch_size} "
+                f"Train.dataset.data_dir=\"D:\OCRdata_rec\" "
+                f"Train.dataset.label_file_list=\"['D:/OCRdata_rec/sx_recdata12k_train.txt','D:/OCRdata_rec/100k_data_train.txt','{dataset_root_path}\\{model_dir}\\train.txt']\" "
+                f"Eval.dataset.data_dir=\"D:\OCRdata_rec\" "
+                f"Eval.dataset.label_file_list=\"['D:/OCRdata_rec/sx_recdata12k_val.txt','{dataset_root_path}\\{model_dir}\\val.txt']\""
+            )
 
         return train_cmd
 
@@ -231,3 +242,5 @@ class TrainPage(QtWidgets.QWidget,Ui_TrainPage):
 # mainWindow = TrainPage()
 # mainWindow.show()
 # app.exec_()
+
+

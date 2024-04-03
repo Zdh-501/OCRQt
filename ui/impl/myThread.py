@@ -8,6 +8,7 @@ import numpy as np
 from mphdcpy import mphdc
 import cv2
 import paddleocr
+
 from threading import Condition
 from PIL import Image
 from io import BytesIO
@@ -155,7 +156,6 @@ class DatabaseOperationThread(QThread):
                            WHERE  TASK_KEY = ?"""
         try:
             # 执行查询操作
-            print("测试，", self.task_key)
             cursor.execute(query, (self.task_key,))
             # 获取查询结果的第一条记录
             result = cursor.fetchone()  # 假设每个 TASK_IDENTIFIER 唯一
@@ -163,31 +163,32 @@ class DatabaseOperationThread(QThread):
             if result:
                 # 将查询结果存储在类的属性中
                 self.order_no, self.task_identifier = result
-                print("测试", self.task_identifier)
                 self.operation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 self.batch_no = self.batch_numbers[0]
                 if len(self.dates) == 1:
                     self.expiry_date = self.dates[0]
                     self.production_date = ''  # 或者使用 '' 表示空字符串，根据您的需要
                 else:
-                    # 将日期字符串转换为日期对象的函数
-                    def convert_to_date(date_str):
-                        try:
-                            return datetime.strptime(date_str, '%Y-%m-%d')
-                        except ValueError:
-                            return datetime.strptime(date_str, '%d-%m-%Y')
+                    # # 将日期字符串转换为日期对象的函数
+                    # def convert_to_date(date_str):
+                    #     try:
+                    #         return datetime.strptime(date_str, '%Y-%m-%d')
+                    #     except ValueError:
+                    #         return datetime.strptime(date_str, '%d-%m-%Y')
+                    #
+                    # # 转换两个日期
+                    # date1 = convert_to_date(self.dates[0])
+                    # date2 = convert_to_date(self.dates[1])
+                    #
+                    # # 比较并赋值
+                    # if date1 < date2:
+                    self.production_date = self.dates[0]
+                    self.expiry_date = self.dates[1]
+                    # else:
+                    #     self.production_date = self.dates[1]
+                    #     self.expiry_date = self.dates[0]
 
-                    # 转换两个日期
-                    date1 = convert_to_date(self.dates[0])
-                    date2 = convert_to_date(self.dates[1])
 
-                    # 比较并赋值
-                    if date1 < date2:
-                        self.production_date = self.dates[0]
-                        self.expiry_date = self.dates[1]
-                    else:
-                        self.production_date = self.dates[1]
-                        self.expiry_date = self.dates[0]
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
                 for image_np in self.captured_images:
@@ -213,7 +214,9 @@ class DatabaseOperationThread(QThread):
                     cwid=self.user_cwid,
                     operation_time=self.operation_time
                 )
+
                 send_result_to_bes(result)
+
             else:
                 error="没有找到匹配的任务信息。"
         except Exception as e:

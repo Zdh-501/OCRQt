@@ -5,6 +5,7 @@ from datetime import datetime
 import ctypes as ct
 import json
 import re
+import copy
 import base64 #todo 这是新添加的
 from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics, QFont
@@ -34,8 +35,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.count = 0  # 初始化 count 属性
         self.detection_type = "单面"  # 初始化 detection_type 属性
         # 初始化 PaddleOCR 配置
-        self.det_model_dir = "D:/Paddle/ResNet50_1220"
-        self.rec_model_dir = "D:/Paddle/rec"
+        self.det_model_dir = "D:/Paddle/inference_model/det/ResNet50_1220"
+        self.rec_model_dir = "D:/Paddle/inference_model/rec/rec240108"
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.5
         self.lang = 'ch'
@@ -650,9 +651,13 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.textBrowser_4.append(f"生产日期: {dates[1]}")
                 self.textBrowser_4.append(f"有效期至: {dates[0]}")
 
-        self.dbThread = DatabaseOperationThread(self.task_key, self.captured_images, self.user_cwid, self.task_index, dates, batch_numbers)
+        # 在传递给线程之前创建captured_images的深拷贝
+        images_copy = copy.deepcopy(self.captured_images)
+        self.dbThread = DatabaseOperationThread(self.task_key, images_copy, self.user_cwid, self.task_index, dates,
+                                                batch_numbers)
         self.dbThread.start()
-        self.captured_images.clear()  # 清空存储的图像列表
+        # 现在清空原列表不会影响线程中的副本
+        self.captured_images.clear()
         if self.isComplete:
             #更新“已完成”
             item = QtWidgets.QTableWidgetItem("已完成")
