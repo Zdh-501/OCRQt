@@ -164,30 +164,22 @@ class DatabaseOperationThread(QThread):
                 # 将查询结果存储在类的属性中
                 self.order_no, self.task_identifier = result
                 self.operation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                self.batch_no = self.batch_numbers[0]
-                if len(self.dates) == 1:
-                    self.expiry_date = self.dates[0]
-                    self.production_date = ''  # 或者使用 '' 表示空字符串，根据您的需要
+                # 检查批号列表是否为空
+                if len(self.batch_numbers) == 0:
+                    self.batch_no = ''
                 else:
-                    # # 将日期字符串转换为日期对象的函数
-                    # def convert_to_date(date_str):
-                    #     try:
-                    #         return datetime.strptime(date_str, '%Y-%m-%d')
-                    #     except ValueError:
-                    #         return datetime.strptime(date_str, '%d-%m-%Y')
-                    #
-                    # # 转换两个日期
-                    # date1 = convert_to_date(self.dates[0])
-                    # date2 = convert_to_date(self.dates[1])
-                    #
-                    # # 比较并赋值
-                    # if date1 < date2:
+                    self.batch_no = self.batch_numbers[0]
+
+                # 检查日期列表的长度，并相应地设置生产日期和有效期
+                if len(self.dates) == 0:
+                    self.production_date = ''
+                    self.expiry_date = ''
+                elif len(self.dates) == 1:
+                    self.expiry_date = self.dates[0]
+                    self.production_date = ''  # 如果只有一个日期，假定为有效期
+                else:
                     self.production_date = self.dates[0]
                     self.expiry_date = self.dates[1]
-                    # else:
-                    #     self.production_date = self.dates[1]
-                    #     self.expiry_date = self.dates[0]
-
 
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
@@ -214,7 +206,8 @@ class DatabaseOperationThread(QThread):
                     cwid=self.user_cwid,
                     operation_time=self.operation_time
                 )
-
+                print("测试发送的生产日期",self.production_date)
+                print("测试发送的有效期至", self.expiry_date)
                 send_result_to_bes(result)
 
             else:

@@ -515,18 +515,27 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     # 添加重新拍摄的代码
                     # 清空已捕获的图像
                     self.captured_images.clear()
-                    self.current_label_index =self.current_label_index - 2
-                    self.progressBar.setValue(max(0,self.current_label_index // 2 + 1))
-                    self.progressBar_2.setValue(max(0,self.current_label_index // 2 - 1 ))
+                    self.current_label_index = self.current_label_index - 2
+                    self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
+                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
                     return
                 else:
-                    self.captured_images.clear()
-                    self.camera_worker.pause()
-                    # 发出信号
-                    self.returnToMainPageSignal.emit()
-                    return
-
-            elif len(dates) == 0:
+                    # 二次确认
+                    reply_again = QMessageBox.question(self, '二次确认',
+                                                       '确定不重新拍摄吗？'
+                                                       '点击“No”重新拍摄，点击“Yes”则继续上传系统',
+                                                       QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if reply_again == QMessageBox.Yes:
+                        batch_numbers = []  # 用户决定不重新拍摄，清空批号列表
+                    else:
+                        # 添加重新拍摄的代码
+                        # 清空已捕获的图像
+                        self.captured_images.clear()
+                        self.current_label_index = self.current_label_index - 2
+                        self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
+                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                        return
+            if len(dates) == 0:
                 reply = QMessageBox.question(self, '消息提示',
                                              '未检测到日期信息，'
                                              '是否进行当前产品的重新拍摄？'
@@ -541,51 +550,79 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
                     return
                 else:
-                    self.captured_images.clear()
-                    self.camera_worker.pause()
-                    # 发出信号
-                    self.returnToMainPageSignal.emit()
-                    return
+                    # 二次确认
+                    reply_again = QMessageBox.question(self, '二次确认',
+                                                       '确定不重新拍摄吗？'
+                                                       '点击“No”返回拍摄，点击“Yes”则继续上传系统',
+                                                       QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if reply_again == QMessageBox.Yes:
+                        dates = []  # 用户决定不重新拍摄，清空日期列表
+                    else:
+                        # 添加重新拍摄的代码
+                        # 清空已捕获的图像
+                        self.captured_images.clear()
+                        self.current_label_index = self.current_label_index - 2
+                        self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
+                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                        return
         elif self.detection_type == "单面":
             if len(batch_numbers) == 0:
                 reply = QMessageBox.question(self, '消息提示',
                                              '未检测到批号信息，'
                                              '是否跟换当前产品的药盒后进行重新拍摄？'
-                                             '点击“Yes”重新拍摄，点击“No”则切换任务',
-                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    # 添加重新拍摄的代码
-                    # 清空已捕获的图像
-                    self.captured_images.clear()
-                    self.current_label_index =self.current_label_index - 1
-                    self.progressBar.setValue(max(0,self.current_label_index  + 1))
-                    return
-                else:
-                    self.captured_images.clear()
-                    self.camera_worker.pause()
-                    # 发出信号
-                    self.returnToMainPageSignal.emit()
-                    return
-
-            elif len(dates) == 0:
-                reply = QMessageBox.question(self, '消息提示',
-                                             '未检测到日期信息，'
-                                             '是否跟换当前产品的药盒后进行重新拍摄？'
-                                             '点击“Yes”重新拍摄，点击“No”则切换任务',
+                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     # 添加重新拍摄的代码
                     # 清空已捕获的图像
                     self.captured_images.clear()
                     self.current_label_index = self.current_label_index - 1
-                    self.progressBar.setValue(max(0, self.current_label_index  + 1))
+                    self.progressBar.setValue(max(0, self.current_label_index + 1))
                     return
                 else:
+                    # 二次确认
+                    reply_again = QMessageBox.question(self, '二次确认',
+                                                       '确定不重新拍摄吗？'
+                                                       '点击“No”返回拍摄，点击“Yes”则继续上传系统',
+                                                       QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if reply_again == QMessageBox.Yes:
+                        batch_numbers = []  # 用户决定不重新拍摄，清空批号列表
+                    else:
+                        # 添加重新拍摄的代码
+                        # 清空已捕获的图像
+                        self.captured_images.clear()
+                        self.current_label_index = self.current_label_index - 1
+                        self.progressBar.setValue(max(0, self.current_label_index + 1))
+                        return
+
+            if len(dates) == 0:
+                reply = QMessageBox.question(self, '消息提示',
+                                             '未检测到日期信息，'
+                                             '是否跟换当前产品的药盒后进行重新拍摄？'
+                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    # 添加重新拍摄的代码
+                    # 清空已捕获的图像
                     self.captured_images.clear()
-                    self.camera_worker.pause()
-                    # 发出信号
-                    self.returnToMainPageSignal.emit()
+                    self.current_label_index = self.current_label_index - 1
+                    self.progressBar.setValue(max(0, self.current_label_index + 1))
                     return
+                else:
+                    # 二次确认
+                    reply_again = QMessageBox.question(self, '二次确认',
+                                                       '确定不重新拍摄吗？'
+                                                       '点击“No”返回拍摄，点击“Yes”则继续上传系统',
+                                                       QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if reply_again == QMessageBox.Yes:
+                        dates = []  # 用户决定不重新拍摄，清空日期列表
+                    else:
+                        # 添加重新拍摄的代码
+                        # 清空已捕获的图像
+                        self.captured_images.clear()
+                        self.current_label_index = self.current_label_index - 1
+                        self.progressBar.setValue(max(0, self.current_label_index + 1))
+                        return
 
         # 当前任务的索引
         self.task_index = self.current_label_index // 2 if self.detection_type == "双面" else self.current_label_index
@@ -628,7 +665,30 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.textBrowser_4.append(f"批号: {batch_number}")
         # 根据日期数量显示不同的文本
         if len(dates) == 1:
-            self.textBrowser_4.append(f"有效期至: {dates[0]}")
+            date_in_list = None
+            current_date = datetime.now()
+            date_formats = ['%Y/%m/%d', '%d/%m/%Y']
+
+            # 尝试两种日期格式
+            for fmt in date_formats:
+                try:
+                    date_in_list = datetime.strptime(dates[0], fmt)
+                    break  # 如果成功解析，则退出循环
+                except ValueError:
+                    continue  # 如果当前格式不匹配，尝试下一个格式
+
+            # 如果成功解析日期且列表中的日期晚于当前日期
+            if date_in_list and date_in_list > current_date:
+                # 列表中的日期变为有效期至，dates[0]应为空
+                dates.insert(0, '')  # 在列表前插入空字符串，现在dates[0]为空
+                # 此时dates[1]已经是原来dates[0]的值
+                #self.textBrowser_4.append(f"生产日期: {dates[0]}")  # 这将是空的
+                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+            else:
+                # 如果列表中的日期不晚于当前日期或日期解析失败
+                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                dates.append('')  # 确保dates长度为2，且dates[1]为空
+                self.textBrowser_4.append(f"有效期至: {dates[1]}")
         elif len(dates) == 2:
             # 将日期字符串转换为日期对象
             date_format_ymd = '%Y/%m/%d'
@@ -648,8 +708,9 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.textBrowser_4.append(f"生产日期: {dates[0]}")
                 self.textBrowser_4.append(f"有效期至: {dates[1]}")
             else:
-                self.textBrowser_4.append(f"生产日期: {dates[1]}")
-                self.textBrowser_4.append(f"有效期至: {dates[0]}")
+                dates[0], dates[1] = dates[1], dates[0]
+                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                self.textBrowser_4.append(f"有效期至: {dates[1]}")
 
         # 在传递给线程之前创建captured_images的深拷贝
         images_copy = copy.deepcopy(self.captured_images)
@@ -665,6 +726,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
             # 假设这是在任务完成后的逻辑
             self.taskCompleted.emit(self.task_key)
+
 
     def extract_relevant_data(self, results):
         extracted_data = {'dates': [], 'batch_numbers': []}
