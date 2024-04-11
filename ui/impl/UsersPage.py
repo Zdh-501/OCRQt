@@ -59,7 +59,7 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
             self.tableWidget.setRowHeight(row_number, row_height)
             for column_number, data in enumerate(row_data):
                 if column_number == 2:
-                    data = "管理员" if data == '1' else "操作员" if data == '2' else "未知权限"
+                    data = "生产管理员" if data == '1' else "用户管理员" if data == '3' else "操作员" if data == '2' else "未知权限"
                 elif column_number == 3:
                     data = "激活" if data else "失效"
                 cell_item = QTableWidgetItem(str(data))
@@ -70,7 +70,8 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
         header = self.tableWidget.horizontalHeader()
         for i in range(7):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
-
+        # 启用排序
+        self.tableWidget.setSortingEnabled(True)
     def createButtonClickedFunction(self, cwid):
         return lambda: self.checkPermissionAndManageUser(cwid)
 
@@ -105,37 +106,46 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
     def updateButtonBehaviors(self):
         # 仅更新基于权限变化需要更新行为的按钮
         for row in range(self.tableWidget.rowCount()):
-            manage_button = self.tableWidget.cellWidget(row, 6).layout().itemAt(0).widget()
-            change_password_button = self.tableWidget.cellWidget(row, 6).layout().itemAt(1).widget()
+            # 仅更新基于权限变化需要更新行为的按钮
+            for row in range(self.tableWidget.rowCount()):
+                container = self.tableWidget.cellWidget(row, 6)  # 尝试获取容器小部件
+                if container is None:
+                    # 如果没有容器小部件，这意味着这一行没有操作按钮，跳过
+                    continue
 
-            # 先断开旧的信号连接
-            try:
-                manage_button.clicked.disconnect()
-            except TypeError:
-                pass  # 没有连接任何槽函数，忽略
-            try:
-                change_password_button.clicked.disconnect()
-            except TypeError:
-                pass  # 没有连接任何槽函数，忽略
+                layout = container.layout()
+                if layout is not None:  # 检查容器是否有布局，理论上应该有
+                    manage_button = self.tableWidget.cellWidget(row, 6).layout().itemAt(0).widget()
+                    change_password_button = self.tableWidget.cellWidget(row, 6).layout().itemAt(1).widget()
 
-            # 根据用户是否是管理员连接信号
-            cwid_in_row = self.tableWidget.item(row, 0).text()
-            if self.user_permission == '1':  # 如果是管理员
-                manage_button.setEnabled(True)
-                change_password_button.setEnabled(True)
-                manage_button.clicked.connect(
-                    self.createButtonClickedFunction(cwid_in_row))
-                change_password_button.clicked.connect(
-                    self.createChangePasswordClickedFunction(cwid_in_row))
-            else:
-                manage_button.setEnabled(False)
-                # 如果是操作员且是自己的账号，允许修改密码
-                if cwid_in_row == self.user_cwid:
-                    change_password_button.setEnabled(True)
-                    change_password_button.clicked.connect(
-                        self.createChangePasswordClickedFunction(cwid_in_row))
-                else:
-                    change_password_button.setEnabled(False)
+                    # 先断开旧的信号连接
+                    try:
+                        manage_button.clicked.disconnect()
+                    except TypeError:
+                        pass  # 没有连接任何槽函数，忽略
+                    try:
+                        change_password_button.clicked.disconnect()
+                    except TypeError:
+                        pass  # 没有连接任何槽函数，忽略
+
+                    # 根据用户是否是管理员连接信号
+                    cwid_in_row = self.tableWidget.item(row, 0).text()
+                    if self.user_permission == '3':  # 如果是用户管理员
+                        manage_button.setEnabled(True)
+                        change_password_button.setEnabled(True)
+                        manage_button.clicked.connect(
+                            self.createButtonClickedFunction(cwid_in_row))
+                        change_password_button.clicked.connect(
+                            self.createChangePasswordClickedFunction(cwid_in_row))
+                    else:
+                        manage_button.setEnabled(False)
+                        # 如果是生产管理员或者操作员且是自己的账号，允许修改密码
+                        if cwid_in_row == self.user_cwid:
+                            change_password_button.setEnabled(True)
+                            change_password_button.clicked.connect(
+                                self.createChangePasswordClickedFunction(cwid_in_row))
+                        else:
+                            change_password_button.setEnabled(False)
     def changeUserPassword(self, cwid):
         # 确保对话框是模态的，以便用户必须在返回主界面前处理它
         dialog = ChangePasswordDialog(cwid, self)
@@ -146,8 +156,8 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
 
     # 在 UsersPage 类中添加一个新方法来创建 "新增用户" 对话框
     def createAddUserDialog(self):
-        # 检查用户权限，如果为1（管理员），则打开对话框
-        if self.user_permission == '1':
+        # 检查用户权限，如果为3（用户管理员），则打开对话框
+        if self.user_permission == '3':
             dialog = AddUserDialog(self)
             dialog.userAdded.connect(self.loadUsersData)
             dialog.exec_()  # 显示对话框
@@ -159,7 +169,7 @@ class UsersPage(QtWidgets.QWidget,Ui_UsersPage):
             self.loadUsersData()
 
     def checkPermissionAndManageUser(self, cwid):
-        if self.user_permission == '1':
+        if self.user_permission == '3': #用户管理员权限
             self.manageUser(cwid)
         else:
             self.show_permission_warning()

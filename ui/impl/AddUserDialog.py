@@ -29,7 +29,7 @@ class AddUserDialog(QtWidgets.QDialog):
         self.passwordLineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         self.permissionComboBox = QtWidgets.QComboBox(self)
         self.permissionComboBox.setFont(font)  # 应用字体
-        self.permissionComboBox.addItems(['管理员', '操作员'])
+        self.permissionComboBox.addItems(['操作员','生产管理员','用户管理员'])
         self.permissionComboBox.setStyleSheet("QComboBox { font-size: 14pt; }")  # 设置样式
 
         self.isActiveCheckBox = QtWidgets.QCheckBox('激活', self)
@@ -84,7 +84,7 @@ class AddUserDialog(QtWidgets.QDialog):
         name = self.nameLineEdit.text()
         password = self.passwordLineEdit.text()
         permission_text = self.permissionComboBox.currentText()
-        permission = '1' if permission_text == '管理员' else '2'  # 将权限转换为相应的数字
+        permission = '3' if permission_text == '用户管理员' else '1' if permission_text == '生产管理员' else '2'
         is_active = self.isActiveCheckBox.isChecked()
         expiry_months = self.expiryTimeSpinBox.value()
         expiry_time = datetime.now() + timedelta(days=expiry_months * 30)  # 转换为日期

@@ -309,14 +309,35 @@ class MainWindow(QWidget, Ui_MainPage):
                     # 如果之前没有连接，则会抛出 TypeError 异常，可以忽略
                     pass
                 #根据用户权限决定是否连接信号 错误日志界面 用户管理界面
-                if self.user_permission == '1':  # 确认管理员权限
+                if self.user_permission == '3':  # 确认用户管理员权限
+                    self.users_page.addButton.setEnabled(True)
+                    self.users_page.addButton.clicked.connect(self.users_page.createAddUserDialog)
+                    # 使其他页面的按钮失效
+                    self.pushButton_1.setEnabled(False)  # 任务页面按钮
+                    self.pushButton_2.setEnabled(False)  # 图片页面按钮
+                    self.pushButton_3.setEnabled(False)  # 记录页面按钮
+                    self.pushButton_4.setEnabled(False)  # 日志页面按钮
+                    # 不需要修改退出按钮的状态 self.pushButton_6
+
+                    # 直接切换到用户页面
+                    self.stackedWidget.setCurrentWidget(self.users_page)
+                elif self.user_permission == '1': #生产管理员
+                    # 使其他页面的按钮启用
+                    self.pushButton_1.setEnabled(True)  # 任务页面按钮
+                    self.pushButton_2.setEnabled(True)  # 图片页面按钮
+                    self.pushButton_3.setEnabled(True)  # 记录页面按钮
+                    self.pushButton_4.setEnabled(True)  # 日志页面按钮
                     # 连接信号和槽任务界面模型修改
                     self.task_page.select_Button.clicked.connect(self.on_select_button_clicked)
                     # 连接清除按钮的信号
                     self.log_page.clearButton.clicked.connect(self.clearErrorLogs)
-                    self.users_page.addButton.setEnabled(True)
-                    self.users_page.addButton.clicked.connect(self.users_page.createAddUserDialog)
+                    self.users_page.addButton.setEnabled(False)
                 else:
+                    # 使其他页面的按钮启用
+                    self.pushButton_1.setEnabled(True)  # 任务页面按钮
+                    self.pushButton_2.setEnabled(True)  # 图片页面按钮
+                    self.pushButton_3.setEnabled(True)  # 记录页面按钮
+                    self.pushButton_4.setEnabled(True)  # 日志页面按钮
                     # 如果权限不足，禁用按钮或连接到权限警告
                     self.task_page.select_Button.clicked.connect(self.show_permission_warning)
                     self.log_page.clearButton.clicked.connect(self.show_permission_warning)

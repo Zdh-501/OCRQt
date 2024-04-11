@@ -43,7 +43,7 @@ class UserManagementDialog(QtWidgets.QDialog):
         self.permissionLabel = QtWidgets.QLabel('用户权限:')
         self.permissionLabel.setFont(font)
         self.permissionComboBox = QtWidgets.QComboBox()
-        self.permissionComboBox.addItems(['管理员', '操作员'])
+        self.permissionComboBox.addItems(['用户管理员', '生产管理员', '操作员'])
         self.permissionComboBox.setFixedSize(400,50)
 
         # 设置 QComboBox 控件和下拉菜单项的样式
@@ -79,8 +79,12 @@ class UserManagementDialog(QtWidgets.QDialog):
         expiry_time = datetime.now() + timedelta(days=expiry_months * 30)  # 大约每月30天
 
         # 根据permissionComboBox的值设置Permission
-        permission_value = 1 if self.permissionComboBox.currentText() == '管理员' else 2
-
+        if self.permissionComboBox.currentText() == '生产管理员':
+            permission_value = 1
+        elif self.permissionComboBox.currentText() == '用户管理员':
+            permission_value = 3
+        else:
+            permission_value = 2
         try:
             # 更新数据库
             cursor.execute("""
