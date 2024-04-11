@@ -48,7 +48,7 @@ class TaskInfo(ComplexModel):
     TASK_IDENTIFIER = Unicode(max_length=20)
     # 识别任务key：整型，必填
     TASK_KEY = Integer
-    # 识别物料类型：整型，必填，可能的值为10（内包材）、20（小盒）、30（瓶签）
+    # 识别物料类型：整型，必填，可能的值为10（内包材）、20（小盒/中盒）、30（瓶签）
     MATERIAL_TYPE = Integer
     # 识别类型：整型，必填，可能的值为10（单面）、20（双面）
     IDENTIFY_TYPE = Integer
@@ -171,7 +171,7 @@ class MainWindow(QWidget, Ui_MainPage):
 
     def process_task_info(self, task_info):
         # 转换物料类型和识别类型为文本描述
-        material_type_mapping = {10: "内包材", 20: "小盒", 30: "瓶签"}
+        material_type_mapping = {10: "内包材", 20: "小盒/中盒", 30: "瓶签"}
         identify_type_mapping = {10: "单面", 20: "双面"}
         # 构造addTask方法需要的字典
         task_data = {
