@@ -48,24 +48,38 @@ class RecordPage(QtWidgets.QWidget, Ui_RecordPage):
         self.dateTimeEdit_2.setDateTime(QtCore.QDateTime.currentDateTime())  # 默认结束时间为当前时间
 
     def displayImage(self, row, column):
-
         # 获取保存的结果数据
         data = self.results_data[row]
         image_data = data[6]  # 假定IMAGE字段在结果中的索引为6
 
         try:
             if image_data:
-                # 对图像数据进行Base64解码并显示
-                image_bytes = QtCore.QByteArray.fromBase64(image_data.encode())
-                image = QImage.fromData(image_bytes)
-                pixmap = QPixmap.fromImage(image)
-
+                # 清除之前的图像
                 self.scene.clear()
-                self.pixmapItem = QGraphicsPixmapItem(pixmap)
-                self.scene.addItem(self.pixmapItem)
-                self.graphicsView.fitInView(self.pixmapItem, Qt.KeepAspectRatio)
+
+                # 分割字符串以处理可能存在的多张图片
+                images_base64 = image_data.split(',')
+                total_width = 0  # 用于累计所有图片的总宽度，以便并排显示
+
+                # 遍历所有的Base64编码的图片
+                for base64_str in images_base64:
+                    # 对每张图像数据进行Base64解码并显示
+                    image_bytes = QtCore.QByteArray.fromBase64(base64_str.encode())
+                    image = QImage.fromData(image_bytes)
+                    pixmap = QPixmap.fromImage(image)
+
+                    # 创建QGraphicsPixmapItem对象并添加到场景中
+                    pixmapItem = QGraphicsPixmapItem(pixmap)
+                    pixmapItem.setPos(total_width, 0)  # 设置图片的位置
+                    self.scene.addItem(pixmapItem)
+
+                    total_width += pixmap.width()  # 更新总宽度
+
+                # 调整视图以适应内容
+                self.graphicsView.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         except Exception as e:
             print(f"在 displayImage 方法中发生错误: {e}")
+
         self.displayProductInfo(row)
 
     def displayProductInfo(self,index):

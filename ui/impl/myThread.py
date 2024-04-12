@@ -84,7 +84,13 @@ class CameraWorker(QThread):
                                 kd_channel_flipped_horizontal,
                                 kd_channel_flipped_horizontal
                             ])
-                        self.image_captured.emit(merged_image_flipped)
+                        # 获取图像的宽度和高度
+                        height, width = merged_image_flipped.shape[:2]
+                        # 调整图像大小为原来的一半
+                        resized_image = cv2.resize(merged_image_flipped, (width // 2, height // 2),interpolation=cv2.INTER_AREA)
+                        # 发出调整大小后的图像
+                        self.image_captured.emit(resized_image)
+                        #self.image_captured.emit(merged_image_flipped)
 
     def is_paused(self):
         return self._is_paused

@@ -517,7 +517,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.captured_images.clear()
                     self.current_label_index = self.current_label_index - 2
                     self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
+                    self.stackedWidget.setCurrentIndex(self.current_label_index//2)
                     return
                 else:
                     # 二次确认
@@ -533,7 +534,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                         self.captured_images.clear()
                         self.current_label_index = self.current_label_index - 2
                         self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
+                        self.stackedWidget.setCurrentIndex(self.current_label_index//2)
                         return
             if len(dates) == 0:
                 reply = QMessageBox.question(self, '消息提示',
@@ -547,7 +549,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.captured_images.clear()
                     self.current_label_index = self.current_label_index - 2
                     self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
+                    self.stackedWidget.setCurrentIndex(self.current_label_index//2)
                     return
                 else:
                     # 二次确认
@@ -563,7 +566,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                         self.captured_images.clear()
                         self.current_label_index = self.current_label_index - 2
                         self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 - 1))
+                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
+                        self.stackedWidget.setCurrentIndex(self.current_label_index//2)
                         return
         elif self.detection_type == "单面":
             if len(batch_numbers) == 0:
@@ -659,7 +663,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.camera_worker.start()
 
         # 更新 self.textBrowser_4
-        self.textBrowser_4.append(f"第{self.current_label_index}个产品")
+        if self.detection_type == "双面":
+            self.textBrowser_4.append(f"第{self.current_label_index//2}个产品")
+        else:
+            self.textBrowser_4.append(f"第{self.current_label_index}个产品")
         # 显示批号
         for batch_number in batch_numbers:
             self.textBrowser_4.append(f"批号: {batch_number}")
