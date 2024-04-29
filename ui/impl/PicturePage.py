@@ -6,7 +6,7 @@ import ctypes as ct
 import json
 import re
 import copy
-import base64 #todo 这是新添加的
+import base64  # todo 这是新添加的
 from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap, QImage, QFontMetrics, QFont
 from PyQt5.QtCore import Qt
@@ -22,13 +22,15 @@ from SQL.dbFunction import *
 
 from ui.impl.resClient import *
 
+
 class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
     # 定义一个没有参数用于返回主页面的信号
     returnToMainPageSignal = pyqtSignal()
-    #定义一个任务完成信号
+    # 定义一个任务完成信号
     Compl = pyqtSignal()
     # 定义一个任务完成信号，传递 task_key 值
     taskCompleted = pyqtSignal(str)
+
     def __init__(self):
         super(PicturePage, self).__init__()
         self.setupUi(self)
@@ -36,11 +38,10 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.detection_type = "单面"  # 初始化 detection_type 属性
         # 初始化 PaddleOCR 配置
         self.det_model_dir = "D:/Paddle/inference_model/det/ResNet50_1220"
-        self.rec_model_dir = "D:/Paddle/inference_model/rec/rec240108"
+        self.rec_model_dir = "D:/Paddle/inference_model/rec/rec20240407"
         self.use_angle_cls = True
         self.det_db_unclip_ratio = 2.5
         self.lang = 'ch'
-
 
         # 用于区分手动捕获照片还是子线程自动捕获
         self.should_store_captured_image = False
@@ -54,7 +55,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.isCameraStarted = False  # 相机是否已启动的标志
         self.captured_images = []  # 用于存储捕获的图像
         self.task_completion_status = []  # 初始化任务完成状态列表
-        self.is_camera_initialized = False #初始化相机标志
+        self.is_camera_initialized = False  # 初始化相机标志
 
         self.startDetectButton.clicked.connect(self.onStartDetectClicked)
         self.takePictureButton.clicked.connect(self.take_photo_and_skip)
@@ -62,11 +63,11 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.progressBar_2.doubleClickedValue.connect(self.onProgressBarDoubleClicked)
         self.get_workstation_number()
 
-
     def set_user_info(self, cwid, name, permission):
         self.user_cwid = cwid
         self.user_name = name
         self.user_permission = permission
+
     def onProgressBarDoubleClicked(self, value):
         sender = self.sender()
 
@@ -119,7 +120,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.stackedWidget.setCurrentIndex(value)
 
                 # 更新进度条的显示
-                self.progressBar.setValue(value+1)
+                self.progressBar.setValue(value + 1)
                 if self.detection_type == "双面":
                     self.progressBar_2.setValue(value)
 
@@ -140,18 +141,19 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if camera_params is None:
             print(f"没有找到键 {key} 对应的相机参数。")
         return camera_params
+
     def init_camera(self):
         self.camera = mphdc.CreateCamera(ct.c_int(mphdc.LogMediaType.Off.value), ct.c_int(1))
         mphdc.UpdateCameraList(self.camera)
         camera_info = mphdc.GetCameraInfo(self.camera, 0)
         mphdc.OpenCamera(self.camera, camera_info)
         if mphdc.GetCameraState(self.camera):
-            ret=mphdc.SetHoldState(self.camera,False)
-            print('是否成功设置',ret)
+            ret = mphdc.SetHoldState(self.camera, False)
+            print('是否成功设置', ret)
         # 设置相机触发模式
         mphdc.SetCamera_Triggersource(self.camera)
         # 激活相机通道
-        mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz','kd'])
+        mphdc.SetPhotometricOutputChannelEnable(self.camera, ['nx', 'ny', 'nz', 'kd'])
 
         # 设置相机为光度立体模式
         self.set_camera_photometric_settings()
@@ -177,7 +179,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                              det_db_unclip_ratio=self.det_db_unclip_ratio,
                              lang='ch')
 
-    def extract_info(self,task_dict, key1, key2, key3):
+    def extract_info(self, task_dict, key1, key2, key3):
         # 检查两个键是否都存在于字典中
         if key1 in task_dict and key2 in task_dict and key3 in task_dict:
             value1 = task_dict[key1]
@@ -188,12 +190,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             # 如果任何一个键不存在，返回一个错误信息或者None
             return None, None, None
 
-
     def updateTextBrowser(self, item_details):
-        #保存任务信息
-        self.currentTask=item_details
+        # 保存任务信息
+        self.currentTask = item_details
         # 提取产品名称和物料类型信息
-        self.product_name, self.material_type, self.task_key= self.extract_info(self.currentTask, "产品名称", "物料类型","任务Key值")
+        self.product_name, self.material_type, self.task_key = self.extract_info(self.currentTask, "产品名称",
+                                                                                 "物料类型", "任务Key值")
         # 根据产品名称和物料类型信息提取相机参数信息
         self.camera_parameters = self.get_camera_parameters_for_current_product()
         if self.camera_parameters is None:
@@ -204,8 +206,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
             self.is_camera_initialized = True
         if self.camera_parameters == None:
             self.camera_worker.active_channels = ['nx', 'ny', 'nz']
-            exposure_value =  50  # 提供默认值以防万一
-        else :
+            exposure_value = 50  # 提供默认值以防万一
+        else:
             # 根据相机参数设置活动通道
             if self.camera_parameters.get("通道选择参数") == "kd通道":
                 self.camera_worker.active_channels = ['kd']
@@ -216,8 +218,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         exposure_value = float(exposure_value)  # 将字符串转换为浮点数
         # 设置相机曝光值
         mphdc.SetPhotometricExposureIntensityMain(self.camera, exposure_value)
-        #print('曝光',exposure_value)
-
+        # print('曝光',exposure_value)
 
         # 获取检测参数unclip_ratio的值
         unclip_ratio = self.camera_parameters.get("检测参数unclip_ratio", 2.5)  # 提供默认值以防万一
@@ -275,7 +276,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.isComplete = False  # 用于表示当前整体任务的完成情况
         self.count = count  # 更新类属性
         self.task_completion_status = [False] * count  # False 表示任务未完成
-        self.captured_images=[]
+        self.captured_images = []
         # 更新进度条
         self.progressBar.setValue(1)
         self.progressBar_2.setValue(0)
@@ -283,7 +284,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         if detection_type == "单面":
             self.progressBar_2.hide()
             self.progressBar.setShouldDrawText(False)  # 不绘制文本
-            self.detection_type="单面"
+            self.detection_type = "单面"
 
         elif detection_type == "双面":
             self.detection_type = "双面"
@@ -348,7 +349,6 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.progressBar_2.setMinimum(0)
         self.progressBar_2.clickedValue.connect(self.onProgressBarClicked)
 
-
     def onProgressBarClicked(self, value):
 
         sender = self.sender()
@@ -376,7 +376,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                    INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
                    VALUES (?, ? ,? ,?)
                    """
-                cursor.execute(insert_query, (current_time, error_message,self.user_cwid,self.user_name))
+                cursor.execute(insert_query, (current_time, error_message, self.user_cwid, self.user_name))
                 connection.commit()
 
                 print("错误信息已记录到数据库")
@@ -395,7 +395,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 self.stackedWidget.setCurrentIndex(whichPart)
             elif sender == self.progressBar_2:
                 # 第二个进度条被点击
-                if not self.captured_images and not self.task_completion_status[value]: #捕获列表为空，说明没有保存批号面
+                if not self.captured_images and not self.task_completion_status[value]:  # 捕获列表为空，说明没有保存批号面
                     QtWidgets.QMessageBox.warning(self, "提示", f"请先完成产品{whichPart + 1}的批号面拍摄")
                     # 获取当前时间
                     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -413,7 +413,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                            INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
                             VALUES (?, ? ,? ,?)
                            """
-                        cursor.execute(insert_query, (current_time, error_message ,self.user_cwid ,self.user_name))
+                        cursor.execute(insert_query, (current_time, error_message, self.user_cwid, self.user_name))
                         connection.commit()
 
                         print("错误信息已记录到数据库")
@@ -443,6 +443,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 触发重绘以更新加粗效果
         self.progressBar.update()
         self.progressBar_2.update()
+
     def onStartDetectClicked(self):
         if (self.detection_type == '双面' and len(self.captured_images) < 2) or (
                 self.detection_type == '单面' and not self.captured_images):
@@ -463,7 +464,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                                INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
                                VALUES (?, ? ,? ,?)
                                """
-                cursor.execute(insert_query, (current_time, error_message ,self.user_cwid ,self.user_name))
+                cursor.execute(insert_query, (current_time, error_message, self.user_cwid, self.user_name))
                 connection.commit()
 
                 print("错误信息已记录到数据库")
@@ -502,14 +503,13 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 提取日期和批号
         dates = extracted_data['dates']
         batch_numbers = extracted_data['batch_numbers']
-        print("data",dates)
+        print("data", dates)
         # 当检测类型为 "双面" 时的特定逻辑
         if self.detection_type == "双面":
             if len(batch_numbers) == 0:
                 reply = QMessageBox.question(self, '消息提示',
-                                             '未检测到批号信息，'
-                                             '是否进行当前产品的重新拍摄？'
-                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             '未检测到批号信息,'
+                                             '“Yes”:重新拍摄; “No”:继续上传系统\n',
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     # 添加重新拍摄的代码
@@ -517,31 +517,106 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.captured_images.clear()
                     self.current_label_index = self.current_label_index - 2
                     self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
-                    self.stackedWidget.setCurrentIndex(self.current_label_index//2)
+                    self.progressBar_2.setValue(max(0, self.current_label_index // 2))
+                    self.stackedWidget.setCurrentIndex(self.current_label_index // 2)
                     return
                 else:
                     # 二次确认
-                    reply_again = QMessageBox.question(self, '二次确认',
-                                                       '确定不重新拍摄吗？'
-                                                       '点击“No”重新拍摄，点击“Yes”则继续上传系统',
+                    reply_again = QMessageBox.question(self, '系统警告',
+                                                       '“Yes”:上传系统; “No”:不上传此次记录\n',
                                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply_again == QMessageBox.Yes:
                         batch_numbers = []  # 用户决定不重新拍摄，清空批号列表
                     else:
-                        # 添加重新拍摄的代码
                         # 清空已捕获的图像
                         self.captured_images.clear()
-                        self.current_label_index = self.current_label_index - 2
-                        self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
-                        self.stackedWidget.setCurrentIndex(self.current_label_index//2)
+                        # 当前任务的索引
+                        self.task_index = self.current_label_index // 2
+                        # 标记当前任务为完成
+                        if self.task_index <= len(self.task_completion_status):
+                            self.task_completion_status[self.task_index - 1] = True
+                        #  添加逻辑判断当前整体任务是否完成
+                        if self.task_completion_status[self.count - 1] == True:
+                            self.isComplete = True
+                            self.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                            # 发生任务完成信号，备用
+                            # self.Compl.emit()
+                        if not self.isComplete:
+                            if self.current_label_index % 2 == 0:
+                                # 如果刚捕获完日期面，切换到下一个产品的批号面
+                                next_index = (self.current_label_index) // 2
+                                self.stackedWidget.setCurrentIndex(next_index)
+                        # 更新进度条的值
+                        if self.current_label_index % 2 == 0:
+                            self.progressBar.setValue(self.current_label_index // 2 + 1)
+                        else:
+                            self.progressBar_2.setValue(self.current_label_index // 2 + 1)
+
+                        if not self.camera_worker.isRunning():
+                            self.camera_worker.start()
+                        # 更新 self.textBrowser_4
+                        self.textBrowser_4.append(f"第{self.current_label_index // 2}个产品")
+                        # 根据日期数量显示不同的文本
+                        if len(dates) == 1:
+                            date_in_list = None
+                            current_date = datetime.now()
+                            date_formats = ['%Y/%m/%d', '%d/%m/%Y']
+
+                            # 尝试两种日期格式
+                            for fmt in date_formats:
+                                try:
+                                    date_in_list = datetime.strptime(dates[0], fmt)
+                                    break  # 如果成功解析，则退出循环
+                                except ValueError:
+                                    continue  # 如果当前格式不匹配，尝试下一个格式
+
+                            # 如果成功解析日期且列表中的日期晚于当前日期
+                            if date_in_list and date_in_list > current_date:
+                                # 列表中的日期变为有效期至，dates[0]应为空
+                                dates.insert(0, '')  # 在列表前插入空字符串，现在dates[0]为空
+                                # 此时dates[1]已经是原来dates[0]的值
+                                # self.textBrowser_4.append(f"生产日期: {dates[0]}")  # 这将是空的
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+                            else:
+                                # 如果列表中的日期不晚于当前日期或日期解析失败
+                                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                                dates.append('')  # 确保dates长度为2，且dates[1]为空
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+                        elif len(dates) == 2:
+                            # 将日期字符串转换为日期对象
+                            date_format_ymd = '%Y/%m/%d'
+                            date_format_dmy = '%d/%m/%Y'
+                            try:
+                                date1 = datetime.strptime(dates[0], date_format_ymd)
+                            except ValueError:
+                                date1 = datetime.strptime(dates[0], date_format_dmy)
+
+                            try:
+                                date2 = datetime.strptime(dates[1], date_format_ymd)
+                            except ValueError:
+                                date2 = datetime.strptime(dates[1], date_format_dmy)
+
+                            # 比较日期并按顺序输出
+                            if date1 < date2:
+                                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+                            else:
+                                dates[0], dates[1] = dates[1], dates[0]
+                                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+
+                        if self.isComplete:
+                            # 更新“已完成”
+                            item = QtWidgets.QTableWidgetItem("已完成")
+                            self.tableWidget_2.setItem(7, 1, item)
+
+                            # 假设这是在任务完成后的逻辑
+                            self.taskCompleted.emit(self.task_key)
                         return
             if len(dates) == 0:
                 reply = QMessageBox.question(self, '消息提示',
-                                             '未检测到日期信息，'
-                                             '是否进行当前产品的重新拍摄？'
-                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             '未检测到日期信息,'
+                                             '“Yes”:重新拍摄; “No”:继续上传系统\n',
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     # 添加重新拍摄的代码
@@ -549,32 +624,61 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     self.captured_images.clear()
                     self.current_label_index = self.current_label_index - 2
                     self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                    self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
-                    self.stackedWidget.setCurrentIndex(self.current_label_index//2)
+                    self.progressBar_2.setValue(max(0, self.current_label_index // 2))
+                    self.stackedWidget.setCurrentIndex(self.current_label_index // 2)
                     return
                 else:
                     # 二次确认
-                    reply_again = QMessageBox.question(self, '二次确认',
-                                                       '确定不重新拍摄吗？'
-                                                       '点击“No”返回拍摄，点击“Yes”则继续上传系统',
+                    reply_again = QMessageBox.question(self, '系统警告',
+                                                       '“Yes”:上传系统; “No”:不上传此次记录\n',
                                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply_again == QMessageBox.Yes:
                         dates = []  # 用户决定不重新拍摄，清空日期列表
                     else:
-                        # 添加重新拍摄的代码
-                        # 清空已捕获的图像
+                        # 当前任务的索引
+                        self.task_index = self.current_label_index // 2
+                        # 标记当前任务为完成
+                        if self.task_index <= len(self.task_completion_status):
+                            self.task_completion_status[self.task_index - 1] = True
+                        #  添加逻辑判断当前整体任务是否完成
+                        if self.task_completion_status[self.count - 1] == True:
+                            self.isComplete = True
+                            self.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                            # 发生任务完成信号，备用
+                            # self.Compl.emit()
+                        if not self.isComplete:
+                            if self.current_label_index % 2 == 0:
+                                # 如果刚捕获完日期面，切换到下一个产品的批号面
+                                next_index = (self.current_label_index) // 2
+                                self.stackedWidget.setCurrentIndex(next_index)
+                        # 更新进度条的值
+                        if self.current_label_index % 2 == 0:
+                            self.progressBar.setValue(self.current_label_index // 2 + 1)
+                        else:
+                            self.progressBar_2.setValue(self.current_label_index // 2 + 1)
+
+                        if not self.camera_worker.isRunning():
+                            self.camera_worker.start()
+
+                        # 更新 self.textBrowser_4
+                        self.textBrowser_4.append(f"第{self.current_label_index // 2}个产品")
+                        # 显示批号
+                        for batch_number in batch_numbers:
+                            self.textBrowser_4.append(f"批号: {batch_number}")
                         self.captured_images.clear()
-                        self.current_label_index = self.current_label_index - 2
-                        self.progressBar.setValue(max(0, self.current_label_index // 2 + 1))
-                        self.progressBar_2.setValue(max(0, self.current_label_index // 2 ))
-                        self.stackedWidget.setCurrentIndex(self.current_label_index//2)
+                        if self.isComplete:
+                            # 更新“已完成”
+                            item = QtWidgets.QTableWidgetItem("已完成")
+                            self.tableWidget_2.setItem(7, 1, item)
+
+                            # 假设这是在任务完成后的逻辑
+                            self.taskCompleted.emit(self.task_key)
                         return
         elif self.detection_type == "单面":
             if len(batch_numbers) == 0:
                 reply = QMessageBox.question(self, '消息提示',
-                                             '未检测到批号信息，'
-                                             '是否跟换当前产品的药盒后进行重新拍摄？'
-                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             '未检测到批号信息,'
+                                             '“Yes”:重新拍摄; “No”:继续上传系统\n',
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     # 添加重新拍摄的代码
@@ -585,25 +689,94 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     return
                 else:
                     # 二次确认
-                    reply_again = QMessageBox.question(self, '二次确认',
-                                                       '确定不重新拍摄吗？'
-                                                       '点击“No”返回拍摄，点击“Yes”则继续上传系统',
+                    reply_again = QMessageBox.question(self, '系统警告',
+                                                       '“Yes”:上传系统; “No”:不上传此次记录\n',
                                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply_again == QMessageBox.Yes:
                         batch_numbers = []  # 用户决定不重新拍摄，清空批号列表
                     else:
-                        # 添加重新拍摄的代码
                         # 清空已捕获的图像
+                        # 当前任务的索引
+                        self.task_index = self.current_label_index
+                        # 标记当前任务为完成
+                        if self.task_index <= len(self.task_completion_status):
+                            self.task_completion_status[self.task_index - 1] = True
+                        #  添加逻辑判断当前整体任务是否完成
+                        if self.task_completion_status[self.count - 1] == True:
+                            self.isComplete = True
+                            self.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                            # 发生任务完成信号，备用
+                            # self.Compl.emit()
+                        if not self.isComplete:
+                            # 单面情况，直接显示下一个产品
+                            self.stackedWidget.setCurrentIndex(self.current_label_index)
+
+                        # 更新进度条的值
+                        self.progressBar.setValue(self.current_label_index + 1)
+                        # 更新 self.textBrowser_4
+                        self.textBrowser_4.append(f"第{self.current_label_index}个产品")
+                        # 根据日期数量显示不同的文本
+                        if len(dates) == 1:
+                            date_in_list = None
+                            current_date = datetime.now()
+                            date_formats = ['%Y/%m/%d', '%d/%m/%Y']
+
+                            # 尝试两种日期格式
+                            for fmt in date_formats:
+                                try:
+                                    date_in_list = datetime.strptime(dates[0], fmt)
+                                    break  # 如果成功解析，则退出循环
+                                except ValueError:
+                                    continue  # 如果当前格式不匹配，尝试下一个格式
+
+                            # 如果成功解析日期且列表中的日期晚于当前日期
+                            if date_in_list and date_in_list > current_date:
+                                # 列表中的日期变为有效期至，dates[0]应为空
+                                dates.insert(0, '')  # 在列表前插入空字符串，现在dates[0]为空
+                                # 此时dates[1]已经是原来dates[0]的值
+                                # self.textBrowser_4.append(f"生产日期: {dates[0]}")  # 这将是空的
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+                            else:
+                                # 如果列表中的日期不晚于当前日期或日期解析失败
+                                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                                dates.append('')  # 确保dates长度为2，且dates[1]为空
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+                        elif len(dates) == 2:
+                            # 将日期字符串转换为日期对象
+                            date_format_ymd = '%Y/%m/%d'
+                            date_format_dmy = '%d/%m/%Y'
+                            try:
+                                date1 = datetime.strptime(dates[0], date_format_ymd)
+                            except ValueError:
+                                date1 = datetime.strptime(dates[0], date_format_dmy)
+
+                            try:
+                                date2 = datetime.strptime(dates[1], date_format_ymd)
+                            except ValueError:
+                                date2 = datetime.strptime(dates[1], date_format_dmy)
+
+                            # 比较日期并按顺序输出
+                            if date1 < date2:
+                                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
+                            else:
+                                dates[0], dates[1] = dates[1], dates[0]
+                                self.textBrowser_4.append(f"生产日期: {dates[0]}")
+                                self.textBrowser_4.append(f"有效期至: {dates[1]}")
                         self.captured_images.clear()
-                        self.current_label_index = self.current_label_index - 1
-                        self.progressBar.setValue(max(0, self.current_label_index + 1))
+                        if self.isComplete:
+                            # 更新“已完成”
+                            item = QtWidgets.QTableWidgetItem("已完成")
+                            self.tableWidget_2.setItem(7, 1, item)
+
+                            # 假设这是在任务完成后的逻辑
+                            self.taskCompleted.emit(self.task_key)
                         return
 
             if len(dates) == 0:
                 reply = QMessageBox.question(self, '消息提示',
-                                             '未检测到日期信息，'
-                                             '是否跟换当前产品的药盒后进行重新拍摄？'
-                                             '点击“Yes”重新拍摄，点击“No”则继续上传系统',
+                                             '未检测到日期信息,'
+                                             '“Yes”:重新拍摄; “No”:继续上传系统\n',
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     # 添加重新拍摄的代码
@@ -614,18 +787,43 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                     return
                 else:
                     # 二次确认
-                    reply_again = QMessageBox.question(self, '二次确认',
-                                                       '确定不重新拍摄吗？'
-                                                       '点击“No”返回拍摄，点击“Yes”则继续上传系统',
+                    reply_again = QMessageBox.question(self, '系统警告',
+                                                       '“Yes”:上传系统; “No”:不上传此次记录\n',
                                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply_again == QMessageBox.Yes:
                         dates = []  # 用户决定不重新拍摄，清空日期列表
                     else:
-                        # 添加重新拍摄的代码
+                        # 当前任务的索引
+                        self.task_index = self.current_label_index
+                        # 标记当前任务为完成
+                        if self.task_index <= len(self.task_completion_status):
+                            self.task_completion_status[self.task_index - 1] = True
+                        #  添加逻辑判断当前整体任务是否完成
+                        if self.task_completion_status[self.count - 1] == True:
+                            self.isComplete = True
+                            self.camera_worker.pause()  # 调用 pause 方法来暂停线程
+                            # 发生任务完成信号，备用
+                            # self.Compl.emit()
+                        if not self.isComplete:
+                            # 单面情况，直接显示下一个产品
+                            self.stackedWidget.setCurrentIndex(self.current_label_index)
+
+                        # 更新进度条的值
+                        self.progressBar.setValue(self.current_label_index + 1)
+                        # 更新 self.textBrowser_4
+                        self.textBrowser_4.append(f"第{self.current_label_index}个产品")
+                        # 显示批号
+                        for batch_number in batch_numbers:
+                            self.textBrowser_4.append(f"批号: {batch_number}")
                         # 清空已捕获的图像
                         self.captured_images.clear()
-                        self.current_label_index = self.current_label_index - 1
-                        self.progressBar.setValue(max(0, self.current_label_index + 1))
+                        if self.isComplete:
+                            # 更新“已完成”
+                            item = QtWidgets.QTableWidgetItem("已完成")
+                            self.tableWidget_2.setItem(7, 1, item)
+
+                            # 假设这是在任务完成后的逻辑
+                            self.taskCompleted.emit(self.task_key)
                         return
 
         # 当前任务的索引
@@ -664,7 +862,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
 
         # 更新 self.textBrowser_4
         if self.detection_type == "双面":
-            self.textBrowser_4.append(f"第{self.current_label_index//2}个产品")
+            self.textBrowser_4.append(f"第{self.current_label_index // 2}个产品")
         else:
             self.textBrowser_4.append(f"第{self.current_label_index}个产品")
         # 显示批号
@@ -689,7 +887,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # 列表中的日期变为有效期至，dates[0]应为空
                 dates.insert(0, '')  # 在列表前插入空字符串，现在dates[0]为空
                 # 此时dates[1]已经是原来dates[0]的值
-                #self.textBrowser_4.append(f"生产日期: {dates[0]}")  # 这将是空的
+                # self.textBrowser_4.append(f"生产日期: {dates[0]}")  # 这将是空的
                 self.textBrowser_4.append(f"有效期至: {dates[1]}")
             else:
                 # 如果列表中的日期不晚于当前日期或日期解析失败
@@ -727,13 +925,12 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         # 现在清空原列表不会影响线程中的副本
         self.captured_images.clear()
         if self.isComplete:
-            #更新“已完成”
+            # 更新“已完成”
             item = QtWidgets.QTableWidgetItem("已完成")
             self.tableWidget_2.setItem(7, 1, item)
 
             # 假设这是在任务完成后的逻辑
             self.taskCompleted.emit(self.task_key)
-
 
     def extract_relevant_data(self, results):
         extracted_data = {'dates': [], 'batch_numbers': []}
@@ -792,7 +989,8 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                 # "单面"情况下只使用self.labels_1
                 if self.current_label_index < self.count:
                     target_label = self.labels_1[self.current_label_index]
-                    target_label.setPixmap(pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                    target_label.setPixmap(
+                        pixmap.scaled(target_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def clearLabels(self):
         for label in self.labels:
@@ -851,7 +1049,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
                    INSERT INTO ErrorLog (OccurrenceTime, ErrorMessage ,CWID ,UserName)
                    VALUES (?, ? ,? ,?)
                    """
-                cursor.execute(insert_query, (current_time, error_message,self.user_cwid ,self.user_name))
+                cursor.execute(insert_query, (current_time, error_message, self.user_cwid, self.user_name))
                 connection.commit()
 
                 print("错误信息已记录到数据库")
