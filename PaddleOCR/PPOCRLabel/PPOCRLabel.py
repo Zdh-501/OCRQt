@@ -98,6 +98,9 @@ class MainWindow(QMainWindow):
                              use_angle_cls=True,
                              det=True,
                              cls=True,
+                             det_model_dir="D:/Paddle/inference_model/det/ResNet50_1220",
+                             rec_model_dir="D:/Paddle/inference_model/rec/rec20240407",
+                             det_db_unclip_ratio=2.5,
                              use_gpu=gpu,
                              lang=lang,
                              show_log=False)
