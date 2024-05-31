@@ -175,7 +175,7 @@ class PicturePage(QtWidgets.QWidget, Ui_PicturePage):
         self.Ocr = PaddleOCR(use_gpu=False,
                              det_model_dir=self.det_model_dir,
                              rec_model_dir=self.rec_model_dir,
-                             use_angle_cls=True,
+                             use_angle_cls=False,
                              det_db_unclip_ratio=self.det_db_unclip_ratio,
                              lang='ch')
 

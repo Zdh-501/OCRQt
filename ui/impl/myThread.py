@@ -8,7 +8,7 @@ import numpy as np
 from mphdcpy import mphdc
 import cv2
 import paddleocr
-
+import lazy_loader
 from threading import Condition
 from PIL import Image
 from io import BytesIO
@@ -85,12 +85,12 @@ class CameraWorker(QThread):
                                 kd_channel_flipped_horizontal
                             ])
                         # 获取图像的宽度和高度
-                        height, width = merged_image_flipped.shape[:2]
+                        #height, width = merged_image_flipped.shape[:2]
                         # 调整图像大小为原来的一半
-                        resized_image = cv2.resize(merged_image_flipped, (width // 2, height // 2),interpolation=cv2.INTER_AREA)
+                        #resized_image = cv2.resize(merged_image_flipped, (width // 2, height // 2),interpolation=cv2.INTER_AREA)
                         # 发出调整大小后的图像
-                        self.image_captured.emit(resized_image)
-                        #self.image_captured.emit(merged_image_flipped)
+                        #self.image_captured.emit(resized_image)
+                        self.image_captured.emit(merged_image_flipped)
 
     def is_paused(self):
         return self._is_paused
@@ -134,7 +134,7 @@ class OcrThread(QThread):
             # print(f"Resized image {i} size: {resized_image.shape}")
 
 
-            result = self.Ocr.ocr(image_np, cls=True)
+            result = self.Ocr.ocr(image_np, cls=False)
             results.append((i, result))
 
 
@@ -190,8 +190,12 @@ class DatabaseOperationThread(QThread):
                 # 假设 self.captured_images 是包含多个 NumPy 图像数组的列表
                 self.images_base64 = []
                 for image_np in self.captured_images:
+                    # 将图像从BGR格式转换为RGB格式
+                    image_rgb = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+
                     # 将 NumPy 图像数组编码为 JPEG 格式的字节流
-                    retval, buffer = cv2.imencode('.jpg', image_np)
+                    retval, buffer = cv2.imencode('.jpg', image_rgb)
+
                     if retval:
                         # 将字节流编码为 Base64 字符串
                         image_base64 = base64.b64encode(buffer).decode('utf-8')

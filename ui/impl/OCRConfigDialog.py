@@ -40,7 +40,7 @@ class OCRConfigDialog(QDialog):
 
         # 创建用于 "使用角度分类" 的复选框
         self.useAngleClsCheckbox = QCheckBox("使用角度分类", self)
-        self.useAngleClsCheckbox.setChecked(True)
+        self.useAngleClsCheckbox.setChecked(False)
         self.layout.addWidget(self.useAngleClsCheckbox)
 
         # 创建解剪比率的输入框
