@@ -1,7 +1,7 @@
 import requests
 from xml.etree import ElementTree as ET
 from datetime import datetime, timedelta
-
+import json
 # 假设这是BES系统期望的任务信息结构
 class Result:
     def __init__(self, task_identifier, batch_no, task_key, sequence, order_no, production_date, expiry_date, image, cwid, operation_time):
@@ -64,8 +64,10 @@ def send_result_to_bes(result):
         </soapenv:Envelope>
         """
 
-    # BES系统的接口地址
-    bes_url = 'http://36.250.224.10:8084/SmartWorkESB_KMSC/services/XmlService'
+    # 从配置文件读取BES系统的接口地址
+    with open('D:/config.json', 'r') as config_file:
+        config = json.load(config_file)
+        bes_url = config['bes_url']
 
     # 构建请求头部
     headers = {
